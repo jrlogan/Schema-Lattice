@@ -1,0 +1,81 @@
+{
+  "_comment_top": "Example showing the :coRefersWith relation. Two distinct concepts — Marina and DiveSite — that share a real-world referent (a physical GPS coordinate). Each captures a different perspective on the same place. SKOS cannot express this natively; relatedMatch is too weak, exactMatch is too strong. :coRefersWith is SchemaLattice's answer.",
+
+  "marina": {
+    "@context": "https://schemalattice.io/context/v1.jsonld",
+    "uri": "https://schemalattice.io/c/marina-ops/marina@112233445566",
+    "type": "Concept",
+    "inScheme": "https://schemalattice.io/s/marina-ops@aabbccddeeff",
+    "prefLabel": { "en": "Marina" },
+    "altLabel": { "en": ["Harbor", "Boat Basin"] },
+    "definition": {
+      "en": "A harbor facility for recreational and commercial watercraft, providing slips, fuel, water, and shore services. Characterized by its slip capacity, approach conditions, and tidal behavior."
+    },
+    "broader": [
+      "https://schemalattice.io/c/location/waterfront-facility@998877665544"
+    ],
+    "structure": {
+      "fields": [
+        { "name": "coordinates", "type": "geoPoint" },
+        { "name": "slipCount", "type": "integer" },
+        { "name": "fuelAvailable", "type": "boolean" },
+        { "name": "approachChart", "type": "reference", "ref": "marina-ops/Chart" },
+        { "name": "tidalRange", "type": "number", "unit": "meters" },
+        { "name": "services", "type": "reference[]", "ref": "marina-ops/Service" }
+      ]
+    },
+    "coRefersWith": [
+      "https://schemalattice.io/c/scuba-ops/dive-site@7766554433aa"
+    ],
+    "createdOn": "2026-03-15T10:00:00Z",
+    "createdBy": ["schemalattice-seed"]
+  },
+
+  "dive_site": {
+    "@context": "https://schemalattice.io/context/v1.jsonld",
+    "uri": "https://schemalattice.io/c/scuba-ops/dive-site@7766554433aa",
+    "type": "Concept",
+    "inScheme": "https://schemalattice.io/s/scuba-ops@00112233aabb",
+    "prefLabel": { "en": "Dive Site" },
+    "altLabel": { "en": ["Dive Location", "Dive Spot"] },
+    "definition": {
+      "en": "A location used for scuba diving, characterized by what is below the surface: depth profile, visibility, current strength, marine life, and underwater features."
+    },
+    "forkedFrom": "https://schemalattice.io/c/location/waterfront-facility@998877665544",
+    "structure": {
+      "fields": [
+        { "name": "coordinates", "type": "geoPoint" },
+        { "name": "typicalDepthRange", "type": "array", "itemType": "number", "unit": "meters" },
+        { "name": "visibilityRange", "type": "array", "itemType": "number", "unit": "meters" },
+        { "name": "currentStrength", "type": "enum", "values": ["none", "mild", "moderate", "strong"] },
+        { "name": "siteType", "type": "enum", "values": ["reef", "wreck", "cave", "wall", "shore"] },
+        { "name": "marineLife", "type": "array", "itemType": "string" },
+        { "name": "requiredCertification", "type": "reference", "ref": "skills-registry/Credential" }
+      ]
+    },
+    "changeset": {
+      "ops": [
+        { "op": "remove", "field": "slipCount" },
+        { "op": "remove", "field": "fuelAvailable" },
+        { "op": "remove", "field": "tidalRange" },
+        { "op": "add", "field": "typicalDepthRange", "type": "array", "itemType": "number", "unit": "meters" },
+        { "op": "add", "field": "visibilityRange", "type": "array", "itemType": "number", "unit": "meters" },
+        { "op": "add", "field": "currentStrength", "type": "enum" },
+        { "op": "add", "field": "siteType", "type": "enum" },
+        { "op": "add", "field": "marineLife", "type": "array", "itemType": "string" },
+        { "op": "add", "field": "requiredCertification", "type": "reference", "ref": "skills-registry/Credential" }
+      ],
+      "upgradable": true,
+      "note": "Derived from the shared parent waterfront-facility rather than from Marina directly. Marina and DiveSite are siblings, not parent-child, because neither subsumes the other."
+    },
+    "coRefersWith": [
+      "https://schemalattice.io/c/marina-ops/marina@112233445566"
+    ],
+    "createdOn": "2026-03-20T14:30:00Z",
+    "createdBy": ["schemalattice-seed"]
+  },
+
+  "_explanation": "Both Marina and DiveSite describe the same kind of physical place — a boat harbor that is also a popular dive destination. Marina views it from the surface (slips, fuel, approach chart, tide). DiveSite views it from underwater (depth profile, visibility, current, marine life). Neither perspective is more correct than the other. An app that cares about boat storage references Marina; an app that cares about dive planning references DiveSite; an app doing both loads both and joins them via coRefersWith. The shared parent 'waterfront-facility' captures the common ground — both are specializations of it — but the specialization goes in two different directions, which is why they are siblings rather than parent-and-child of each other. This is what :coRefersWith unlocks: the ability to say 'these two concepts describe the same real-world thing from different angles' without forcing one to be a special case of the other.",
+
+  "_cross_app_scenario": "Imagine two apps, both using SchemaLattice. App A is a boat club manager; it stores records at Marina@112233445566. App B is a scuba club app; it stores records at DiveSite@7766554433aa. A user who belongs to both clubs opens their dive log and sees that last Saturday's dive was at a location whose dive-site URI coRefersWith a marina-ops URI that their boat club also knows. The apps can now automatically cross-reference — the boat club can show 'your member dove here on Saturday,' and the dive app can show 'your club's dock is at this location.' Neither app needed to know about the other; the lattice's coRefersWith edge made it discoverable."
+}

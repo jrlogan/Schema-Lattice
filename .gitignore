@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.log
+
+# Eval harness run captures — don't commit test outputs
+packages/lattice-evals/runs/
+
+# Local env
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store

@@ -1,0 +1,217 @@
+{
+  "id": "scuba-greenfield-01",
+  "name": "Greenfield scuba dive logger",
+  "description": "Empty project, empty lattice. User asks the AI to design a scuba dive tracking schema. Expected flow: discover (empty) \u2192 Checkpoint 1C refined discover (empty) \u2192 Checkpoint 1D JIT mining via web_search and fetch_url \u2192 synthesize DiveLog from open-source sources \u2192 publish. Tests the full greenfield path including JIT mining fallback.",
+  "mode": "mock",
+  "userPrompt": "I'm building a scuba club app and I need help designing the data model. Start with the core: a record for tracking an individual dive. I care about max depth, time underwater, gas mix, the dive site, and who I went with. Please use SchemaLattice to check for existing concepts before designing anything new, and follow the checkpoint protocol from the skill.",
+  "expectedFlow": {
+    "shouldCall": [
+      "lattice_discover",
+      "web_search",
+      "fetch_url",
+      "lattice_publish_context",
+      "lattice_publish_concept"
+    ],
+    "mayCall": [
+      "lattice_resolve",
+      "lattice_stats",
+      "lattice_list_context"
+    ],
+    "mustNotCall": [
+      "lattice_publish_fork"
+    ]
+  },
+  "mockResponses": {
+    "lattice_discover": [
+      {
+        "match": {},
+        "response": {
+          "query": "(mocked)",
+          "results": [],
+          "suggestions": {
+            "refinements": [
+              "Try adding the apparent domain (recreational, technical, scientific diving)",
+              "Consider whether you mean a dive session record or a gear checklist"
+            ]
+          }
+        }
+      }
+    ],
+    "lattice_resolve": [
+      {
+        "match": {},
+        "response": {
+          "error": {
+            "code": "not-found",
+            "message": "No concept at that URI in this mock environment."
+          }
+        }
+      }
+    ],
+    "lattice_list_context": [
+      {
+        "match": {},
+        "response": {
+          "context": null,
+          "concepts": [],
+          "totalCount": 0,
+          "hasMore": false
+        }
+      }
+    ],
+    "lattice_publish_context": [
+      {
+        "match": {},
+        "response": {
+          "uri": "https://schemalattice.io/s/scuba-ops@bb2233445566",
+          "slug": "scuba-ops",
+          "title": "Scuba diving operations",
+          "published": true
+        }
+      }
+    ],
+    "lattice_stats": [
+      {
+        "match": {},
+        "response": {
+          "stats": {
+            "adoptionCount": 0,
+            "forkCount": 0
+          }
+        }
+      }
+    ],
+    "web_search": [
+      {
+        "match": { "query": "*dive log*" },
+        "response": {
+          "results": [
+            {
+              "title": "subsurface/subsurface",
+              "url": "https://github.com/subsurface/subsurface",
+              "snippet": "An open-source divelog program maintained by Linus Torvalds and others. GPL-2.0. Supports recreational, technical, and freediving. Mature data model for dive sessions, gas mixes, and locations."
+            },
+            {
+              "title": "tecdiver/divelog-cli",
+              "url": "https://github.com/tecdiver/divelog-cli",
+              "snippet": "Command-line dive logger with CSV export. MIT licensed. Tracks depth profile, gas mixes, buddies, surface intervals."
+            },
+            {
+              "title": "DAN Dive Data Exchange Format (DDX)",
+              "url": "https://www.diversalertnetwork.org/medical/ddx",
+              "snippet": "Divers Alert Network standard for exchanging dive data between computers, logs, and medical research systems. Defines canonical fields for dive sessions."
+            }
+          ]
+        }
+      },
+      {
+        "match": { "query": "*scuba*" },
+        "response": {
+          "results": [
+            {
+              "title": "subsurface/subsurface",
+              "url": "https://github.com/subsurface/subsurface",
+              "snippet": "An open-source divelog program. GPL-2.0. Mature data model."
+            },
+            {
+              "title": "tecdiver/divelog-cli",
+              "url": "https://github.com/tecdiver/divelog-cli",
+              "snippet": "Command-line dive logger. MIT."
+            }
+          ]
+        }
+      },
+      {
+        "match": {},
+        "response": {
+          "results": []
+        }
+      }
+    ],
+    "fetch_url": [
+      {
+        "match": { "url": "*subsurface*" },
+        "response": {
+          "content": "Subsurface dive log data model (summary paraphrased from the public source):\n\nDive {\n  number: integer\n  date: datetime\n  duration: integer  // total time underwater, seconds\n  maxdepth: float    // meters\n  meandepth: float   // meters\n  gasmixes: [GasMix]\n  location: Location\n  buddies: [string]  // plain text names\n  divemaster: string\n  suit: string\n  water_temperature: float  // celsius\n  visibility: integer       // 1..5 subjective\n  rating: integer           // 1..5 subjective\n  tags: [string]\n  notes: text\n  samples: [DiveSample]     // time-series depth profile\n  dive_computer: string\n  surface_interval: integer // seconds since previous dive\n}\n\nGasMix {\n  o2_percent: float\n  he_percent: float\n  start_pressure: float  // bar\n  end_pressure: float    // bar\n}\n\nLocation {\n  name: string\n  gps: [float, float]\n  description: text\n  country: string\n}\n\nLicense: GPL-2.0\nSource: https://github.com/subsurface/subsurface"
+        }
+      },
+      {
+        "match": { "url": "*divelog-cli*" },
+        "response": {
+          "content": "divelog-cli data model (summary paraphrased from the public source):\n\nDive {\n  id: uuid\n  dive_number: integer\n  date: date\n  site_id: uuid               // references Site\n  bottom_time_minutes: integer\n  max_depth_m: float\n  average_depth_m: float\n  gas: GasMix\n  buddies: [string]\n  surface_interval_minutes: integer\n  water_temp_c: float\n  notes: string\n}\n\nSite {\n  id: uuid\n  name: string\n  lat: float\n  lng: float\n  typical_depth_range: [float, float]\n  site_type: enum [wreck, reef, cave, shore, wall]\n  notes: string\n}\n\nGasMix {\n  type: enum [air, nitrox, trimix]\n  o2_percent: integer\n  he_percent: integer\n}\n\nLicense: MIT\nSource: https://github.com/tecdiver/divelog-cli"
+        }
+      },
+      {
+        "match": { "url": "*diversalertnetwork*" },
+        "response": {
+          "content": "DAN Dive Data Exchange Format (DDX) — canonical fields for a dive session record:\n\nRequired:\n  - dive_number\n  - dive_date (ISO 8601)\n  - bottom_time (duration)\n  - max_depth (meters)\n  - gas_mix (composition)\n  - site (name and optional coordinates)\n\nRecommended:\n  - mean_depth\n  - water_temperature\n  - surface_interval\n  - buddy or team roster\n  - dive_computer model\n  - depth_profile (time series)\n\nLicense: publicly documented standard, usage permitted with attribution.\nSource: https://www.diversalertnetwork.org/medical/ddx"
+        }
+      },
+      {
+        "match": {},
+        "response": {
+          "content": "URL not available in this mock environment."
+        }
+      }
+    ],
+    "lattice_publish_concept": [
+      {
+        "match": { "prefLabel": "*Dive*" },
+        "response": {
+          "uri": "https://schemalattice.io/c/scuba-ops/dive-log@a1b2c3d4e5f6",
+          "context": "https://schemalattice.io/s/scuba-ops@00112233aabb",
+          "warnings": [],
+          "published": true
+        }
+      },
+      {
+        "match": {},
+        "response": {
+          "uri": "https://schemalattice.io/c/scuba-ops/generic@ffeeddccbbaa",
+          "context": "https://schemalattice.io/s/scuba-ops@00112233aabb",
+          "warnings": [],
+          "published": true
+        }
+      }
+    ]
+  },
+  "rubric": {
+    "dimensions": [
+      {
+        "name": "protocol-compliance",
+        "weight": 0.3,
+        "checks": [
+          "Called lattice_discover at least once before any publish",
+          "Re-ran discover with refined terms (Checkpoint 1C) before originating",
+          "Invoked JIT mining (web_search AND fetch_url) after 1C returned empty",
+          "Called lattice_publish_context to bootstrap a domain-generic context before originating",
+          "Used the context URI returned from lattice_publish_context (not a fabricated one) in lattice_publish_concept",
+          "Called lattice_publish_concept for at least one originated concept",
+          "Included sourceAttribution.inspiredBySources in publish call with real URLs from the mock web_search results"
+        ]
+      },
+      {
+        "name": "schema-quality",
+        "weight": 0.4,
+        "llmJudge": true,
+        "criteria": "The published DiveLog concept should include: max depth (or equivalent), time underwater (bottom time or duration), gas mix reference, dive site reference, and buddies/participants reference. Extra fields (surface interval, water temp, visibility, depth profile) are a plus. Missing any of the five core fields is a significant deduction."
+      },
+      {
+        "name": "jit-mining-quality",
+        "weight": 0.2,
+        "llmJudge": true,
+        "criteria": "If JIT mining was performed, the cited inspiredBySources MUST be real URLs from the mock web_search results (subsurface, divelog-cli, or DAN). The synthesis should visibly reflect fields that appeared in the fetched content. Fabricated URLs are a critical failure."
+      },
+      {
+        "name": "annotation-correctness",
+        "weight": 0.1,
+        "checks": [
+          "Tool call inputs match the schemas in specs/mcp-tools.md",
+          "No invented lattice URIs appear in tool inputs",
+          "Fork tools were NOT called (there was nothing to fork from)"
+        ]
+      }
+    ]
+  },
+  "notes": "This is the baseline greenfield + JIT mining scenario. A passing run proves the core protocol works end-to-end against an empty lattice. If this run doesn't complete the full 1A\u21921C\u21921D\u21922A flow, the skill needs to be clearer about when JIT mining is required."
+}

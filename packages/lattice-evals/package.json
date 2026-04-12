@@ -1,0 +1,19 @@
+{
+  "name": "schemalattice-evals",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Scenario-based evaluation harness for the SchemaLattice AI protocol. Mock mode only in v0.1. Uses Gemini for evaluation runs; tool schemas are provider-neutral so other providers can be added.",
+  "scripts": {
+    "run": "tsx run-scenario.ts",
+    "run:scuba": "tsx run-scenario.ts scenarios/scuba-greenfield-01.json"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

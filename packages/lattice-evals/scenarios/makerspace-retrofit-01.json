@@ -1,0 +1,325 @@
+{
+  "id": "makerspace-retrofit-01",
+  "name": "Retrofit MakeHaven lending_library Drupal module",
+  "description": "Existing Drupal custom module, empty lattice. User asks the AI to read the module and register its data models against SchemaLattice. Tests Checkpoint 3A (reading unfamiliar code), full adopt/fork/originate decision tree across multiple concepts, context creation, and whether the skill scales from a single concept (greenfield scenario) to ~5 concepts in dependency order.",
+  "mode": "mock",
+  "userPrompt": "I have a Drupal custom module at /workspace/lending_library that powers our makerspace tool lending system. The author/organization is MakeHaven. I want to catalog its core data models against SchemaLattice so other makerspaces, boat clubs, dive shops, community tool libraries, or community gardens can potentially reuse or interoperate with them — so pick the broadest domain-generic context slug that still makes sense. Please read the module, identify the key concepts, check SchemaLattice for existing matches, and publish the module's concepts against the lattice. Follow the full checkpoint protocol. I've already authorized you to proceed without a pre-publish approval pause — just do it and summarize at the end.",
+  "expectedFlow": {
+    "shouldCall": [
+      "list_directory",
+      "read_file",
+      "lattice_discover",
+      "lattice_publish_context",
+      "lattice_publish_concept"
+    ],
+    "mayCall": [
+      "lattice_resolve",
+      "lattice_list_context",
+      "lattice_stats",
+      "web_search",
+      "fetch_url",
+      "lattice_publish_fork"
+    ],
+    "mustNotCall": []
+  },
+  "mockResponses": {
+    "list_directory": [
+      {
+        "match": { "path": "/workspace/lending_library" },
+        "response": {
+          "path": "/workspace/lending_library",
+          "entries": [
+            { "name": "README.md", "type": "file" },
+            { "name": "lending_library.info.yml", "type": "file" },
+            { "name": "lending_library.module", "type": "file" },
+            { "name": "composer.json", "type": "file" },
+            { "name": "config", "type": "directory" },
+            { "name": "src", "type": "directory" }
+          ]
+        }
+      },
+      {
+        "match": { "path": "*config*" },
+        "response": {
+          "path": "(mocked)",
+          "entries": [
+            { "name": "install", "type": "directory" }
+          ]
+        }
+      },
+      {
+        "match": { "path": "*install*" },
+        "response": {
+          "path": "(mocked)",
+          "entries": [
+            { "name": "eck.eck_entity_type.library_transaction.yml", "type": "file" },
+            { "name": "eck.eck_entity_type.battery.yml", "type": "file" },
+            { "name": "node.type.library_item.yml", "type": "file" },
+            { "name": "field.field.node.library_item.field_library_item_status.yml", "type": "file" },
+            { "name": "field.field.library_transaction.library_transaction.field_library_action.yml", "type": "file" }
+          ]
+        }
+      },
+      {
+        "match": {},
+        "response": {
+          "path": "(mocked)",
+          "entries": [],
+          "note": "Directory not mocked in this scenario"
+        }
+      }
+    ],
+    "read_file": [
+      {
+        "match": { "path": "*README*" },
+        "response": {
+          "path": "/workspace/lending_library/README.md",
+          "content": "# Lending Library Module\n\nThis Drupal custom module powers a makerspace tool lending library. It manages tool borrowing, returning, battery tracking, and issue reporting, and keeps item statuses accurate while notifying members and staff.\n\n## Entities\n\n### LibraryItem (node content type)\n\nA physical tool or resource that members can borrow for a limited time and return.\n\nFields:\n- field_library_item_status (List: available, borrowed, missing, repair, retired)\n- field_library_item_borrower (Entity reference: User)\n- field_library_item_replacement_v (Integer, replacement value in dollars)\n- field_library_item_uses_battery (Boolean)\n- field_library_item_serial (String, serial number)\n- field_library_item_model (String, model name)\n- field_library_item_required_badg (Entity reference: taxonomy, required badges/certifications)\n- field_library_item_manual (File, user manual)\n- field_library_item_documents (File, additional documentation)\n- field_library_item_waitlist (Entity reference: User, waitlist for borrowing)\n\n### LibraryTransaction (ECK entity)\n\nAn event representing a single borrow, return, or issue report against a Library Item. Carries inspection notes, payment data, and notification state.\n\nFields:\n- field_library_action (List: withdraw, return, issue)\n- field_library_item (Entity reference: LibraryItem)\n- field_library_borrower (Entity reference: User)\n- field_library_borrow_date (Date)\n- field_library_due_date (Date)\n- field_library_return_date (Date)\n- field_library_inspection_issues (List: no_issues, damage, missing, other)\n- field_library_inspection_notes (Text)\n- field_library_charges_status (String)\n- field_library_closed (Boolean)\n- field_library_overdue_notified (Boolean)\n\n### Battery (ECK entity)\n\nA removable power source associated with one or more library items. Tracked independently so it can be borrowed, returned, or reported missing without coupling to a specific tool.\n\nFields:\n- field_battery_number (String, battery identifier)\n- field_battery_status (List: available, borrowed, missing, retired)\n- field_battery_borrower (Entity reference: User)\n- field_battery_current_item (Entity reference: LibraryItem)\n- field_battery_description (Text)\n- field_battery_value (Number, replacement value)\n\n## Workflow\n\nThe borrow/return/issue lifecycle is the core of the module:\n\n1. **Withdraw**: A member checks out a tool. A LibraryTransaction is created with action=withdraw. LibraryItem.status is set to borrowed. A due_date is assigned. Any associated batteries are also marked as borrowed. A confirmation email is sent to the borrower.\n\n2. **Return**: The member returns the tool. The LibraryTransaction is updated with return_date. LibraryItem.status is set back to available. Any issues noticed during return are captured in inspection_issues. Batteries are returned alongside the tool. A confirmation email is sent.\n\n3. **Issue Report**: A member or staff member reports a problem with the tool. A LibraryTransaction is created with action=issue. LibraryItem.status is updated: 'damage' or 'other' → repair; 'missing' → missing; 'no_issues' → available. Staff are notified by email.\n\n## Requirements\n\n- Drupal 9 or 10\n- ECK (Entity Construction Kit) module\n- SMTP module\n\n## License\n\nCustom-developed for MakeHaven, may be adapted for other organizations."
+        }
+      },
+      {
+        "match": { "path": "*info.yml" },
+        "response": {
+          "path": "/workspace/lending_library/lending_library.info.yml",
+          "content": "name: Lending Library\ntype: module\ndescription: 'Manages tool borrowing, returning, battery tracking, and issue reporting for a makerspace.'\npackage: MakeHaven\ncore_version_requirement: ^9 || ^10\ndependencies:\n  - eck:eck\n  - drupal:node\n  - drupal:taxonomy\n  - drupal:user\n"
+        }
+      },
+      {
+        "match": { "path": "*library_transaction*" },
+        "response": {
+          "path": "/workspace/lending_library/config/install/eck.eck_entity_type.library_transaction.yml",
+          "content": "langcode: en\nstatus: true\ndependencies: {}\nid: library_transaction\nlabel: 'Library Transaction'\ncreated: true\nchanged: true\nuid: true\ntitle: false\n"
+        }
+      },
+      {
+        "match": { "path": "*library_item*status*" },
+        "response": {
+          "path": "/workspace/lending_library/config/install/field.field.node.library_item.field_library_item_status.yml",
+          "content": "langcode: en\nstatus: true\nid: node.library_item.field_library_item_status\nfield_name: field_library_item_status\nentity_type: node\nbundle: library_item\nlabel: 'Status'\nrequired: true\nfield_type: list_string\nsettings:\n  allowed_values:\n    available: Available\n    borrowed: Borrowed\n    missing: Missing\n    repair: 'In Repair'\n    retired: Retired\n"
+        }
+      },
+      {
+        "match": {},
+        "response": {
+          "error": {
+            "code": "not-mocked",
+            "message": "File not mocked in this scenario. Try reading README.md or an info.yml file, or list the directory first."
+          }
+        }
+      }
+    ],
+    "lattice_discover": [
+      {
+        "match": {},
+        "response": {
+          "query": "(mocked)",
+          "results": [],
+          "suggestions": {
+            "refinements": [
+              "Try narrower terms (e.g., tool loan vs general asset)",
+              "Consider whether you mean the physical item or the loan event"
+            ]
+          }
+        }
+      }
+    ],
+    "lattice_list_context": [
+      {
+        "match": {},
+        "response": {
+          "context": null,
+          "concepts": [],
+          "totalCount": 0,
+          "hasMore": false
+        }
+      }
+    ],
+    "lattice_resolve": [
+      {
+        "match": {},
+        "response": {
+          "error": {
+            "code": "not-found",
+            "message": "No concept at that URI in this mock environment."
+          }
+        }
+      }
+    ],
+    "lattice_stats": [
+      {
+        "match": {},
+        "response": {
+          "stats": {
+            "adoptionCount": 0,
+            "forkCount": 0
+          }
+        }
+      }
+    ],
+    "lattice_publish_context": [
+      {
+        "match": { "slug": "equipment-lending" },
+        "response": {
+          "uri": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "slug": "equipment-lending",
+          "title": "Equipment lending",
+          "published": true
+        }
+      },
+      {
+        "match": {},
+        "response": {
+          "uri": "https://schemalattice.io/s/user-provided@eeff00112233",
+          "slug": "user-provided",
+          "title": "(mock fallback — real server would reject non-standard slug)",
+          "published": true
+        }
+      }
+    ],
+    "lattice_publish_concept": [
+      {
+        "match": { "prefLabel": "*Library Item*" },
+        "response": {
+          "uri": "https://schemalattice.io/c/equipment-lending/library-item@aa11bb22cc33",
+          "context": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "warnings": [],
+          "published": true
+        }
+      },
+      {
+        "match": { "prefLabel": "*Transaction*" },
+        "response": {
+          "uri": "https://schemalattice.io/c/equipment-lending/library-transaction@dd44ee55ff66",
+          "context": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "warnings": [],
+          "published": true
+        }
+      },
+      {
+        "match": { "prefLabel": "*Battery*" },
+        "response": {
+          "uri": "https://schemalattice.io/c/equipment-lending/battery@778899aabbcc",
+          "context": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "warnings": [],
+          "published": true
+        }
+      },
+      {
+        "match": { "prefLabel": "*Status*" },
+        "response": {
+          "uri": "https://schemalattice.io/c/equipment-lending/item-status@1122334455aa",
+          "context": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "warnings": [],
+          "published": true
+        }
+      },
+      {
+        "match": {},
+        "response": {
+          "uri": "https://schemalattice.io/c/equipment-lending/generic@bbccdd667788",
+          "context": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "warnings": [],
+          "published": true
+        }
+      }
+    ],
+    "lattice_publish_fork": [
+      {
+        "match": {},
+        "response": {
+          "uri": "https://schemalattice.io/c/equipment-lending/forked@mockforkabcdef",
+          "forkedFrom": "(mocked)",
+          "upgradable": true,
+          "warnings": [],
+          "published": true
+        }
+      }
+    ],
+    "web_search": [
+      {
+        "match": {},
+        "response": {
+          "results": [
+            {
+              "title": "snipe/snipe-it",
+              "url": "https://github.com/snipe/snipe-it",
+              "snippet": "Free open source IT asset/license management system. AGPL-3.0. Tracks assets, licenses, accessories, consumables."
+            },
+            {
+              "title": "Koha ILS",
+              "url": "https://koha-community.org/",
+              "snippet": "Open source library management system. GPL-3.0. Handles circulation, patrons, items, transactions."
+            }
+          ]
+        }
+      }
+    ],
+    "fetch_url": [
+      {
+        "match": { "url": "*snipe*" },
+        "response": {
+          "content": "Snipe-IT asset model (paraphrased from public docs):\n\nAsset {\n  id, asset_tag, serial, name\n  model_id (reference to AssetModel)\n  status_id (reference to StatusLabel)\n  assigned_to (user or location)\n  checkout_date, expected_checkin\n  purchase_cost, purchase_date\n  notes, image\n}\n\nStatusLabel { id, name, type: [deployable|pending|undeployable|archived] }\n\nAssetModel { id, name, manufacturer_id, category_id, fieldset_id }\n\nLicense: AGPL-3.0"
+        }
+      },
+      {
+        "match": { "url": "*koha*" },
+        "response": {
+          "content": "Koha circulation model (paraphrased):\n\nItem { itemnumber, biblionumber, barcode, itemcallnumber, dateaccessioned, notforloan, damaged, itemlost, withdrawn, location }\n\nIssue (loan) { issue_id, borrowernumber, itemnumber, date_due, branchcode, returndate, renewals, auto_renew }\n\nBorrower { borrowernumber, categorycode, surname, firstname, email }\n\nLicense: GPL-3.0"
+        }
+      },
+      {
+        "match": {},
+        "response": {
+          "content": "URL not available in this mock environment."
+        }
+      }
+    ]
+  },
+  "rubric": {
+    "dimensions": [
+      {
+        "name": "protocol-compliance",
+        "weight": 0.35,
+        "checks": [
+          "Used read_file or list_directory to explore the fixture before publishing",
+          "Read README.md (authoritative source) rather than guessing from filenames",
+          "Called lattice_discover at least once per candidate concept",
+          "Called lattice_publish_context with a domain-generic slug (equipment-lending preferred)",
+          "Did NOT fabricate context URIs — every contextUri used in publish calls came from a prior lattice_publish_context response",
+          "Did NOT include parentContextUris in lattice_publish_context without verification",
+          "Published at least 3 distinct concepts",
+          "Presented an adopt/fork/originate plan to the user before publishing (user prompt asked for this)"
+        ]
+      },
+      {
+        "name": "concept-identification",
+        "weight": 0.25,
+        "llmJudge": true,
+        "criteria": "The AI should identify at least 3 of these 5 core concepts from the README: LibraryItem (the physical borrowable resource), LibraryTransaction (the borrow/return/issue event), Battery (the power source entity), ItemStatus (the enum/taxonomy of statuses), and the lifecycle/workflow. Missing LibraryItem or LibraryTransaction is a significant deduction — they are the two most obviously-central concepts."
+      },
+      {
+        "name": "schema-fidelity",
+        "weight": 0.2,
+        "llmJudge": true,
+        "criteria": "Published concepts should preserve the field names and types from the README. LibraryItem should include status, borrower, serial, and replacement value at minimum. LibraryTransaction should include action, item, borrower, and at least one date field. Enum fields (status, action, inspection_issues) should use kind='enum' with values. Field names should match the source or be clearly derived from it."
+      },
+      {
+        "name": "attribution",
+        "weight": 0.1,
+        "checks": [
+          "sourceAttribution is present on at least one publish call",
+          "sourceAttribution.authoredBy includes MakeHaven (or similar) as the source author",
+          "sourceAttribution.sourceNotes describes this as extracted from a Drupal module",
+          "If JIT mining was performed, inspiredBySources has real URLs from mock web_search results"
+        ]
+      },
+      {
+        "name": "decision-quality",
+        "weight": 0.1,
+        "llmJudge": true,
+        "criteria": "All lattice_discover calls return empty (the lattice is seeded empty). The AI should originate all concepts, not fork (since there are no parents available). A plan should be presented to the user before publishing. Calling lattice_publish_fork in this scenario is a decision-quality failure — there is nothing to fork from."
+      }
+    ]
+  },
+  "notes": "This scenario tests retrofit — reading existing code and registering it against the lattice. It's the more complex counterpart to scuba-greenfield-01. Expected behavior: read README, identify ~4-5 concepts, present plan to user, create equipment-lending context, publish concepts in dependency order (LibraryItem first, then LibraryTransaction which references it, then Battery which also references it). JIT mining is optional here because the source material is already in the repo; listing it as mayCall rather than shouldCall."
+}
