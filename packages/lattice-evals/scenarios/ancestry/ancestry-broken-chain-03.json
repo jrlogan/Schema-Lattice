@@ -1,0 +1,18 @@
+{
+  "id": "ancestry-broken-chain-03",
+  "description": "A concept whose broader edge points at a URI that does not exist in the store. Walk terminates without reaching the skeleton — must reject.",
+  "expect": "error",
+  "expectedCode": "ERR_NO_ROOT_ANCESTOR",
+  "contextSlug": "test",
+  "conceptSlug": "dangling-parent",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Dangling Parent" },
+    "definition": {
+      "en": "A concept whose broader URI points into thin air; the ancestry walk should fail to reach the skeleton."
+    },
+    "broader": [
+      "https://schemalattice.io/c/test/does-not-exist@deadbeef0000"
+    ]
+  }
+}

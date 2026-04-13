@@ -1,0 +1,21 @@
+{
+  "name": "schemalattice-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SchemaLattice server — v0.1 M1 (skeleton seed + R1 ancestry gate).",
+  "main": "src/index.ts",
+  "scripts": {
+    "seed": "tsx src/seed/run.ts",
+    "smoke": "tsx test/ancestry.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "ancestry-valid-fork-01",
+  "description": "A concept whose broader edge points at an existing skeleton root (record). Must publish cleanly.",
+  "expect": "ok",
+  "contextSlug": "test",
+  "conceptSlug": "dive-log",
+  "broaderSkeletonSlug": "record",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Dive Log" },
+    "definition": {
+      "en": "A record of a single scuba diving session including depth, time, location, gas mix, and participants."
+    }
+  }
+}

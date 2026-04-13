@@ -1,0 +1,15 @@
+{
+  "id": "ancestry-orphan-original-02",
+  "description": "An original concept with no broader, no derivedFrom, no rootAncestor. R1 must reject.",
+  "expect": "error",
+  "expectedCode": "ERR_NO_ROOT_ANCESTOR",
+  "contextSlug": "test",
+  "conceptSlug": "mystery-widget",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Mystery Widget" },
+    "definition": {
+      "en": "A concept with no declared parent or root ancestor — should be rejected by the R1 ancestry gate."
+    }
+  }
+}
