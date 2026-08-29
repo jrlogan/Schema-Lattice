@@ -4,16 +4,11 @@
 #   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
 #   sudo systemctl reload caddy
 #
-# Before schemalattice.io is registered, a wildcard-DNS hostname gets a real
-# Let's Encrypt certificate with no domain of your own:
-#
-#   {external-ip}.sslip.io
-#
-# Swap the site block for the real domain once its A record points here.
-# Canonical URIs inside the records never change either way — they are always
-# https://schemalattice.io/..., independent of the host serving them.
+# Canonical concept URIs are independent of the host serving them, so a
+# record minted under one hostname resolves unchanged under any other.
+# That is what lets these blocks come and go safely.
 
-34.75.250.234.sslip.io {
+(lattice) {
 	encode zstd gzip
 
 	# Canonical URI resolution and the read surface are public.
@@ -25,28 +20,28 @@
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "no-referrer"
 	}
+}
 
+schemalattice.com {
+	import lattice
 	log {
 		output file /var/log/caddy/schemalattice.log
 	}
 }
 
-# Once the domain is registered and its A record points at this box, replace
-# the block above with:
+www.schemalattice.com {
+	redir https://schemalattice.com{uri} permanent
+}
+
+# The bootstrap hostname from before the domain existed. Kept so anything
+# already pointed at it — earlier sessions, the pilot driver, saved prompts —
+# keeps working. Safe to delete once nothing uses it.
+34.75.250.234.sslip.io {
+	import lattice
+}
+
+# When schemalattice.io is registered, add:
 #
-# schemalattice.io {
-# 	encode zstd gzip
-# 	reverse_proxy 127.0.0.1:7000
-# 	header {
-# 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
-# 		X-Content-Type-Options "nosniff"
-# 		Referrer-Policy "no-referrer"
-# 	}
-# 	log {
-# 		output file /var/log/caddy/schemalattice.log
-# 	}
-# }
-#
-# www.schemalattice.io {
-# 	redir https://schemalattice.io{uri} permanent
+# schemalattice.io, www.schemalattice.io {
+# 	redir https://schemalattice.com{uri} permanent
 # }
