@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "schemalattice": {
+      "type": "stdio",
+      "command": "bash",
+      "args": [
+        "-c",
+        "cd \"${CLAUDE_PROJECT_DIR:-.}/packages/lattice-server\" && exec npx tsx src/bin/mcp-stdio.ts"
+      ],
+      "env": {
+        "LATTICE_DATA_DIR": "var"
+      }
+    }
+  }
+}

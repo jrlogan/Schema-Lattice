@@ -1,0 +1,18 @@
+{
+  "id": "friction-valid-01",
+  "description": "A fully compliant original concept: real definition, external closeMatch, explicit empty coRefersWith with rationale, prior discover. Must publish.",
+  "expect": "ok",
+  "contextSlug": "test",
+  "conceptSlug": "tool-checkout",
+  "broaderSkeletonSlug": "transaction",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Tool Checkout" },
+    "definition": {
+      "en": "A time-bounded borrowing event in which a member takes a piece of shared equipment from an inventory, with due date, condition notes, and return tracking."
+    },
+    "closeMatch": ["schema:BorrowAction"],
+    "coRefersWith": [],
+    "coRefersRationale": "No other concept in this catalog describes the same borrowing event from another perspective yet."
+  }
+}

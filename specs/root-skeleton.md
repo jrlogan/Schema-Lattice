@@ -63,6 +63,8 @@ not resolve or validate them.
 | `w3c-vc:` | W3C Verifiable Credentials |
 | `dcat:` | W3C Data Catalog Vocabulary |
 | `dct:` | Dublin Core Terms |
+| `dpv:` | W3C Data Privacy Vocabulary |
+| `dpv-pd:` | W3C DPV Personal Data extension |
 | `lode:` | Linking Open Descriptions of Events |
 | `wfdesc:` | Workflow Description |
 | `bpmn:` | Business Process Model and Notation |

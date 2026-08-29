@@ -1,0 +1,52 @@
+# Caddy terminates TLS and proxies to the app on loopback.
+# DECISIONS.md § Infrastructure: Caddy for automatic HTTPS.
+#
+#   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# Before schemalattice.io is registered, a wildcard-DNS hostname gets a real
+# Let's Encrypt certificate with no domain of your own:
+#
+#   {external-ip}.sslip.io
+#
+# Swap the site block for the real domain once its A record points here.
+# Canonical URIs inside the records never change either way — they are always
+# https://schemalattice.io/..., independent of the host serving them.
+
+34.75.250.234.sslip.io {
+	encode zstd gzip
+
+	# Canonical URI resolution and the read surface are public.
+	# Write tools carry their own Bearer check inside the app.
+	reverse_proxy 127.0.0.1:7000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+	}
+
+	log {
+		output file /var/log/caddy/schemalattice.log
+	}
+}
+
+# Once the domain is registered and its A record points at this box, replace
+# the block above with:
+#
+# schemalattice.io {
+# 	encode zstd gzip
+# 	reverse_proxy 127.0.0.1:7000
+# 	header {
+# 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+# 		X-Content-Type-Options "nosniff"
+# 		Referrer-Policy "no-referrer"
+# 	}
+# 	log {
+# 		output file /var/log/caddy/schemalattice.log
+# 	}
+# }
+#
+# www.schemalattice.io {
+# 	redir https://schemalattice.io{uri} permanent
+# }

@@ -1,23 +1,21 @@
-// CLI entry: `npm run seed` — boots the default store and seeds the skeleton.
+// CLI entry: `npm run seed` — boots the default instance, seeds the
+// skeleton, and backfills the vector index (M2).
 
 import { join } from "node:path";
-import { Store } from "../storage/db.ts";
-import { seedSkeleton } from "./seed.ts";
+import { LatticeInstance } from "../server/instance.ts";
 
-function main() {
-  const varDir = join(process.cwd(), "var");
-  const store = new Store({
-    dbPath: join(varDir, "dev.db"),
-    blobDir: join(varDir, "blobs"),
+async function main() {
+  const instance = await LatticeInstance.create({
+    dataDir: join(process.cwd(), "var"),
   });
-  const result = seedSkeleton(store);
+  const result = instance.seed;
   console.log(
-    `seeded context=${result.contextUri} (new=${result.createdContext}) concepts=${result.createdConcepts}`,
+    `seeded context=${result.contextUri} (new=${result.createdContext}) concepts=${result.createdConcepts} indexed=${instance.vectors.count()}`,
   );
   for (const [slug, uri] of result.conceptUris) {
     console.log(`  ${slug.padEnd(16)} ${uri}`);
   }
-  store.close();
+  instance.close();
 }
 
 main();

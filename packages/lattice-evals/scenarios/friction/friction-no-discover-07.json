@@ -1,0 +1,20 @@
+{
+  "id": "friction-no-discover-07",
+  "description": "Publish attempted without any prior lattice_discover call in the session. Must reject with ERR_NO_PRIOR_DISCOVER.",
+  "expect": "error",
+  "expectedCode": "ERR_NO_PRIOR_DISCOVER",
+  "skipDiscover": true,
+  "contextSlug": "test",
+  "conceptSlug": "guest-pass",
+  "broaderSkeletonSlug": "credential",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Guest Pass" },
+    "definition": {
+      "en": "A short-lived visitor authorization granting supervised access to a facility for a single day or event."
+    },
+    "closeMatch": ["schema:Ticket"],
+    "coRefersWith": [],
+    "coRefersRationale": "No sibling perspectives exist in this test catalog."
+  }
+}

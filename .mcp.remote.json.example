@@ -1,0 +1,18 @@
+{
+  "_comment": [
+    "The hosted instance instead of the local one. Copy over .mcp.json to point",
+    "Claude Code at the live catalog rather than your local var/ copy.",
+    "The key is in /etc/schemalattice/env on the box; it gates writes, and the",
+    "whole /mcp endpoint with them. Read-only clients can use the REST routes",
+    "unauthenticated instead."
+  ],
+  "mcpServers": {
+    "schemalattice": {
+      "type": "http",
+      "url": "https://34.75.250.234.sslip.io/mcp",
+      "headers": {
+        "Authorization": "Bearer ${LATTICE_API_KEY}"
+      }
+    }
+  }
+}

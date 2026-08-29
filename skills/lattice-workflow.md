@@ -45,10 +45,10 @@ When modeling any persistent or cross-boundary data structure:
    to decide adopt vs fork.
 3. Apply the decision tree (full detail in
    `specs/ai-checkpoints.md`):
-   - **Exact match (>0.90)** → adopt the existing URI
-   - **Close match (0.70–0.90)** → fork with an explicit changeset
-   - **Distant match (0.50–0.70)** → resolve and decide case-by-case
-   - **No match (<0.50)** → **Checkpoint 1C**: re-run discover with
+   - **Exact match (≥0.85)** → adopt the existing URI
+   - **Close match (0.65–0.85)** → fork with an explicit changeset
+   - **Distant match (0.55–0.65)** → resolve and decide case-by-case
+   - **No match (<0.55)** → **Checkpoint 1C**: re-run discover with
      a refined description. If still nothing, proceed to
      **Checkpoint 1D**: search open-source projects (GitHub, package
      registries, the open web) for existing work in the same domain.
@@ -116,7 +116,8 @@ When modeling any persistent or cross-boundary data structure:
      "fields": [
        { "name": "maxDepth", "type": "number", "unit": "meters", "required": true },
        { "name": "diveSite", "type": "reference", "ref": "scuba-ops/DiveSite" },
-       { "name": "buddies", "type": "array", "itemType": "string" }
+       { "name": "buddies", "type": "array", "itemType": "string" },
+       { "name": "buddyContact", "type": "string", "classification": "personal-contact" }
      ]
    }
    ```
@@ -255,6 +256,43 @@ The v0.1 root skeleton (16 abstract parent concepts seeded at
 server boot; see `specs/root-skeleton.md`) uses these values
 consistently. Every domain concept should be traceable to one
 skeleton node via `broader` / `forkedFrom` eventually.
+
+## Classify sensitive fields
+
+Any structure field that stores information about a person, secrets
+that grant access, or restricted organizational information SHOULD
+carry a `classification` naming one of the reserved data-sensitivity
+classes (seeded in the `governance` context):
+
+`public` · `internal` · `confidential` · `personal-contact` ·
+`personal-identity` · `personal-financial` · `personal-health` ·
+`personal-minor` · `access-secret`
+
+Rules of thumb:
+
+- An email, phone number, or address tied to a person →
+  `personal-contact`. Medical notes, allergies, waivers →
+  `personal-health`. Anything about someone under the age of
+  majority → `personal-minor` (it stacks on top of the others; use
+  the minor class when in doubt).
+- Passwords, tokens, door codes → `access-secret`. Note this is not
+  the skeleton's `Credential` (an earned qualification) — secrets
+  grant access; credentials attest ability.
+- Unsure which class fits? Call `lattice_discover` with a description
+  of the field's contents — the classes are indexed and the right one
+  will surface.
+- Leaving a field unclassified is allowed (it shows up as a coverage
+  gap in sensitivity profiles, not an error), but an unknown
+  classification value is rejected at publish.
+- Classification is part of the concept's hashed identity:
+  reclassifying a field is a semantic change that produces a new
+  version. Do not adjust classifications casually.
+
+The lattice records sensitivity; it does not enforce handling. If the
+organization runs separate build-time gates (security review, privacy
+check), record their results using the shared
+`governance/attestation` record shape rather than inventing a new
+result format. See `specs/data-classification.md`.
 
 ## When to skip the lattice entirely
 

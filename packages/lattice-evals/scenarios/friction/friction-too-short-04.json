@@ -1,0 +1,17 @@
+{
+  "id": "friction-too-short-04",
+  "description": "Definition under 40 characters. Must reject with ERR_DEFINITION_LENGTH.",
+  "expect": "error",
+  "expectedCode": "ERR_DEFINITION_LENGTH",
+  "contextSlug": "test",
+  "conceptSlug": "waiver",
+  "broaderSkeletonSlug": "record",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Waiver" },
+    "definition": { "en": "A signed liability release form." },
+    "closeMatch": ["schema:DigitalDocument"],
+    "coRefersWith": [],
+    "coRefersRationale": "No sibling perspectives exist in this test catalog."
+  }
+}

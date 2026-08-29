@@ -3,14 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "SchemaLattice server — v0.1 M1 (skeleton seed + R1 ancestry gate).",
+  "description": "SchemaLattice server \u2014 v0.1 M3 transport (HTTP + MCP) over the M1-M2.75 catalog engine.",
   "main": "src/index.ts",
   "scripts": {
+    "demo:http": "tsx examples/http-walkthrough.ts",
+    "demo:new-haven": "tsx examples/new-haven-demo.ts",
+    "mcp": "tsx src/bin/mcp-stdio.ts",
     "seed": "tsx src/seed/run.ts",
-    "smoke": "tsx test/ancestry.ts"
+    "serve": "tsx src/bin/serve.ts",
+    "smoke": "npm run smoke:ancestry && npm run smoke:friction && npm run smoke:discover && npm run smoke:classification && npm run smoke:registry && npm run smoke:tools && npm run smoke:http",
+    "smoke:ancestry": "tsx test/ancestry.ts",
+    "smoke:classification": "tsx test/classification.ts",
+    "smoke:discover": "tsx test/discover.ts",
+    "smoke:friction": "tsx test/friction.ts",
+    "smoke:http": "tsx test/http.ts",
+    "smoke:registry": "tsx test/registry.ts",
+    "smoke:tools": "tsx test/tools.ts"
   },
   "dependencies": {
-    "better-sqlite3": "^11.3.0"
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@xenova/transformers": "^2.17.2",
+    "better-sqlite3": "^11.3.0",
+    "sqlite-vec": "^0.1.9"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",

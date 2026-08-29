@@ -1,0 +1,19 @@
+{
+  "id": "friction-restated-label-08",
+  "description": "Definition avoids the literal label but adds no information beyond it — the semantic check must catch it. ERR_DEFINITION_RESTATES_LABEL.",
+  "expect": "error",
+  "expectedCode": "ERR_DEFINITION_RESTATES_LABEL",
+  "contextSlug": "test",
+  "conceptSlug": "dive-journal",
+  "broaderSkeletonSlug": "record",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Dive Log" },
+    "definition": {
+      "en": "Logging of dives; a diver's logged dives kept as logs, where each dive gets logged by the diver."
+    },
+    "closeMatch": ["schema:Report"],
+    "coRefersWith": [],
+    "coRefersRationale": "No sibling perspectives exist in this test catalog."
+  }
+}

@@ -41,6 +41,7 @@ export interface ContextRecord {
   prefLabel: LangMap;
   definition?: LangMap;
   derivedFrom?: string;
+  parentContexts?: string[];
   entryLevelAllowedRange?: { min?: number; max?: number };
   createdOn?: string;
   [k: string]: unknown;

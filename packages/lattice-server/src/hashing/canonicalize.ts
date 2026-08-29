@@ -27,6 +27,9 @@ const CONCEPT_HASHED_FIELDS = new Set([
   "entryLevel",
   "collapsesTo",
   "structure",
+  // Fork changesets are part of the child's identity: the same labels and
+  // definition arrived at by a different diff is a different record.
+  "changeset",
 ]);
 
 const CONTEXT_HASHED_FIELDS = new Set([
@@ -34,6 +37,10 @@ const CONTEXT_HASHED_FIELDS = new Set([
   "prefLabel",
   "definition",
   "derivedFrom",
+  // Broader contexts this one specializes (lattice_publish_context's
+  // `parentContextUris`). Absent on the skeleton context, so adding it
+  // here leaves existing context hashes untouched.
+  "parentContexts",
   "entryLevelAllowedRange",
 ]);
 
@@ -55,6 +62,7 @@ const URI_ARRAY_FIELDS = new Set([
   "relatedMatch",
   "coRefersWith",
   "collapsesTo",
+  "parentContexts",
 ]);
 
 function normalizeText(s: string): string {

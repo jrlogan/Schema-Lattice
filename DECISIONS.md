@@ -208,6 +208,67 @@ Recommended for all new concepts in v0.2. Added to
 (`lattice_publish_concept` parameter), and the skill's decision
 guidance.
 
+## Governance vocabulary: data classification & attestation (v0.1 M2.5)
+
+- **A reserved `governance` context is seeded at boot** alongside the
+  skeleton: nine data-sensitivity classes (`public` → `access-secret`,
+  each with a `sensitivityRank` ordinal) and one `attestation` record
+  shape. See `specs/data-classification.md`.
+- **Why seeding doesn't violate JIT mining:** the empty-start
+  philosophy applies to *domain* vocabulary. Sensitivity classes and
+  the attestation shape are protocol infrastructure, like the
+  skeleton — every deployment needs the same ones, and letting each
+  org mint its own would defeat the point of shared classification.
+- **Deliberately organization-neutral.** The classes were written and
+  tested against makerspace and dive-club examples as well as civic
+  ones. Nothing in the vocabulary assumes any particular deployment
+  domain.
+- **Advisory, not friction.** Fields MAY carry `classification`;
+  absence is a reported coverage gap, never an error. Unknown class
+  values are rejected (`ERR_UNKNOWN_CLASSIFICATION`) so profiles stay
+  trustworthy. Classification lives inside `structure`, so it is
+  identity-bearing: reclassifying mints a new version with lineage.
+- **The lattice records sensitivity; it never enforces handling.**
+  Sensitivity profiles (per-manifest aggregation with `maxRank`) are
+  computable by the server; mapping ranks to review tiers, storage
+  rules, or approvals is the adopting organization's policy, outside
+  this project. Enforcement gates (security review, privacy check)
+  are sibling build-time tools that emit `governance/attestation`
+  records — the lattice defines the result shape, not the checks.
+- **`dpv:` / `dpv-pd:` (W3C Data Privacy Vocabulary)** added to the
+  approved external-vocabulary prefixes to anchor the personal-data
+  classes.
+
+## App registry (v0.1 M2.75)
+
+- **The registry is server-side and lives in lattice-server.**
+  REQUIREMENTS §R4 framed the register as client-side
+  (`~/.schemalattice/register.db` + CLI scan). That CLI half remains
+  M4; the server-side registry is the aggregation point it reconciles
+  against, and it ships first because profiles, overlaps, and audits
+  are computed where the catalog, vectors, and governance vocabulary
+  already are.
+- **Organization-neutral vocabulary:** apps belong to a `unit`
+  (department, shop area, team, committee). App slugs may start with
+  digits ("311-portal"), unlike concept slugs.
+- **Registration validates, never gates:** manifests must resolve
+  (unknown concept URIs rejected) and statuses must be from the fixed
+  enums, but nothing about an app's score or profile blocks
+  registration — visibility is the product, and blocking registration
+  would push weak apps into the shadows.
+- **Attestations are stored per the `governance/attestation` shape**
+  with result restricted to pass/fail/waived so portfolios stay
+  computable. The registry records gate results; it never runs
+  checks.
+- **Connectivity score (reuse / dedupe / anchoring)** formalizes the
+  demo metric as a v0.1 preview of v0.2 standardness. Duplicate
+  blame is directional: the later publisher who failed to acknowledge
+  an existing near-duplicate carries the debt, not the original.
+- **Audit findings are advisory** (unlinked near-duplicates, fork
+  bridges, unclassified fields, unattested sensitive profiles).
+  Nothing is auto-fixed; rank-to-policy mapping stays with the
+  organization.
+
 ## Popularity and standardness scoring (v0.2 direction)
 
 The catalog should **encourage but not require** convergence on

@@ -14,3 +14,6 @@ packages/lattice-evals/runs/
 .idea/
 *.swp
 .DS_Store
+
+# Local MCP overrides that may carry a key
+.mcp.remote.json

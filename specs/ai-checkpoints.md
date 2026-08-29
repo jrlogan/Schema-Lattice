@@ -59,7 +59,7 @@ is a last-chance safeguard against false originations.
 ### Checkpoint 1D: Open-source fallback mining
 
 **Trigger:** Checkpoints 1A and 1C have both returned no usable
-match (all candidates below 0.5 similarity), and the AI is about to
+match (all candidates below 0.55 similarity), and the AI is about to
 originate a genuinely new concept.
 
 **Action:** Before originating, search open-source projects for
@@ -164,24 +164,33 @@ data formats. This is the "bar scene" scenario made concrete.
 
 Received discover results. For each candidate, in rank order:
 
-1. **Exact match** (similarity > 0.90, field coverage ≥ 90%) → adopt.
+1. **Exact match** (similarity ≥ 0.85, field coverage ≥ 90%) → adopt.
    Record URI in manifest with status `"adopted"`. Do not fork or
    rename.
 
-2. **Close match** (similarity 0.70–0.90, or field coverage 50–90%)
+2. **Close match** (similarity 0.65–0.85, or field coverage 50–90%)
    → prefer fork. Call `lattice_publish_fork` with a changeset
    describing exactly what fields you're adding, removing, or
    renaming relative to the parent. Record with status `"forked"`.
 
-3. **Distant match** (similarity 0.50–0.70) → examine via
+3. **Distant match** (similarity 0.55–0.65) → examine via
    `lattice_resolve`. If the parent concept is useful as an ancestor
    even with many changes, fork. Otherwise treat as no match.
 
-4. **No match** (similarity < 0.50) → originate. Call
+4. **No match** (similarity < 0.55) → originate. Call
    `lattice_publish_concept`. Record with status `"originated"`.
    The lattice server will run its own near-neighbor check at publish
    time and warn if it thinks you should have forked instead — heed
    the warning.
+
+**Threshold calibration.** These bands are calibrated to the v0.1
+embedding model (`bge-small-en-v1.5`), measured against the M2
+harness: near-duplicate paraphrases score ~0.94, good fork
+candidates ~0.65–0.75, and *unrelated* text bottoms out around
+0.43–0.51 rather than 0 — which is why "no match" is 0.55, not 0.5.
+The adopt band deliberately coincides with the server's 0.85
+duplicate-warning threshold. If the embedding model changes, re-run
+the discover smoke suite and recalibrate all four bands together.
 
 ## Efficiency: when NOT to consult the lattice
 

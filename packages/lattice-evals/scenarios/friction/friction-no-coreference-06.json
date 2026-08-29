@@ -1,0 +1,17 @@
+{
+  "id": "friction-no-coreference-06",
+  "description": "coRefersWith absent entirely and no rationale supplied. Must reject with ERR_NO_COREFERENCE.",
+  "expect": "error",
+  "expectedCode": "ERR_NO_COREFERENCE",
+  "contextSlug": "test",
+  "conceptSlug": "storage-bin",
+  "broaderSkeletonSlug": "physical-object",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Storage Bin" },
+    "definition": {
+      "en": "A labeled container assigned to a member for keeping project materials on site between visits."
+    },
+    "closeMatch": ["schema:Product"]
+  }
+}

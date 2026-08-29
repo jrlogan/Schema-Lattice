@@ -1,0 +1,42 @@
+# systemd unit for the public instance.
+#   sudo cp deploy/schemalattice.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now schemalattice
+
+[Unit]
+Description=SchemaLattice catalog server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=schemalattice
+Group=schemalattice
+WorkingDirectory=/srv/schemalattice/app/packages/lattice-server
+# The vendored tsx binary, not npx — npx re-resolves on every start.
+ExecStart=/srv/schemalattice/app/packages/lattice-server/node_modules/.bin/tsx src/bin/serve.ts
+Restart=on-failure
+RestartSec=5
+
+# Bind to loopback only; Caddy terminates TLS and proxies in.
+Environment=LATTICE_HOST=127.0.0.1
+Environment=LATTICE_PORT=7000
+Environment=LATTICE_DATA_DIR=/srv/schemalattice/data
+# The write key. Keep it out of this file in practice:
+#   systemctl edit schemalattice   →   [Service]\nEnvironment=LATTICE_API_KEY=...
+EnvironmentFile=-/etc/schemalattice/env
+
+# The embedding model is downloaded to the cache on first boot.
+Environment=HOME=/srv/schemalattice
+Environment=NODE_ENV=production
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/schemalattice
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

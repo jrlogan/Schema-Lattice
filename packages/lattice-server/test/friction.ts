@@ -1,12 +1,8 @@
-// R1 ancestry eval runner. Loads the three scenario JSONs from
-// packages/lattice-evals/scenarios/ancestry/ and runs each against a
-// fresh temp-dir LatticeInstance.
-//
-// As of M2 the publish path also enforces R2, so the runner performs a
-// lattice_discover call per scenario (satisfying the evidence-of-
-// discover requirement) before publishing.
+// R2 friction-gate eval runner. Loads scenario JSONs from
+// packages/lattice-evals/scenarios/friction/ and runs each against a
+// fresh temp-dir LatticeInstance (REQUIREMENTS §R2 test hook).
 
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { LatticeInstance } from "../src/server/instance.ts";
@@ -18,6 +14,8 @@ interface Scenario {
   description: string;
   expect: "ok" | "error";
   expectedCode?: string;
+  /** When true, the runner does NOT call discover first. */
+  skipDiscover?: boolean;
   contextSlug: string;
   conceptSlug: string;
   broaderSkeletonSlug?: string;
@@ -26,14 +24,8 @@ interface Scenario {
 
 const SCENARIOS_DIR = resolve(
   import.meta.dirname ?? __dirname,
-  "../../lattice-evals/scenarios/ancestry",
+  "../../lattice-evals/scenarios/friction",
 );
-
-const SCENARIO_FILES = [
-  "ancestry-valid-fork-01.json",
-  "ancestry-orphan-original-02.json",
-  "ancestry-broken-chain-03.json",
-];
 
 interface Outcome {
   id: string;
@@ -49,20 +41,18 @@ async function runOne(instance: LatticeInstance, s: Scenario): Promise<Outcome> 
   if (s.broaderSkeletonSlug) {
     const parent = instance.skeletonUri(s.broaderSkeletonSlug);
     if (!parent) {
-      return {
-        id: s.id,
-        pass: false,
-        note: `skeleton slug ${s.broaderSkeletonSlug} not found`,
-      };
+      return { id: s.id, pass: false, note: `skeleton slug ${s.broaderSkeletonSlug} not found` };
     }
     record.broader = [...(record.broader ?? []), parent];
   }
 
   const sessionId = `test-${s.id}`;
-  await instance.discover({
-    description: (record.definition?.en as string) ?? s.description,
-    sessionId,
-  });
+  if (!s.skipDiscover) {
+    await instance.discover({
+      description: (record.definition?.en as string) ?? s.description,
+      sessionId,
+    });
+  }
 
   try {
     const result = await instance.publishConcept({
@@ -72,11 +62,7 @@ async function runOne(instance: LatticeInstance, s: Scenario): Promise<Outcome> 
       sessionId,
     });
     if (s.expect === "ok") {
-      return {
-        id: s.id,
-        pass: true,
-        note: `published ${result.uri} (root=${result.rootAncestor})`,
-      };
+      return { id: s.id, pass: true, note: `published ${result.uri}` };
     }
     return {
       id: s.id,
@@ -95,25 +81,24 @@ async function runOne(instance: LatticeInstance, s: Scenario): Promise<Outcome> 
         note: `expected ${s.expectedCode}, got ${code}: ${(err as Error).message}`,
       };
     }
-    return {
-      id: s.id,
-      pass: false,
-      note: `unexpected error: ${(err as Error).message}`,
-    };
+    return { id: s.id, pass: false, note: `unexpected error: ${(err as Error).message}` };
   }
 }
 
 async function main() {
-  const tmp = mkdtempSync(join(tmpdir(), "schemalattice-m2-"));
+  const tmp = mkdtempSync(join(tmpdir(), "schemalattice-m2-friction-"));
   const instance = await LatticeInstance.create({ dataDir: tmp });
-
-  console.log(`context: ${instance.contextUri()}`);
   console.log(`tmp: ${tmp}`);
 
+  const files = readdirSync(SCENARIOS_DIR)
+    .filter((f) => f.endsWith(".json"))
+    .sort();
+
   const outcomes: Outcome[] = [];
-  for (const file of SCENARIO_FILES) {
-    const raw = readFileSync(join(SCENARIOS_DIR, file), "utf8");
-    const scenario = JSON.parse(raw) as Scenario;
+  for (const file of files) {
+    const scenario = JSON.parse(
+      readFileSync(join(SCENARIOS_DIR, file), "utf8"),
+    ) as Scenario;
     outcomes.push(await runOne(instance, scenario));
   }
 

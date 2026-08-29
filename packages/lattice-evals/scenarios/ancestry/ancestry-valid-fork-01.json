@@ -1,6 +1,6 @@
 {
   "id": "ancestry-valid-fork-01",
-  "description": "A concept whose broader edge points at an existing skeleton root (record). Must publish cleanly.",
+  "description": "A concept whose broader edge points at an existing skeleton root (record). Must publish cleanly. Carries the R2 metadata (external match + coRefers rationale) so only the ancestry gate is under test.",
   "expect": "ok",
   "contextSlug": "test",
   "conceptSlug": "dive-log",
@@ -10,6 +10,9 @@
     "prefLabel": { "en": "Dive Log" },
     "definition": {
       "en": "A record of a single scuba diving session including depth, time, location, gas mix, and participants."
-    }
+    },
+    "closeMatch": ["schema:Report"],
+    "coRefersWith": [],
+    "coRefersRationale": "First domain concept in this test catalog; no alternative-perspective concepts exist yet."
   }
 }

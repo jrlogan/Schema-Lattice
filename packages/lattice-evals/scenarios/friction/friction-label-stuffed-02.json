@@ -1,0 +1,19 @@
+{
+  "id": "friction-label-stuffed-02",
+  "description": "Definition restates the prefLabel verbatim. Must reject with ERR_LABEL_IN_DEFINITION.",
+  "expect": "error",
+  "expectedCode": "ERR_LABEL_IN_DEFINITION",
+  "contextSlug": "test",
+  "conceptSlug": "member-badge",
+  "broaderSkeletonSlug": "credential",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Member Badge" },
+    "definition": {
+      "en": "A member badge is the badge issued to each member so the member badge can be scanned at the door."
+    },
+    "closeMatch": ["openbadges:BadgeClass"],
+    "coRefersWith": [],
+    "coRefersRationale": "No sibling perspectives exist in this test catalog."
+  }
+}

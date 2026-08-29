@@ -1,0 +1,18 @@
+{
+  "id": "friction-no-external-match-05",
+  "description": "No closeMatch/broadMatch into an approved external vocabulary. Must reject with ERR_NO_EXTERNAL_MATCH.",
+  "expect": "error",
+  "expectedCode": "ERR_NO_EXTERNAL_MATCH",
+  "contextSlug": "test",
+  "conceptSlug": "kiln-firing",
+  "broaderSkeletonSlug": "activity",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Kiln Firing" },
+    "definition": {
+      "en": "A supervised ceramics heating session in which loaded ware is brought to a target cone temperature over a scheduled duration."
+    },
+    "coRefersWith": [],
+    "coRefersRationale": "No sibling perspectives exist in this test catalog."
+  }
+}

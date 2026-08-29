@@ -33,7 +33,7 @@ Seven tools, organized by which checkpoint calls them:
 > before creating any new data model concept in your app. Returns a
 > ranked list of candidates with similarity scores. Each candidate
 > includes enough info to decide whether to adopt, fork, or keep
-> looking. If nothing scores above 0.5, the concept probably needs
+> looking. If nothing scores above 0.55, the concept probably needs
 > to be originated.
 
 **Parameters:**
@@ -258,7 +258,7 @@ new one. Prefer reuse over narrow origination.
 **Description:**
 
 > Publish a new original concept to SchemaLattice. Use this only when
-> `lattice_discover` has returned no suitable match (similarity < 0.5
+> `lattice_discover` has returned no suitable match (similarity < 0.55
 > across all candidates) and you've rerun discover with the refined
 > description. Will reject the publish if the server detects a very
 > close existing concept you missed.
@@ -476,3 +476,77 @@ gracefully:
 - `lattice_adopt` — explicit adoption tool; in v0.1, adopt is
   implicit and recorded only in the client's manifest
 - Any tool for withdrawing/deprecating concepts; v0.2
+
+## Registry tools (v0.1 M2.75)
+
+The app registry is the aggregation point for manifests, ownership,
+sensitivity profiles, and gate attestations. Server-side logic is
+implemented in `packages/lattice-server/src/registry/registry.ts`;
+these tool surfaces wrap it when the MCP transport lands. This section
+also supplies the `lattice_list_usages` tool that ROADMAP §4 requires.
+Everything here is organization-neutral: `unit` is whatever the
+deployment's org structure calls it — a department, shop area, team,
+or committee.
+
+### `lattice_register_app`
+
+> Register (or update) an app in the catalog's registry: its owner,
+> status, and the manifest of lattice concepts it uses. Call after
+> writing `schemalattice.json` (Checkpoint 2A) so other teams can
+> find the app and its vocabulary.
+
+```typescript
+{
+  slug: string;                  // ^[a-z0-9][a-z0-9-]{1,39}$
+  name: string;
+  description?: string;
+  unit: string;                  // owning org unit
+  owner: string;                 // responsible person/role
+  contact?: string;
+  status: "experiment" | "pilot" | "production" | "retired";
+  concepts: Array<{ uri: string; status: "adopted"|"forked"|"originated"; shortName?: string }>;
+}
+```
+
+Re-registering the same slug updates in place. Manifests referencing
+unknown concept URIs are rejected (`ERR_UNKNOWN_CONCEPT`).
+
+### `lattice_record_attestation`
+
+> Record a build-time gate's result against a registered app, in the
+> `governance/attestation` shape. The registry stores results; it
+> never runs checks or enforces policy.
+
+```typescript
+{
+  app: string;                   // registered slug
+  gate: string;                  // e.g. "security-review"
+  gateVersion?: string;
+  result: "pass" | "fail" | "waived";
+  performedBy: string;
+  performedOn: string;           // ISO date
+  findingsRef?: string;
+  notes?: string;
+}
+```
+
+### `lattice_list_usages`
+
+> Which registered apps use a concept URI, with each app's unit and
+> adoption status. The Local Register (R4 client side) reconciles
+> against this.
+
+### `lattice_app_report`
+
+> One app in full: manifest, connectivity score (reuse / dedupe /
+> anchoring), sensitivity profile, attestations, and overlaps with
+> every other registered app.
+
+### `lattice_portfolio_report`
+
+> The program-owner view: every registered app with score, profile,
+> and attestations; pairwise compatibility; and advisory audit
+> findings (unlinked near-duplicates, fork bridges between units,
+> unclassified-field coverage gaps, sensitive profiles with no
+> recorded attestation). Findings are advisory — nothing is
+> auto-fixed, and rank-to-policy mapping stays with the organization.

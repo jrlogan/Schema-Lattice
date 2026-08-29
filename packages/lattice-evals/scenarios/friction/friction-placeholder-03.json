@@ -1,0 +1,19 @@
+{
+  "id": "friction-placeholder-03",
+  "description": "Definition contains placeholder text. Must reject with ERR_DEFINITION_PLACEHOLDER.",
+  "expect": "error",
+  "expectedCode": "ERR_DEFINITION_PLACEHOLDER",
+  "contextSlug": "test",
+  "conceptSlug": "shift-slot",
+  "broaderSkeletonSlug": "event",
+  "record": {
+    "type": "Concept",
+    "prefLabel": { "en": "Shift Slot" },
+    "definition": {
+      "en": "A scheduled volunteer staffing window with start and end times, TODO fill in the rest of this later."
+    },
+    "closeMatch": ["schema:Schedule"],
+    "coRefersWith": [],
+    "coRefersRationale": "No sibling perspectives exist in this test catalog."
+  }
+}
