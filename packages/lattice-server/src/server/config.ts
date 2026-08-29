@@ -5,7 +5,10 @@ import { resolve, isAbsolute, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /** packages/lattice-server, wherever the process happens to be started from. */
-const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+export const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+
+/** The repo root, where skills/ and specs/ live. */
+export const REPO_ROOT = resolve(PACKAGE_ROOT, "..", "..");
 
 export interface LatticeConfig {
   dataDir: string;

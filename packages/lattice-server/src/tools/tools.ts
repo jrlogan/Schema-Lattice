@@ -254,6 +254,13 @@ export const TOOLS: ToolDef[] = [
           description:
             "Stable id for this build session; pass the same value to publish tools",
         },
+        ephemeral: {
+          type: "boolean",
+          description:
+            "If true, your query wording is not recorded (the search still " +
+            "counts as publish evidence but never appears in demand reports). " +
+            "Use when exploring ideas you aren't ready to share in aggregate.",
+        },
       },
       required: ["description"],
     },
@@ -263,6 +270,7 @@ export const TOOLS: ToolDef[] = [
         contextHint: optionalString(args, "contextHint"),
         limit: optionalNumber(args, "limit"),
         sessionId: optionalString(args, "sessionId"),
+        ephemeral: args.ephemeral === true,
       }),
   },
 
@@ -583,6 +591,56 @@ export const TOOLS: ToolDef[] = [
         threshold: optionalNumber(args, "threshold"),
         limit: optionalNumber(args, "limit"),
       }),
+  },
+
+  {
+    name: "lattice_feedback",
+    // Appends an advisory note to the event log; deliberately NOT
+    // key-gated so any visiting AI or person can leave feedback without
+    // credentials. It can create nothing, change nothing, and read nothing.
+    write: false,
+    description:
+      "Leave feedback for the catalog's maintainers: what worked, what was " +
+      "confusing, what vocabulary or tooling you wished existed. Optionally " +
+      "rate the experience 1-5. If you just finished checking an app against " +
+      "the catalog, a one-paragraph note here genuinely improves it for the " +
+      "next project. Feedback is stored for the maintainers and is not " +
+      "redistributed.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        message: { type: "string", description: "Your feedback, up to 2000 characters" },
+        rating: {
+          type: "number",
+          description: "Optional 1 (unusable) to 5 (excellent)",
+        },
+        about: {
+          type: "string",
+          description: "Optional: the tool, concept URI, or doc the feedback concerns",
+        },
+        sessionId: { type: "string", description: "Optional: links feedback to your session" },
+      },
+      required: ["message"],
+    },
+    handler: (instance, args) => {
+      const message = requireString(args, "message");
+      if (message.length > 2000) {
+        throw new InvalidParameter("message must be 2000 characters or fewer", {
+          length: message.length,
+        });
+      }
+      const rating = optionalNumber(args, "rating");
+      if (rating !== undefined && (rating < 1 || rating > 5 || !Number.isInteger(rating))) {
+        throw new InvalidParameter("rating must be an integer from 1 to 5");
+      }
+      instance.store.logEvent("feedback", {
+        message,
+        rating: rating ?? null,
+        about: optionalString(args, "about") ?? null,
+        sessionId: optionalString(args, "sessionId") ?? null,
+      });
+      return { recorded: true, thanks: "Read by the maintainers; not redistributed." };
+    },
   },
 
   // ------------------------------------------------------------- registry

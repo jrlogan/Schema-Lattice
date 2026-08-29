@@ -14,6 +14,10 @@ import { TOOLS, TOOLS_BY_NAME, callTool } from "../tools/tools.ts";
 import { isToolError } from "../tools/errors.ts";
 import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
+import { landingPage } from "./landing.ts";
+import { REPO_ROOT } from "../server/config.ts";
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
 
 const MAX_BODY_BYTES = 1_000_000;
 
@@ -49,6 +53,22 @@ function send(
     "access-control-allow-methods": "GET, POST, OPTIONS",
   });
   res.end(payload);
+}
+
+function sendText(
+  res: ServerResponse,
+  status: number,
+  body: string,
+  contentType: string,
+  cacheControl: string = DYNAMIC,
+): void {
+  res.writeHead(status, {
+    "content-type": contentType,
+    "content-length": Buffer.byteLength(body),
+    "cache-control": cacheControl,
+    "access-control-allow-origin": "*",
+  });
+  res.end(body);
 }
 
 function readBody(req: IncomingMessage): Promise<unknown> {
@@ -156,12 +176,25 @@ async function handle(
   }
 
   if (path === "/" && isRead) {
+    // Browsers get the human front door; API clients get the JSON index.
+    if ((req.headers.accept ?? "").includes("text/html")) {
+      const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
+      sendText(res, 200, landingPage(host, instance.totals()), "text/html; charset=utf-8");
+      return;
+    }
     send(res, 200, {
       service: "schemalattice",
       version: "0.1.0",
       authority: BASE_AUTHORITY,
       totals: instance.totals(),
+      transparency: {
+        recorded: "search query text (unless ephemeral:true), best match + score, random session id",
+        sharedOnward: "unmet queries appear aggregated in lattice_demand_report",
+        neverRecorded: "your code, unpublished schemas, identity",
+        feedback: "lattice_feedback notes go to maintainers only",
+      },
       endpoints: {
+        skill: "GET /skill (the workflow instructions for AI clients)",
         resolveConcept: "GET /c/{context}/{slug}@{hash}",
         resolveContext: "GET /s/{context}@{hash}",
         listContext: "GET /s/{context}@{hash}/concepts",
@@ -172,6 +205,28 @@ async function handle(
       },
       writesRequireKey: config.apiKey !== null,
     });
+    return;
+  }
+
+  // --- served documentation -------------------------------------------
+  if (path === "/skill" && isRead) {
+    const file = join(REPO_ROOT, "skills", "lattice-workflow.md");
+    if (!existsSync(file)) {
+      send(res, 404, { error: { code: "not-found", message: "skill file not deployed" } });
+      return;
+    }
+    sendText(res, 200, readFileSync(file, "utf8"), "text/markdown; charset=utf-8");
+    return;
+  }
+
+  const specMatch = path.match(/^\/specs\/([a-z0-9][a-z0-9-]*\.md)$/);
+  if (specMatch && isRead) {
+    const file = join(REPO_ROOT, "specs", specMatch[1]);
+    if (!existsSync(file)) {
+      send(res, 404, { error: { code: "not-found", message: `no spec ${specMatch[1]}` } });
+      return;
+    }
+    sendText(res, 200, readFileSync(file, "utf8"), "text/markdown; charset=utf-8");
     return;
   }
 

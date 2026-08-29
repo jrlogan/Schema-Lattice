@@ -28,6 +28,13 @@ export interface DiscoverInput {
   limit?: number;
   /** Caller session id; logged so R2 can verify discover-before-publish. */
   sessionId?: string;
+  /**
+   * When true, the query TEXT is not recorded — the event still logs
+   * (so publishing under this sessionId works) but the wording never
+   * appears in demand reports. For exploring ideas you aren't ready
+   * to share even in aggregate.
+   */
+  ephemeral?: boolean;
 }
 
 export interface DiscoverCandidate {
@@ -162,7 +169,7 @@ export async function discover(
 
   store.logEvent("discover", {
     sessionId,
-    query: input.description,
+    query: input.ephemeral ? null : input.description,
     resultCount: results.length,
     topUri: top?.uri ?? null,
     topSimilarity: top?.similarity ?? null,

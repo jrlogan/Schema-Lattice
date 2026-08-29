@@ -89,6 +89,18 @@ $G --command="sudo tar xzf ~/lattice.tgz -C /srv/schemalattice/app \
 
 Skip the `npm ci` when only source changed.
 
+### Reading feedback
+
+`lattice_feedback` notes land in the events table:
+
+```bash
+$G --command="sudo -u schemalattice sqlite3 /srv/schemalattice/data/dev.db   "SELECT ts, json_extract(payload,'\\$.rating'), json_extract(payload,'\\$.message')
+    FROM events WHERE kind='feedback' ORDER BY id DESC LIMIT 20;""
+```
+
+The demand report (what vocabulary visitors searched for and didn't find)
+is public: `POST /api/tools/lattice_demand_report`.
+
 ### Backups
 
 `blobs/` is the source of truth; `dev.db` and the vector index are both

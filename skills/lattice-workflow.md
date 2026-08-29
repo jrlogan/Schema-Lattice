@@ -71,6 +71,11 @@ When modeling any persistent or cross-boundary data structure:
 1. **Checkpoint 1A.** Call `lattice_discover` with a natural-language
    description of what you're about to build. Include the apparent
    domain (e.g., "scuba diving session tracker" not just "session").
+   Query text is recorded and unmet queries appear, aggregated, in
+   the public demand report; if the user is exploring something they
+   aren't ready to share even in that form, pass `ephemeral: true` —
+   the search still works and still counts as publish evidence, but
+   the wording is never stored.
 2. **Checkpoint 1B.** For the top 1–3 candidates, call
    `lattice_resolve` to read full details. You need field-level info
    to decide adopt vs fork.
@@ -341,6 +346,18 @@ discover calls keep landing below 0.55:
   Sixteen "no match" results against a near-empty catalog is a
   publish queue to review with a human, not a license to originate
   sixteen concepts unprompted.
+
+## After a comparison run
+
+When you finish checking an app against the catalog (Checkpoint 3A/3B
+style), consider two closing moves:
+
+- Show the user the demand report so they see whether other projects
+  were missing the same vocabulary.
+- Optionally call `lattice_feedback` with one short note: what the
+  catalog helped with, what was confusing, what was missing. No key
+  needed; it goes to the maintainers only and is not redistributed.
+  Ask the user first if the note would describe their project.
 
 ## When to skip the lattice entirely
 

@@ -116,12 +116,55 @@ async function main() {
   const tools = await get("/api/tools");
   check(
     "tool-listing",
-    tools.body.tools.length === 13 && tools.body.tools.some((t: any) => t.write === true),
+    tools.body.tools.length === 14 && tools.body.tools.some((t: any) => t.write === true),
     `${tools.body.tools.length} tools`,
   );
 
   const usages = await post("/api/tools/lattice_list_usages", { conceptUri: personUri });
   check("read-tool-without-key", usages.status === 200, `status=${usages.status}`);
+
+  // --- the front door ------------------------------------------------------
+  const htmlRes = await fetch(base + "/", { headers: { accept: "text/html" } });
+  const html = await htmlRes.text();
+  check(
+    "landing-page-for-browsers",
+    htmlRes.headers.get("content-type")?.startsWith("text/html") === true &&
+      html.includes("Check your app against it") &&
+      html.includes("What gets recorded"),
+    `content-type=${htmlRes.headers.get("content-type")}`,
+  );
+  const skillRes = await fetch(base + "/skill");
+  const skillText = await skillRes.text();
+  check(
+    "skill-served",
+    skillRes.status === 200 && skillText.includes("# SchemaLattice workflow skill"),
+    `status=${skillRes.status}, ${skillText.length} bytes`,
+  );
+  const specRes = await fetch(base + "/specs/ai-checkpoints.md");
+  check("specs-served", specRes.status === 200, `status=${specRes.status}`);
+  const traversal = await fetch(base + "/specs/..%2F..%2Fpackage.json");
+  check("specs-no-traversal", traversal.status === 404, `status=${traversal.status}`);
+
+  // Feedback is deliberately open — no key needed.
+  const fb = await post("/api/tools/lattice_feedback", {
+    message: "Checked an app read-only; the verdict table was clear.",
+    rating: 4,
+  });
+  check(
+    "feedback-without-key",
+    fb.status === 200 && fb.body.recorded === true,
+    `status=${fb.status}`,
+  );
+
+  // Ephemeral discover: works, still logs an event, but stores no wording.
+  const eph = await post("/api/tools/lattice_discover", {
+    description: "a secret prototype concept nobody should see in demand reports",
+    ephemeral: true,
+  });
+  check("ephemeral-discover-works", eph.status === 200 && eph.body.results.length > 0, `sessionId=${eph.body.sessionId?.slice(0, 13)}…`);
+  const demand = await post("/api/tools/lattice_demand_report", {});
+  const leaked = JSON.stringify(demand.body).includes("secret prototype");
+  check("ephemeral-query-not-in-demand-report", !leaked, leaked ? "LEAKED" : "wording absent");
 
   // --- writes are gated ----------------------------------------------------
   const contextArgs = {
