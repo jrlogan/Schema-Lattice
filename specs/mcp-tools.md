@@ -477,6 +477,37 @@ gracefully:
   implicit and recorded only in the client's manifest
 - Any tool for withdrawing/deprecating concepts; v0.2
 
+## `lattice_demand_report` (v0.1 M3)
+
+> Unmet demand: discover queries whose best match fell below the fork
+> band, clustered by meaning and ranked by how often they were asked.
+> Each cluster names the closest existing concept, so genuinely
+> missing vocabulary is distinguishable from queries that needed
+> better phrasing. This is the queue of concepts worth publishing
+> next — the read side of the just-in-time mining loop.
+
+```typescript
+{
+  threshold?: number;            // Unmet if top similarity < this (default 0.65)
+  limit?: number;                // Max clusters (default 20)
+}
+```
+
+Returns `{ totalDiscoverEvents, unmetQueryCount, unmetThreshold,
+clusters: [{ count, representative, queries, nearestExisting,
+sessions, lastAsked }] }`. Read-only; never logs an event.
+
+Two related M3 behaviors of `lattice_discover`:
+
+- **Reserved vocabularies are excluded from results.** Concepts in
+  the `governance` context tag fields; they are not domain concepts
+  and no longer compete in discovery. Pass the governance context
+  URI as `contextHint` to search it deliberately.
+- **The response carries a `sessionId`.** The caller's own echoed
+  back, or a server-minted one when omitted. Publish tools require a
+  prior discover under the same id (R2), so clients quote this value
+  back rather than inventing one at publish time.
+
 ## Registry tools (v0.1 M2.75)
 
 The app registry is the aggregation point for manifests, ownership,

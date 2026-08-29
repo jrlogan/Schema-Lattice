@@ -237,7 +237,9 @@ export const TOOLS: ToolDef[] = [
       "of candidates with similarity scores. Each candidate includes enough " +
       "info to decide whether to adopt, fork, or keep looking. If nothing " +
       "scores above 0.55, the concept probably needs to be originated. Pass a " +
-      "stable sessionId — publishing requires evidence that you searched first.",
+      "stable sessionId — publishing requires evidence that you searched first. " +
+      "If you omit it, the response's sessionId field carries a server-minted " +
+      "one; quote that back in your publish calls.",
     inputSchema: {
       type: "object",
       properties: {
@@ -555,6 +557,32 @@ export const TOOLS: ToolDef[] = [
       if (!stats) throw new NotFound(`no concept at ${uri}`, { uri });
       return stats;
     },
+  },
+
+  {
+    name: "lattice_demand_report",
+    write: false,
+    description:
+      "Unmet demand: discover queries whose best match fell below the fork " +
+      "band, clustered by meaning and ranked by how often they were asked. " +
+      "Each cluster names the closest existing concept, so you can tell " +
+      "genuinely missing vocabulary from queries that just needed better " +
+      "phrasing. This is the queue of concepts worth publishing next.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        threshold: {
+          type: "number",
+          description: "Similarity below which a query counts as unmet (default 0.65)",
+        },
+        limit: { type: "number", description: "Max clusters returned (default 20)" },
+      },
+    },
+    handler: (instance, args) =>
+      instance.demandReport({
+        threshold: optionalNumber(args, "threshold"),
+        limit: optionalNumber(args, "limit"),
+      }),
   },
 
   // ------------------------------------------------------------- registry

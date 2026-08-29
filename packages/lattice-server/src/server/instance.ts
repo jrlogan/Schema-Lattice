@@ -44,6 +44,7 @@ import {
   type ListContextResponse,
   type ConceptStats,
 } from "../query/stats.ts";
+import { demandReport, type DemandReport } from "../query/demand.ts";
 
 export interface InstanceOptions {
   dataDir: string;
@@ -161,11 +162,23 @@ export class LatticeInstance {
   }
 
   discover(input: DiscoverInput): Promise<DiscoverResponse> {
-    return discover(this.store, this.vectors, this.embedder, input);
+    return discover(this.store, this.vectors, this.embedder, input, {
+      // Governance data classes tag fields; they are not domain concepts
+      // and must not crowd real candidates out of discovery.
+      reservedContexts: [this.governance.contextUri],
+    });
+  }
+
+  demandReport(opts?: { threshold?: number; limit?: number }): Promise<DemandReport> {
+    return demandReport(this.store, this.embedder, opts);
   }
 
   resolve(uri: string): ConceptRecord | null {
-    return this.store.getConcept(uri);
+    const record = this.store.getConcept(uri);
+    // DECISIONS.md § Learning loop: resolve is a tracked usage event.
+    // Misses matter too — a stale-URI rate is a health signal.
+    this.store.logEvent("resolve", { uri, found: record !== null });
+    return record;
   }
 
   skeletonUri(slug: string): string | undefined {

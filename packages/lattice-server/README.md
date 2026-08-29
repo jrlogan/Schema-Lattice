@@ -35,7 +35,7 @@ HuggingFace hub on first run and is cached locally after that.
 ## Transport
 
 The catalog engine is transport-agnostic. `src/tools/tools.ts` holds the
-twelve v0.1 tools — name, AI-facing description, JSON Schema, handler —
+thirteen v0.1 tools — name, AI-facing description, JSON Schema, handler —
 and both transports mount that same table, so they cannot drift apart.
 
 ```

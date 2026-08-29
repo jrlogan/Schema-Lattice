@@ -292,6 +292,36 @@ export class Store {
     };
   }
 
+  /** Parsed discover-event payloads, oldest first, for the demand report. */
+  listDiscoverEvents(): Array<{
+    ts: string;
+    sessionId: string | null;
+    query: string;
+    topUri: string | null;
+    topSimilarity: number | null;
+  }> {
+    const rows = this.db
+      .prepare("SELECT ts, payload FROM events WHERE kind = 'discover' ORDER BY id")
+      .all() as Array<{ ts: string; payload: string }>;
+    const out = [];
+    for (const row of rows) {
+      try {
+        const p = JSON.parse(row.payload);
+        if (typeof p.query !== "string" || p.query.length === 0) continue;
+        out.push({
+          ts: row.ts,
+          sessionId: p.sessionId ?? null,
+          query: p.query,
+          topUri: p.topUri ?? null,
+          topSimilarity: typeof p.topSimilarity === "number" ? p.topSimilarity : null,
+        });
+      } catch {
+        // A malformed historical payload shouldn't sink the report.
+      }
+    }
+    return out;
+  }
+
   logEvent(kind: string, payload: unknown): void {
     this.db
       .prepare(`INSERT INTO events (ts, kind, payload) VALUES (?, ?, ?)`)

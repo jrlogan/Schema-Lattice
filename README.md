@@ -119,9 +119,9 @@ Implementation status (see `REQUIREMENTS.md` for the R-numbers):
   attestations, `list_usages`, connectivity scores, cross-app
   overlap discovery, advisory audits, and the portfolio report.
   See `specs/mcp-tools.md` § "Registry tools".
-- **M3 transport done** — the full v0.1 tool set (twelve tools:
+- **M3 transport done** — the full v0.1 tool set (thirteen tools:
   discover, resolve, list_context, publish_context, publish_concept,
-  publish_fork, stats, plus the five registry tools) exposed over both
+  publish_fork, stats, demand_report, plus the five registry tools) exposed over both
   MCP (stdio and streamable HTTP) and a REST surface, with canonical
   URI resolution, public reads, and API-key-gated writes. `.mcp.json`
   wires the stdio server into Claude Code; `deploy/` has the systemd

@@ -7,9 +7,20 @@
 // contextHint gives a small ranking bump without touching the reported
 // similarity score.
 
+import { randomUUID } from "node:crypto";
 import type { Store } from "../storage/db.ts";
 import type { Embedder } from "./embedder.ts";
 import type { VectorIndex } from "./vectors.ts";
+
+export interface DiscoverOptions {
+  /**
+   * Contexts holding reserved vocabularies (e.g. `governance` data
+   * classes). Their concepts are for tagging fields, not for adopting as
+   * domain concepts, so they never compete in discovery — unless the
+   * caller asks for that context by name via contextHint.
+   */
+  reservedContexts?: string[];
+}
 
 export interface DiscoverInput {
   description: string;
@@ -36,6 +47,13 @@ export interface DiscoverResponse {
   query: string;
   results: DiscoverCandidate[];
   suggestions: { refinements: string[] };
+  /**
+   * The session id this search was logged under — the caller's own, or a
+   * server-generated one when none was supplied. Publishing requires
+   * evidence of a prior discover under the same id (R2), so clients must
+   * quote this back in publish calls.
+   */
+  sessionId: string;
 }
 
 const DEFAULT_LIMIT = 10;
@@ -63,8 +81,14 @@ export async function discover(
   vectors: VectorIndex,
   embedder: Embedder,
   input: DiscoverInput,
+  options: DiscoverOptions = {},
 ): Promise<DiscoverResponse> {
   const limit = Math.min(Math.max(input.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
+  // Without a caller-supplied session id, mint one and hand it back —
+  // otherwise a casual GET /discover would silently fail R2's
+  // discover-before-publish check at publish time.
+  const sessionId = input.sessionId?.trim() || `sess-${randomUUID()}`;
+  const reserved = new Set(options.reservedContexts ?? []);
   const [queryVec] = await embedder.embed([input.description]);
 
   // Over-fetch so re-ranking has room to work.
@@ -77,6 +101,8 @@ export async function discover(
     if (!record || !meta) continue;
 
     const contextUri = (record.inScheme as string) ?? "";
+    // Reserved vocabularies are excluded unless explicitly hinted at.
+    if (reserved.has(contextUri) && input.contextHint !== contextUri) continue;
     const contextTitle = firstLang(
       store.getContext(contextUri)?.prefLabel as Record<string, string> | undefined,
     );
@@ -135,12 +161,12 @@ export async function discover(
   }
 
   store.logEvent("discover", {
-    sessionId: input.sessionId ?? null,
+    sessionId,
     query: input.description,
     resultCount: results.length,
     topUri: top?.uri ?? null,
     topSimilarity: top?.similarity ?? null,
   });
 
-  return { query: input.description, results, suggestions: { refinements } };
+  return { query: input.description, results, suggestions: { refinements }, sessionId };
 }

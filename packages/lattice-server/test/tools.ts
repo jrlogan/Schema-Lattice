@@ -304,6 +304,65 @@ async function main() {
   const catalog = (await call("lattice_stats", {})) as { catalog: { concepts: number } };
   check("catalog-totals", catalog.catalog.concepts > 3, JSON.stringify(catalog.catalog));
 
+  // --- learning loop -----------------------------------------------------
+  const anon = (await call("lattice_discover", {
+    description: "a berth or mooring space rented at a marina for a season",
+  })) as { sessionId: string; results: Array<{ context: { uri: string } }> };
+  check(
+    "discover-mints-session-id",
+    /^sess-[0-9a-f-]{36}$/.test(anon.sessionId),
+    anon.sessionId,
+  );
+  check(
+    "governance-excluded-from-discover",
+    anon.results.every((r) => !r.context.uri.includes("/s/governance@")),
+    `top contexts: ${[...new Set(anon.results.map((r) => r.context.uri.split("/s/")[1]))].join(", ")}`,
+  );
+
+  // Second phrasing of the same need, before anything covers it — the
+  // demand report should fold both into one cluster.
+  await call("lattice_discover", { description: "a berth rented at a marina" });
+  const demand = (await call("lattice_demand_report", {})) as {
+    unmetQueryCount: number;
+    clusters: Array<{ count: number; representative: string; nearestExisting: unknown }>;
+  };
+  const berthCluster = demand.clusters.find((c) =>
+    c.representative.toLowerCase().includes("berth"),
+  );
+  check(
+    "demand-report-clusters-unmet",
+    demand.unmetQueryCount > 0 && !!berthCluster && berthCluster.count >= 2,
+    `unmet=${demand.unmetQueryCount}, berth cluster count=${berthCluster?.count}`,
+  );
+
+  // The server-minted id satisfies R2 at publish time.
+  const viaMinted = await call("lattice_publish_concept", {
+    contextUri: ctx.uri,
+    prefLabel: "Mooring Berth",
+    definition:
+      "A rentable space at a marina or mooring field where one vessel is kept for a season, with its dimensions and the gear it offers.",
+    broader: [instance.skeletonUri("location")!],
+    closeMatch: ["schema:Place"],
+    coRefersWith: [],
+    coRefersRationale: "First berth-shaped concept in this catalog.",
+    sessionId: anon.sessionId,
+  });
+  check(
+    "minted-session-satisfies-r2",
+    !isToolError(viaMinted),
+    note(viaMinted, "published with server-minted sessionId"),
+  );
+
+  // And once the concept exists, the same need is met: a repeat query
+  // must NOT add to unmet demand.
+  await call("lattice_discover", { description: "a berth rented at a marina" });
+  const after = (await call("lattice_demand_report", {})) as { unmetQueryCount: number };
+  check(
+    "published-concept-absorbs-demand",
+    after.unmetQueryCount === demand.unmetQueryCount,
+    `unmet stayed at ${after.unmetQueryCount} after publishing Mooring Berth`,
+  );
+
   const unknownTool = await call("lattice_nonexistent", {});
   check(
     "unknown-tool-envelope",

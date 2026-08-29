@@ -28,10 +28,41 @@ MCP server is available.
      "concepts": {}
    }
    ```
-3. Verify the `lattice_*` MCP tools are available in your tool list.
-   If the user hasn't configured the MCP server, pause and ask them
-   to do so before proceeding with lattice operations. Do NOT
-   invent URIs or pretend the lattice exists if you can't reach it.
+3. Resolve the lattice host, in this order:
+   1. **MCP tools.** If `lattice_*` tools are in your tool list, use
+      them; the host is whatever the MCP server is configured for.
+   2. **Manifest.** The `lattice` field of `schemalattice.json`
+      names the instance this project publishes to.
+   3. **Environment.** A `LATTICE_URL` environment variable, or a
+      host the user gives you directly.
+   4. **REST fallback.** Any lattice instance serves the same tools
+      over plain HTTP — no MCP configuration needed:
+      - `GET {host}/api/tools` — the full tool list with schemas
+      - `POST {host}/api/tools/{name}` — call a tool (JSON body =
+        tool arguments; writes need `Authorization: Bearer <key>`)
+      - `GET {host}/discover?description=...&sessionId=...` — read
+        convenience route
+      - `GET {host}/health` — is it up, and how big is the catalog
+
+   If none of these yields a reachable host, pause and ask the user
+   where their lattice instance is before proceeding. Do NOT invent
+   URIs or pretend the lattice exists if you can't reach it.
+
+   Note on hosts vs URIs: canonical concept URIs are ALWAYS
+   `https://schemalattice.io/c/...` regardless of which host serves
+   them — the URI is a stable identifier, not a live URL. To fetch a
+   record, take the URI's path and request it from the host you
+   resolved above. Never treat a failure to dereference
+   `schemalattice.io` itself as the catalog being down.
+
+4. **Keep one sessionId for the whole working session.** Every
+   `lattice_discover` response returns a `sessionId` (yours echoed
+   back, or a server-minted one if you omitted it). Publishing is
+   gated on evidence of a prior discover under the SAME id — so
+   capture it from your first discover call and pass it to every
+   later discover and publish call. Discovering without a sessionId
+   and publishing with a fresh one will be rejected
+   (`ERR_NO_PRIOR_DISCOVER`).
 
 ## The core loop (Checkpoints 1A → 2B)
 
@@ -293,6 +324,23 @@ organization runs separate build-time gates (security review, privacy
 check), record their results using the shared
 `governance/attestation` record shape rather than inventing a new
 result format. See `specs/data-classification.md`.
+
+## When the catalog comes up empty
+
+An empty or sparse catalog is expected early — concepts enter it
+because someone needed them, not through upfront seeding. If your
+discover calls keep landing below 0.55:
+
+- Your queries were still recorded. Call `lattice_demand_report`
+  (or `POST {host}/api/tools/lattice_demand_report`) to see unmet
+  demand clustered across all sessions — including other projects
+  that searched for the same thing and found nothing. Two projects
+  independently asking for the same missing concept is a strong
+  signal it's worth publishing properly.
+- Tell the user what the report shows before originating en masse.
+  Sixteen "no match" results against a near-empty catalog is a
+  publish queue to review with a human, not a license to originate
+  sixteen concepts unprompted.
 
 ## When to skip the lattice entirely
 

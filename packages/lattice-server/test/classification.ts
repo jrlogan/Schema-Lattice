@@ -32,8 +32,20 @@ async function main() {
     `${instance.governance.conceptUris.size} governance concepts`,
   );
 
+  // Governance is a reserved vocabulary: hidden from plain discovery,
+  // reachable when hinted at explicitly.
+  const plain = await instance.discover({
+    description: "medical information about a person such as allergies or injuries",
+    sessionId,
+  });
+  check(
+    "governance-hidden-by-default",
+    plain.results.every((r) => r.context.uri !== instance.governance.contextUri),
+    `top=${plain.results[0]?.prefLabel}`,
+  );
   const q = await instance.discover({
     description: "medical information about a person such as allergies or injuries",
+    contextHint: instance.governance.contextUri,
     sessionId,
   });
   check(
