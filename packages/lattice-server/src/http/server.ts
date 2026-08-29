@@ -15,6 +15,7 @@ import { isToolError } from "../tools/errors.ts";
 import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
 import { landingPage } from "./landing.ts";
+import { RateLimiter, clientKey, DEFAULT_LIMITS, type RateLimits, type Bucket } from "./ratelimit.ts";
 import { REPO_ROOT } from "../server/config.ts";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -112,10 +113,11 @@ function authorized(req: IncomingMessage, config: LatticeConfig): boolean {
 
 export async function startHttpServer(
   instance: LatticeInstance,
-  config: LatticeConfig,
+  config: LatticeConfig & { rateLimits?: Partial<RateLimits> },
 ): Promise<HttpServerHandle> {
+  const limiter = new RateLimiter({ ...DEFAULT_LIMITS, ...config.rateLimits });
   const server = createServer((req, res) => {
-    handle(req, res, instance, config).catch((err) => {
+    handle(req, res, instance, config, limiter).catch((err) => {
       send(res, 500, {
         error: { code: "server-error", message: err?.message ?? String(err) },
       });
@@ -141,6 +143,7 @@ async function handle(
   res: ServerResponse,
   instance: LatticeInstance,
   config: LatticeConfig,
+  limiter: RateLimiter,
 ): Promise<void> {
   if (req.method === "OPTIONS") {
     send(res, 204, {});
@@ -149,6 +152,36 @@ async function handle(
 
   const url = new URL(req.url ?? "/", "http://localhost");
   const path = decodeURIComponent(url.pathname);
+
+  // The operator's own key bypasses limiting; everyone else is counted
+  // per client IP into the bucket their route belongs to.
+  const isOperator = config.apiKey !== null && authorized(req, config);
+  if (!isOperator) {
+    const bucket: Bucket =
+      path === "/discover" || path === "/api/tools/lattice_discover"
+        ? "discover"
+        : path === "/api/tools/lattice_feedback"
+          ? "feedback"
+          : "general";
+    const key = clientKey(req.socket.remoteAddress, req.headers["x-forwarded-for"] as string | undefined);
+    const retryAfter = limiter.hit(key, bucket);
+    if (retryAfter !== null) {
+      const payload = JSON.stringify({
+        error: {
+          code: "rate-limited",
+          message: `too many ${bucket} requests — retry in ${retryAfter}s`,
+          details: { retryAfterSeconds: retryAfter },
+        },
+      });
+      res.writeHead(429, {
+        "content-type": "application/json; charset=utf-8",
+        "retry-after": String(retryAfter),
+        "access-control-allow-origin": "*",
+      });
+      res.end(payload);
+      return;
+    }
+  }
   // HEAD must answer exactly as GET would — same status, same headers, no
   // body. Node drops the payload for HEAD responses on its own. Caches and
   // link checkers probe with HEAD, and a 404 there is a cache-poisoning

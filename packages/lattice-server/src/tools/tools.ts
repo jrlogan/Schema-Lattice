@@ -264,14 +264,23 @@ export const TOOLS: ToolDef[] = [
       },
       required: ["description"],
     },
-    handler: (instance, args) =>
-      instance.discover({
-        description: requireString(args, "description"),
+    handler: (instance, args) => {
+      const description = requireString(args, "description");
+      // The wording is stored and can surface in demand reports; a cap
+      // keeps one call from parking a novel (or a payload) in the log.
+      if (description.length > 1000) {
+        throw new InvalidParameter("description must be 1000 characters or fewer", {
+          length: description.length,
+        });
+      }
+      return instance.discover({
+        description,
         contextHint: optionalString(args, "contextHint"),
         limit: optionalNumber(args, "limit"),
         sessionId: optionalString(args, "sessionId"),
         ephemeral: args.ephemeral === true,
-      }),
+      });
+    },
   },
 
   {
@@ -633,10 +642,14 @@ export const TOOLS: ToolDef[] = [
       if (rating !== undefined && (rating < 1 || rating > 5 || !Number.isInteger(rating))) {
         throw new InvalidParameter("rating must be an integer from 1 to 5");
       }
+      const about = optionalString(args, "about");
+      if (about && about.length > 300) {
+        throw new InvalidParameter("about must be 300 characters or fewer");
+      }
       instance.store.logEvent("feedback", {
         message,
         rating: rating ?? null,
-        about: optionalString(args, "about") ?? null,
+        about: about ?? null,
         sessionId: optionalString(args, "sessionId") ?? null,
       });
       return { recorded: true, thanks: "Read by the maintainers; not redistributed." };

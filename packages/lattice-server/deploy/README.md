@@ -101,6 +101,32 @@ $G --command="sudo -u schemalattice sqlite3 /srv/schemalattice/data/dev.db   "SE
 The demand report (what vocabulary visitors searched for and didn't find)
 is public: `POST /api/tools/lattice_demand_report`.
 
+### Abuse protection
+
+Reads are public, so three brakes protect the unauthenticated surface
+(all in `src/http/ratelimit.ts` + input caps in the tool handlers):
+
+- Per-IP fixed-window rate limits: 300/min general, 60/min discover
+  (the CPU-heavy path, and the demand report's input), 10/min feedback.
+  Requests with the operator key bypass them. 429 + Retry-After.
+- Input caps: discover description ≤1000 chars, feedback ≤2000.
+- The demand report truncates redistributed query text to 240 chars and
+  carries a notice telling AI consumers to treat it as data, never
+  instructions.
+
+The catalog itself cannot be polluted anonymously: all publish/registry
+tools need the key, records are content-addressed and append-only
+(nothing existing can be altered), and even key-holders pass the R1/R2
+quality gates. What CAN grow from anonymous traffic is the events table
+(~200 bytes/row, capped in practice by the rate limits — worst case
+about 25 MB/day/IP at full throttle). Watch disk with `df -h` and prune
+old discover/resolve events if it ever matters:
+
+```bash
+$G --command="sudo -u schemalattice sqlite3 /srv/schemalattice/data/dev.db   "DELETE FROM events WHERE kind IN ('resolve','discover')
+     AND ts < datetime('now','-90 days');""
+```
+
 ### Backups
 
 `blobs/` is the source of truth; `dev.db` and the vector index are both

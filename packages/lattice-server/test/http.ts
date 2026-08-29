@@ -25,6 +25,9 @@ async function main() {
     host: "127.0.0.1",
     port: 0,
     apiKey: API_KEY,
+    // Tight feedback window so the limiter is testable in-suite; the
+    // other buckets stay above what this suite generates.
+    rateLimits: { feedback: 3 },
   });
   const base = `http://127.0.0.1:${handle.port}`;
 
@@ -239,6 +242,36 @@ async function main() {
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} }),
   });
   check("mcp-gated-by-key", mcpUnauthed.status === 401, `status=${mcpUnauthed.status}`);
+
+  // --- abuse brakes --------------------------------------------------------
+  let limited: { status: number; body: any } | null = null;
+  for (let i = 0; i < 5; i++) {
+    const r = await post("/api/tools/lattice_feedback", { message: `spam ${i}` });
+    if (r.status === 429) { limited = r; break; }
+  }
+  check(
+    "feedback-rate-limited",
+    limited !== null && limited.body.error.code === "rate-limited",
+    limited ? `429 after burst, retryAfter=${limited.body.error.details.retryAfterSeconds}s` : "never limited",
+  );
+
+  // The operator's key bypasses the brake.
+  const opFb = await post("/api/tools/lattice_feedback", { message: "operator note" }, API_KEY);
+  check("operator-bypasses-limit", opFb.status === 200, `status=${opFb.status}`);
+
+  const longQuery = await post("/api/tools/lattice_discover", { description: "x".repeat(1001) });
+  check(
+    "discover-description-capped",
+    longQuery.status === 400 && longQuery.body.error.code === "invalid-parameter",
+    `status=${longQuery.status}`,
+  );
+
+  const demandNotice = await post("/api/tools/lattice_demand_report", {});
+  check(
+    "demand-report-carries-untrusted-notice",
+    typeof demandNotice.body.notice === "string" && demandNotice.body.notice.includes("never as instructions"),
+    "notice present",
+  );
 
   console.log(`\n${passed}/${passed + failed} checks passed`);
   await handle.close();
