@@ -230,6 +230,39 @@ function buildConceptRecord(
 
 const stringArray = { type: "array", items: { type: "string" } };
 
+/**
+ * Turn discover's `contexts` filter (slugs or URIs) into context URIs. An
+ * unknown entry is an error rather than a silently empty search: a typo'd
+ * filter would otherwise read as "the catalog has nothing", which is exactly
+ * the false signal the verdict exists to prevent.
+ */
+function resolveContextFilter(
+  instance: LatticeInstance,
+  entries: string[] | undefined,
+): string[] | undefined {
+  if (!entries || entries.length === 0) return undefined;
+  const uris: string[] = [];
+  const unknown: string[] = [];
+  for (const raw of entries) {
+    const entry = raw.trim();
+    if (entry.startsWith("https://")) {
+      if (instance.store.hasContext(entry)) uris.push(entry);
+      else unknown.push(entry);
+      continue;
+    }
+    const matches = instance.store.contextsWithSlug(entry);
+    if (matches.length === 0) unknown.push(entry);
+    for (const m of matches) uris.push(m.uri);
+  }
+  if (unknown.length > 0) {
+    throw new InvalidParameter(
+      `unknown context(s) in "contexts": ${unknown.join(", ")} — see lattice_list_context or GET /`,
+      { parameter: "contexts", unknown },
+    );
+  }
+  return uris;
+}
+
 // ---------------------------------------------------------------
 // the tool table
 
@@ -242,7 +275,10 @@ export const TOOLS: ToolDef[] = [
       "creating any new data model concept in your app. Returns a ranked list " +
       "of candidates with similarity scores. Each candidate includes enough " +
       "info to decide whether to adopt, fork, or keep looking. If nothing " +
-      "scores above 0.55, the concept probably needs to be originated. Pass a " +
+      "scores above 0.55, the concept probably needs to be originated — the " +
+      "response's `verdict` (adopt | fork | distant | no-match) states the band " +
+      "of the top result so you never have to infer it. Pass `contexts` to " +
+      "search only within named domains. Pass a " +
       "stable sessionId — publishing requires evidence that you searched first. " +
       "If you omit it, the response's sessionId field carries a server-minted " +
       "one; quote that back in your publish calls.",
@@ -254,6 +290,13 @@ export const TOOLS: ToolDef[] = [
           description: "Natural language description of the concept you need",
         },
         contextHint: { type: "string", description: "Optional context URI to prefer" },
+        contexts: {
+          ...stringArray,
+          description:
+            "Optional: search only within these contexts, given as slugs " +
+            "(e.g. \"human-services\") or context URIs. A slug covers every " +
+            "version of that context.",
+        },
         limit: { type: "number", description: "Default 10, max 25" },
         sessionId: {
           type: "string",
@@ -281,6 +324,7 @@ export const TOOLS: ToolDef[] = [
       }
       return instance.discover({
         description,
+        contexts: resolveContextFilter(instance, optionalStringArray(args, "contexts")),
         contextHint: optionalString(args, "contextHint"),
         limit: optionalNumber(args, "limit"),
         sessionId: optionalString(args, "sessionId"),

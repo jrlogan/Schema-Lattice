@@ -268,10 +268,11 @@ async function handle(
       },
       endpoints: {
         skill: "GET /skill (the workflow instructions for AI clients)",
+        builderSkill: "GET /skill/builder (one-page brief for apps built on an existing backend)",
         resolveConcept: "GET /c/{context}/{slug}@{hash}",
         resolveContext: "GET /s/{context}@{hash}",
         listContext: "GET /s/{context}@{hash}/concepts",
-        discover: "GET /discover?description=...&limit=10",
+        discover: "GET /discover?description=...&limit=10&context=<slug>&ephemeral=true",
         tools: "GET /api/tools",
         callTool: "POST /api/tools/{name}",
         mcp: "POST /mcp",
@@ -282,8 +283,12 @@ async function handle(
   }
 
   // --- served documentation -------------------------------------------
-  if (path === "/skill" && isRead) {
-    const file = join(REPO_ROOT, "skills", "lattice-workflow.md");
+  const SKILLS: Record<string, string> = {
+    "/skill": "lattice-workflow.md",
+    "/skill/builder": "lattice-builder-brief.md",
+  };
+  if (Object.hasOwn(SKILLS, path) && isRead) {
+    const file = join(REPO_ROOT, "skills", SKILLS[path]);
     if (!existsSync(file)) {
       send(res, 404, { error: { code: "not-found", message: "skill file not deployed" } });
       return;
@@ -356,11 +361,19 @@ async function handle(
       });
       return;
     }
+    // `context` may repeat or be comma-separated: ?context=a&context=b or ?context=a,b
+    const contexts = url.searchParams
+      .getAll("context")
+      .flatMap((c) => c.split(","))
+      .map((c) => c.trim())
+      .filter(Boolean);
     const result = await callTool(instance, "lattice_discover", {
       description,
       limit: url.searchParams.get("limit") ?? undefined,
       contextHint: url.searchParams.get("contextHint") ?? undefined,
       sessionId: url.searchParams.get("sessionId") ?? undefined,
+      ...(contexts.length > 0 ? { contexts } : {}),
+      ephemeral: url.searchParams.get("ephemeral") === "true",
     });
     send(res, isToolError(result) ? 400 : 200, result);
     return;

@@ -54,7 +54,7 @@ The HTTP surface:
 | `GET /c/{context}/{slug}@{hash}` | resolve a concept by its canonical path |
 | `GET /s/{context}@{hash}` | resolve a context |
 | `GET /s/{context}@{hash}/concepts` | list a context's concepts |
-| `GET /discover?description=…` | discover without a POST body |
+| `GET /discover?description=…&context=…&ephemeral=true` | discover without a POST body; `context` (repeatable or comma-separated slugs/URIs) restricts the search |
 | `GET /api/tools` | the tool table with schemas |
 | `POST /api/tools/{name}` | call any tool |
 | `POST /mcp` | MCP over streamable HTTP (stateless) |

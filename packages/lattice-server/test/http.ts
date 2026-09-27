@@ -143,6 +143,13 @@ async function main() {
     skillRes.status === 200 && skillText.includes("# SchemaLattice workflow skill"),
     `status=${skillRes.status}, ${skillText.length} bytes`,
   );
+  const builderRes = await fetch(base + "/skill/builder");
+  const builderText = await builderRes.text();
+  check(
+    "builder-brief-served",
+    builderRes.status === 200 && builderText.includes("# SchemaLattice builder brief"),
+    `status=${builderRes.status}, ${builderText.length} bytes`,
+  );
   const specRes = await fetch(base + "/specs/ai-checkpoints.md");
   check("specs-served", specRes.status === 200, `status=${specRes.status}`);
   const traversal = await fetch(base + "/specs/..%2F..%2Fpackage.json");
@@ -168,6 +175,35 @@ async function main() {
   const demand = await post("/api/tools/lattice_demand_report", {});
   const leaked = JSON.stringify(demand.body).includes("secret prototype");
   check("ephemeral-query-not-in-demand-report", !leaked, leaked ? "LEAKED" : "wording absent");
+
+  // The GET convenience route must honour ephemeral too — probes and
+  // browsers use it, and it once dropped the flag and logged their wording.
+  const ephGet = await get(
+    "/discover?description=" +
+      encodeURIComponent("an unshareable get-route prototype of a sextant calibration") +
+      "&ephemeral=true",
+  );
+  const demandAfterGet = await post("/api/tools/lattice_demand_report", {});
+  const getLeaked = JSON.stringify(demandAfterGet.body).includes("get-route prototype");
+  check(
+    "get-discover-honours-ephemeral",
+    ephGet.status === 200 && !getLeaked,
+    getLeaked ? "LEAKED" : `status=${ephGet.status}, wording absent`,
+  );
+
+  const filtered = await get(
+    "/discover?description=" + encodeURIComponent("a human being") + "&context=schemalattice",
+  );
+  check(
+    "get-discover-context-filter",
+    filtered.status === 200 &&
+      filtered.body.results.length > 0 &&
+      filtered.body.results.every((r: { context: { uri: string } }) =>
+        r.context.uri.includes("/s/schemalattice@"),
+      ) &&
+      typeof filtered.body.verdict === "string",
+    `status=${filtered.status}, verdict=${filtered.body.verdict}, n=${filtered.body.results?.length}`,
+  );
 
   // --- writes are gated ----------------------------------------------------
   const contextArgs = {

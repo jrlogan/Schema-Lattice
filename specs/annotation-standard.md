@@ -109,6 +109,100 @@ old URI, and update the manifest; or
 
 Never edit a `uri` field in place.
 
+### Field maps (optional)
+
+A concept URI says what a record *means*. It does not say how one app's
+columns become another system's payload. That mapping is what the next
+builder needs most, and it is usually rebuilt by hand. `fieldMaps` records
+it in the builder's own manifest. It is an optional, additive section of
+manifest v1: tools that do not know it ignore it, and a manifest without
+it is still valid.
+
+A field map describes one crossing from a **source** (a person's
+spreadsheet, a GPX export, another app's API) to a **target** (usually a
+backend's accepted payload, sometimes the app's own local model). Each
+entry in `fields` is one target field and where its value comes from.
+
+```json
+"fieldMaps": {
+  "sailing-sheet-to-log": {
+    "source": {
+      "kind": "spreadsheet",
+      "description": "Personal sailing spreadsheet, one row per day out",
+      "concept": null
+    },
+    "target": {
+      "kind": "backend-payload",
+      "schema": "https://log.boating.systems/agent/history-schema.json",
+      "format": "boating-log-history",
+      "version": 1,
+      "path": "records[]",
+      "concept": null
+    },
+    "fields": [
+      { "target": "key",      "from": "row id",   "conversion": "stable per row; never reuse a key for changed content" },
+      { "target": "date",     "from": "Sail date", "conversion": "M/D/YYYY → YYYY-MM-DD" },
+      { "target": "boatName", "from": "Boat" },
+      { "target": "title",    "from": ["Sail date", "Where"], "conversion": "\"{Where}, {Sail date}\"" },
+      { "target": "evidence", "constant": "written", "notes": "the sheet is a written record, not a track" },
+      { "target": "sources",  "constant": ["sailing spreadsheet"] },
+      { "target": "uncertainties", "from": "Notes",
+        "conversion": "copy only notes that qualify the record, e.g. \"date estimated from album\"",
+        "uncertainty": "an estimated date stays estimated; never promote it to measured" }
+    ],
+    "omitted": [
+      { "from": "Crew",  "reason": "names of other people; tag_people is a separate grant" },
+      { "from": "Fuel $", "reason": "no target field" }
+    ],
+    "validatedAgainst": "https://log.boating.systems/agent/history-schema.json",
+    "notes": "Preview through importLogHistory before commit; the person picks rows."
+  }
+}
+```
+
+Field semantics:
+
+- **`fieldMaps`**: a map from a local map name to one map.
+- **`source` / `target`**:
+  - **`kind`**: free text; common values are `spreadsheet`, `file-export`, `app-api`, `backend-payload` and `local-model`.
+  - **`description`**: a human description of the source or target.
+  - **`schema`**, **`format`** and **`version`**: identify a published wire schema when there is one. Record the version: a map written against v1 must not be silently applied to v2.
+  - **`path`**: where the mapped object sits inside the payload.
+  - **`concept`**: a lattice concept URI (or local short name from `concepts`) when one is known, else `null`. A map with no concepts at all is valid and still useful.
+- **`fields[]`**: one entry per target field.
+  - **`target`**: required; the field name in the target.
+  - Exactly one of **`from`** or **`constant`**:
+    - `from` is a source field name, or an array of names when several combine.
+    - `constant` is a fixed value supplied by the builder.
+  - **`conversion`**: optional; how the value changes (format, unit, rounding, join).
+  - **`unit`**: optional; `{ "from": "nm", "to": "meters" }` when units change.
+  - **`uncertainty`**: optional; what the value cannot claim, e.g. inferred rather than measured, estimated rather than recorded.
+  - **`concept`**: optional; the concept URI this field instantiates.
+  - **`notes`**: optional.
+- **`omitted[]`**: source fields deliberately not carried, each with a `reason`. An omission written down is a decision; an omission left out looks like a bug.
+- **`validatedAgainst`**: the schema the builder actually validated a sample payload against, if any.
+
+Rules:
+
+1. **The backend decides validity, not the lattice.** A field map records
+   the builder's understanding of a contract; the backend's published
+   schema and its preview or dry-run operation are the test. A high
+   similarity score never makes a field acceptable to a backend.
+2. **Field maps stay in the builder's project.** They can name private
+   columns, people's spreadsheets and personal conventions. No lattice
+   tool sends them to the catalog, and no AI should publish one as a
+   concept or put one in a registry manifest unless the person asks for
+   that specific map to be shared.
+3. **Provenance travels with the value.** When a source value is
+   estimated, inferred or planned, say so in `uncertainty`, and map it
+   to the target's own provenance field when the target has one (above:
+   `uncertainties`, `evidence`). Never let a conversion turn a weaker
+   claim into a stronger one.
+4. **Update, don't fork.** A field map is local, mutable project
+   documentation. Edit it in place when the source changes, and bump
+   `target.version` when the target schema does. Concepts are what is
+   immutable.
+
 ## 2. Inline marker tags
 
 ### Purpose

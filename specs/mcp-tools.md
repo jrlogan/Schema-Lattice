@@ -42,7 +42,10 @@ Seven tools, organized by which checkpoint calls them:
 {
   description: string;           // Natural language description of intent
   contextHint?: string;          // Optional context URI to prefer
+  contexts?: string[];           // Search ONLY these contexts (slugs or URIs)
   limit?: number;                // Default 10, max 25
+  sessionId?: string;            // Stable build-session id (see below)
+  ephemeral?: boolean;           // Do not record the query wording
 }
 ```
 
@@ -51,6 +54,9 @@ Seven tools, organized by which checkpoint calls them:
 ```typescript
 {
   query: string;
+  verdict: "adopt" | "fork" | "distant" | "no-match"; // band of the TOP result
+  guidance: string;              // one-sentence instruction for that band
+  contexts?: string[];           // resolved context URIs, when filtered
   results: Array<{
     uri: string;
     prefLabel: string;
@@ -69,6 +75,7 @@ Seven tools, organized by which checkpoint calls them:
   suggestions: {
     refinements: string[];       // Suggested description tweaks
   };
+  sessionId: string;
 }
 ```
 
@@ -80,8 +87,23 @@ Seven tools, organized by which checkpoint calls them:
    recency is a final tie-breaker.
 4. Filter by `contextHint` if provided (but return cross-context
    results too, demoted one rank).
-5. Truncate to `limit` and return.
-6. Log a `discover` event with the session UUID.
+5. If `contexts` is given, keep only candidates in those contexts,
+   searching the whole index rather than the top 20. A slug covers
+   every version of that context; an unknown slug or URI is an
+   `invalid-parameter` error, never a silently empty result. Naming a
+   reserved context (e.g. `governance`) here opts in to searching it.
+6. Truncate to `limit` and set `verdict` from the top similarity using
+   the calibrated bands (`specs/ai-checkpoints.md`): ≥0.85 adopt,
+   0.65–0.85 fork, 0.55–0.65 distant, below 0.55 (or no results)
+   no-match. On no-match the nearest concepts are still listed, but
+   `guidance` says plainly that none of them should be adopted or
+   forked — the least-bad candidate is not a match.
+7. Log a `discover` event with the session UUID (query wording
+   omitted when `ephemeral`).
+
+The REST convenience route mirrors these parameters:
+`GET /discover?description=…&context=a,b&ephemeral=true` (`context`
+may also repeat).
 
 ---
 
@@ -493,9 +515,19 @@ gracefully:
 }
 ```
 
-Returns `{ totalDiscoverEvents, unmetQueryCount, unmetThreshold,
-clusters: [{ count, representative, queries, nearestExisting,
-sessions, lastAsked }] }`. Read-only; never logs an event.
+Returns `{ totalDiscoverEvents, unmetQueryCount, noiseExcluded,
+clustersNowMet, unmetThreshold, clusters: [{ count, representative,
+queries, nearestExisting, sessions, lastAsked }] }`. Read-only; never
+logs an event.
+
+- **Contentless queries are excluded** (`noiseExcluded` counts them):
+  a query must contain at least one word of three or more letters.
+  Short real asks such as "berth" or "GPS fix" still count.
+- **Clusters are re-scored against today's catalog.** `nearestExisting`
+  is the best current match for any phrasing in the cluster (reserved
+  vocabularies excluded), not the score at the time it was asked. A
+  cluster the catalog now meets (≥ threshold) is dropped and counted
+  in `clustersNowMet`, so the report shows the loop closing.
 
 Two related M3 behaviors of `lattice_discover`:
 

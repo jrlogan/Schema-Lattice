@@ -197,7 +197,15 @@ export class LatticeInstance {
   }
 
   demandReport(opts?: { threshold?: number; limit?: number }): Promise<DemandReport> {
-    return demandReport(this.store, this.embedder, opts);
+    return demandReport(
+      {
+        store: this.store,
+        embedder: this.embedder,
+        vectors: this.vectors,
+        reservedContexts: [this.governance.contextUri],
+      },
+      opts,
+    );
   }
 
   resolve(uri: string): ConceptRecord | null {

@@ -26,6 +26,12 @@ export interface DiscoverInput {
   description: string;
   contextHint?: string;
   limit?: number;
+  /**
+   * Restrict candidates to these context URIs (already resolved from slugs
+   * by the caller). A reserved context named here is searched like any
+   * other — asking for it by name is the explicit opt-in.
+   */
+  contexts?: string[];
   /** Caller session id; logged so R2 can verify discover-before-publish. */
   sessionId?: string;
   /**
@@ -50,8 +56,22 @@ export interface DiscoverCandidate {
   nearestNeighborsCount: number;
 }
 
+/** The decision-tree band the top result falls in (specs/ai-checkpoints.md). */
+export type DiscoverVerdict = "adopt" | "fork" | "distant" | "no-match";
+
 export interface DiscoverResponse {
   query: string;
+  /**
+   * Band of the TOP result, so a caller cannot mistake the least-bad
+   * candidate for a match. On "no-match" the results are still listed (they
+   * are the nearest things that exist) but none of them should be adopted
+   * or forked.
+   */
+  verdict: DiscoverVerdict;
+  /** One-sentence instruction matching the verdict. */
+  guidance: string;
+  /** Echo of the context filter, when one was applied. */
+  contexts?: string[];
   results: DiscoverCandidate[];
   suggestions: { refinements: string[] };
   /**
@@ -77,6 +97,34 @@ const NEIGHBOR_SIM = 0.8;
  * specs/ai-checkpoints.md; recalibrate if the embedding model changes.
  */
 const NO_MATCH_SIM = 0.55;
+/** Bands above NO_MATCH_SIM, same source as above. */
+const ADOPT_SIM = 0.85;
+const FORK_SIM = 0.65;
+
+function verdictFor(top: number | undefined): DiscoverVerdict {
+  if (top === undefined || top < NO_MATCH_SIM) return "no-match";
+  if (top < FORK_SIM) return "distant";
+  if (top < ADOPT_SIM) return "fork";
+  return "adopt";
+}
+
+function guidanceFor(verdict: DiscoverVerdict, ephemeral: boolean, filtered: boolean): string {
+  switch (verdict) {
+    case "adopt":
+      return "The top result is a near-exact match: resolve it and adopt its URI if the fields fit.";
+    case "fork":
+      return "The top result is close but not exact: resolve it and fork with an explicit changeset if its meaning is the same.";
+    case "distant":
+      return "The top result is only loosely related: resolve it and decide by meaning, not score; reject it if the referent differs.";
+    case "no-match":
+      return (
+        "Nothing in the catalog" + (filtered ? " (within the requested contexts)" : "") +
+        " matches. Do NOT adopt or fork any listed result — they are only the nearest existing concepts. " +
+        "Refine the description once, then mine open-source sources or proceed under your own model." +
+        (ephemeral ? "" : " This query is recorded in the public demand report as unmet vocabulary.")
+      );
+  }
+}
 
 function firstLang(map: Record<string, string> | undefined): string {
   if (!map) return "";
@@ -96,10 +144,13 @@ export async function discover(
   // discover-before-publish check at publish time.
   const sessionId = input.sessionId?.trim() || `sess-${randomUUID()}`;
   const reserved = new Set(options.reservedContexts ?? []);
+  const only = input.contexts && input.contexts.length > 0 ? new Set(input.contexts) : null;
   const [queryVec] = await embedder.embed([input.description]);
 
-  // Over-fetch so re-ranking has room to work.
-  const neighbors = vectors.knn(queryVec, Math.max(limit * 2, 20));
+  // Over-fetch so re-ranking has room to work. A context filter can discard
+  // most of the global neighborhood, so then scan the whole index — the
+  // catalog is small and knn over it is cheap next to embedding the query.
+  const neighbors = vectors.knn(queryVec, only ? vectors.count() : Math.max(limit * 2, 20));
 
   const candidates: DiscoverCandidate[] = [];
   for (const n of neighbors) {
@@ -108,8 +159,11 @@ export async function discover(
     if (!record || !meta) continue;
 
     const contextUri = (record.inScheme as string) ?? "";
-    // Reserved vocabularies are excluded unless explicitly hinted at.
-    if (reserved.has(contextUri) && input.contextHint !== contextUri) continue;
+    if (only && !only.has(contextUri)) continue;
+    // Reserved vocabularies are excluded unless explicitly asked for.
+    if (reserved.has(contextUri) && input.contextHint !== contextUri && !only?.has(contextUri)) {
+      continue;
+    }
     const contextTitle = firstLang(
       store.getContext(contextUri)?.prefLabel as Record<string, string> | undefined,
     );
@@ -175,5 +229,14 @@ export async function discover(
     topSimilarity: top?.similarity ?? null,
   });
 
-  return { query: input.description, results, suggestions: { refinements }, sessionId };
+  const verdict = verdictFor(top?.similarity);
+  return {
+    query: input.description,
+    verdict,
+    guidance: guidanceFor(verdict, input.ephemeral === true, only !== null),
+    ...(only ? { contexts: [...only] } : {}),
+    results,
+    suggestions: { refinements },
+    sessionId,
+  };
 }

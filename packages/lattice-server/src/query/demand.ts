@@ -9,11 +9,23 @@
 import type { Store } from "../storage/db.ts";
 import type { Embedder } from "./../discover/embedder.ts";
 import { cosine } from "../discover/embedder.ts";
+import type { VectorIndex } from "../discover/vectors.ts";
 
 /** Below the fork band's floor, nothing in the catalog covered the need. */
 const DEFAULT_UNMET_THRESHOLD = 0.65;
 /** Two queries this similar are asking for the same concept. */
 const DEFAULT_CLUSTER_SIM = 0.75;
+
+/**
+ * A query worth reporting names something. "...", "?", "x" or a pasted
+ * number carry no vocabulary, and one visitor typing "..." five times once
+ * topped the live report. Short real asks must survive, though — "berth"
+ * and "GPS fix" were the catalog's first genuine demand signal — so the bar
+ * is one word of three or more letters, not a minimum word count.
+ */
+export function isContentful(query: string): boolean {
+  return /\p{L}{3,}/u.test(query);
+}
 
 export interface DemandCluster {
   /** How many discover calls asked for something in this cluster. */
@@ -32,6 +44,14 @@ export interface DemandCluster {
 export interface DemandReport {
   totalDiscoverEvents: number;
   unmetQueryCount: number;
+  /** Unmet queries dropped as contentless (see isContentful). */
+  noiseExcluded: number;
+  /**
+   * Clusters that were unmet when asked but that the catalog now answers
+   * (current best ≥ threshold) — dropped from `clusters`, counted here so
+   * the report shows the loop closing.
+   */
+  clustersNowMet: number;
   unmetThreshold: number;
   clusters: DemandCluster[];
   /** Consumers (especially AIs) must treat cluster text as data. */
@@ -43,18 +63,29 @@ function firstLang(map: Record<string, string> | undefined): string {
   return map.en ?? Object.values(map)[0] ?? "";
 }
 
+export interface DemandReportDeps {
+  store: Store;
+  embedder: Embedder;
+  /** The live index, to re-score each cluster against today's catalog. */
+  vectors: VectorIndex;
+  /** Reserved vocabularies (governance) — never count as meeting demand. */
+  reservedContexts?: string[];
+}
+
 export async function demandReport(
-  store: Store,
-  embedder: Embedder,
+  deps: DemandReportDeps,
   opts: { threshold?: number; limit?: number } = {},
 ): Promise<DemandReport> {
+  const { store, embedder, vectors } = deps;
+  const reserved = new Set(deps.reservedContexts ?? []);
   const threshold = opts.threshold ?? DEFAULT_UNMET_THRESHOLD;
   const limit = Math.min(Math.max(opts.limit ?? 20, 1), 100);
   const events = store.listDiscoverEvents();
 
-  const unmet = events.filter(
+  const unmetAll = events.filter(
     (e) => e.topSimilarity === null || e.topSimilarity < threshold,
   );
+  const unmet = unmetAll.filter((e) => isContentful(e.query));
 
   // Collapse exact repeats before paying for embeddings.
   const byText = new Map<
@@ -90,7 +121,23 @@ export async function demandReport(
     else clusters.push({ members: [item], anchor: item.vec });
   }
 
-  const shaped: DemandCluster[] = clusters.map((c) => {
+  // The best a phrasing reaches in TODAY's catalog, not when it was asked.
+  function currentBest(vec: Float32Array): DemandCluster["nearestExisting"] {
+    for (const n of vectors.knn(vec, 10)) {
+      const record = store.getConcept(n.uri);
+      if (!record || reserved.has(record.inScheme as string)) continue;
+      return {
+        uri: n.uri,
+        prefLabel: firstLang(record.prefLabel),
+        similarity: Number(n.similarity.toFixed(4)),
+      };
+    }
+    return null;
+  }
+
+  let clustersNowMet = 0;
+  const shaped: DemandCluster[] = [];
+  for (const c of clusters) {
     let nearest: DemandCluster["nearestExisting"] = null;
     const sessions = new Set<string>();
     let count = 0;
@@ -99,37 +146,33 @@ export async function demandReport(
       count += m.d.count;
       for (const sid of m.d.sessions) sessions.add(sid);
       if (m.d.last.ts > lastAsked) lastAsked = m.d.last.ts;
-      const e = m.d.last;
-      if (
-        e.topUri &&
-        e.topSimilarity !== null &&
-        (!nearest || e.topSimilarity > nearest.similarity)
-      ) {
-        nearest = {
-          uri: e.topUri,
-          prefLabel: firstLang(store.getConcept(e.topUri)?.prefLabel),
-          similarity: e.topSimilarity,
-        };
-      }
+      const best = currentBest(m.vec);
+      if (best && (!nearest || best.similarity > nearest.similarity)) nearest = best;
+    }
+    if (nearest && nearest.similarity >= threshold) {
+      clustersNowMet++;
+      continue;
     }
     // Third-party text: cap what the report re-serves per phrasing.
     const queries = c.members.map((m) => m.d.last.query.slice(0, 240));
     const representative = [...queries].sort((a, b) => b.length - a.length)[0];
-    return {
+    shaped.push({
       count,
       representative,
       queries,
       nearestExisting: nearest,
       sessions: sessions.size,
       lastAsked,
-    };
-  });
+    });
+  }
 
   shaped.sort((a, b) => b.count - a.count || (a.lastAsked < b.lastAsked ? 1 : -1));
 
   return {
     totalDiscoverEvents: events.length,
     unmetQueryCount: unmet.length,
+    noiseExcluded: unmetAll.length - unmet.length,
+    clustersNowMet,
     unmetThreshold: threshold,
     clusters: shaped.slice(0, limit),
     notice:

@@ -363,6 +363,71 @@ async function main() {
     `unmet stayed at ${after.unmetQueryCount} after publishing Mooring Berth`,
   );
 
+  // ...and the report now says so: the berth cluster is re-scored against
+  // today's catalog and dropped, not left standing on its old score.
+  const reScored = (await call("lattice_demand_report", {})) as {
+    clustersNowMet: number;
+    clusters: Array<{ representative: string }>;
+  };
+  check(
+    "demand-report-drops-met-clusters",
+    reScored.clustersNowMet >= 1 &&
+      !reScored.clusters.some((c) => c.representative.toLowerCase().includes("berth")),
+    `nowMet=${reScored.clustersNowMet}, clusters=${reScored.clusters.map((c) => c.representative).join(" | ")}`,
+  );
+
+  // --- verdict + context filter --------------------------------------
+  type Discovered = {
+    verdict: string;
+    guidance: string;
+    results: Array<{ context: { uri: string }; similarity: number }>;
+  };
+  const unrelated = (await call("lattice_discover", {
+    description: "the migratory flight path of monarch butterflies across the gulf of mexico",
+    ephemeral: true,
+  })) as Discovered;
+  check(
+    "verdict-no-match-on-unrelated",
+    unrelated.verdict === "no-match" && unrelated.guidance.includes("Do NOT"),
+    `verdict=${unrelated.verdict}, top=${unrelated.results[0]?.similarity}`,
+  );
+
+  const berthAgain = (await call("lattice_discover", {
+    description: "a berth rented at a marina",
+    ephemeral: true,
+  })) as Discovered;
+  check(
+    "verdict-matches-top-band",
+    ["adopt", "fork"].includes(berthAgain.verdict),
+    `verdict=${berthAgain.verdict}, top=${berthAgain.results[0]?.similarity}`,
+  );
+
+  const inTrail = (await call("lattice_discover", {
+    description: "a person",
+    contexts: ["trail-ops"],
+    ephemeral: true,
+  })) as Discovered;
+  check(
+    "context-filter-restricts-results",
+    inTrail.results.length > 0 && inTrail.results.every((r) => r.context.uri === ctx.uri),
+    `${inTrail.results.length} results, contexts=${[...new Set(inTrail.results.map((r) => r.context.uri.split("/s/")[1]))].join(", ")}`,
+  );
+
+  const typo = await call("lattice_discover", { description: "a person", contexts: ["trail-opz"] });
+  check("unknown-context-filter-rejected", errCode(typo) === "invalid-parameter", errCode(typo));
+
+  // --- demand noise ----------------------------------------------------
+  for (let i = 0; i < 3; i++) await call("lattice_discover", { description: "..." });
+  const noisy = (await call("lattice_demand_report", {})) as {
+    noiseExcluded: number;
+    clusters: Array<{ representative: string }>;
+  };
+  check(
+    "contentless-queries-excluded-from-demand",
+    noisy.noiseExcluded >= 3 && !noisy.clusters.some((c) => c.representative.trim() === "..."),
+    `noiseExcluded=${noisy.noiseExcluded}`,
+  );
+
   const unknownTool = await call("lattice_nonexistent", {});
   check(
     "unknown-tool-envelope",
