@@ -35,6 +35,8 @@ export interface PublishForkInput {
     sourceLicense?: string;
   };
   sessionId?: string;
+  /** Authenticated writer, for the audit log. */
+  actor?: string;
 }
 
 export interface PublishForkOk extends PublishConceptOk {
@@ -101,7 +103,7 @@ export async function publishFork(
     upgradable: check.upgradable,
     opCount: input.changeset.ops.length,
     sessionId: input.sessionId ?? null,
-  });
+  }, input.actor ?? null);
 
   return {
     ...published,

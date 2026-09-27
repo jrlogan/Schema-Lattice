@@ -78,7 +78,7 @@ SchemaLattice is a composition, not a new ontology system.
 - Four essential MCP tools: discover, resolve, publish_concept,
   publish_fork (plus optional list_context, stats)
 - A Claude skill file encoding the checkpoint protocol
-- Local testing first; deploy to `schemalattice.io` later
+- Local testing first; deploy to `schemalattice.com` later
 
 Deferred to v0.2:
 
@@ -128,7 +128,7 @@ Implementation status (see `REQUIREMENTS.md` for the R-numbers):
   unit and Caddyfile for the public instance.
 - **Deployed** — a public instance runs at
   `https://34.75.250.234.sslip.io` (GCE `e2-micro`, us-east1). Reads are
-  public; writes need an API key. `schemalattice.io` is not registered
+  public; writes need an API key. `schemalattice.com` is not registered
   yet, which changes nothing about the records: canonical URIs are
   host-independent by design. See `packages/lattice-server/deploy/`.
 - **Next** — M3 shard-aware storage (R3), then the `lattice-client`

@@ -1,14 +1,14 @@
 # The hosted instance
 
-Live at **https://34.75.250.234.sslip.io** — a GCE `e2-micro` in `$LATTICE_GCP_ZONE`,
+Live at **https://schemalattice.com** — a GCE `e2-micro` in `$LATTICE_GCP_ZONE`,
 project `$LATTICE_GCP_PROJECT` ("Lattice"), instance name `lattice`.
+Caddy obtains the Let's Encrypt certificate; `www.` redirects to the apex.
 
-`sslip.io` is wildcard DNS that resolves `{ip}.sslip.io` to that IP, which is
-enough for Caddy to obtain a real Let's Encrypt certificate without owning a
-domain. `schemalattice.io` is **not registered yet**; when it is, point its A
-record here and swap the site block in `Caddyfile`. Nothing in the data
-changes — canonical URIs are always `https://schemalattice.io/...` regardless
-of which host serves them (DECISIONS.md § Identity and naming).
+The bootstrap hostname `https://34.75.250.234.sslip.io` (wildcard DNS that
+resolves `{ip}.sslip.io` to that IP) still serves the same app, so anything
+pointed at it keeps working. Canonical URIs are always
+`https://schemalattice.com/...` regardless of which host serves them
+(DECISIONS.md § Identity and naming).
 
 ## Why this shape
 

@@ -64,6 +64,21 @@ export class Store {
         payload TEXT NOT NULL
       );
     `);
+    // Stores written before writes were attributable keep their rows; those
+    // events read back as actor NULL, which is honest — we do not know.
+    this.addColumn("events", "actor", "TEXT");
+    this.db.exec(
+      `CREATE INDEX IF NOT EXISTS idx_events_actor_kind ON events(actor, kind, ts)`,
+    );
+  }
+
+  /** Idempotent ALTER — SQLite has no ADD COLUMN IF NOT EXISTS. */
+  addColumn(table: string, column: string, decl: string): void {
+    const existing = this.db
+      .prepare(`PRAGMA table_info(${table})`)
+      .all() as Array<{ name: string }>;
+    if (existing.some((c) => c.name === column)) return;
+    this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${decl}`);
   }
 
   private writeBlob(uri: string, record: unknown): string {
@@ -322,10 +337,22 @@ export class Store {
     return out;
   }
 
-  logEvent(kind: string, payload: unknown): void {
+  logEvent(kind: string, payload: unknown, actor?: string | null): void {
     this.db
-      .prepare(`INSERT INTO events (ts, kind, payload) VALUES (?, ?, ?)`)
-      .run(new Date().toISOString(), kind, JSON.stringify(payload));
+      .prepare(`INSERT INTO events (ts, kind, payload, actor) VALUES (?, ?, ?, ?)`)
+      .run(new Date().toISOString(), kind, JSON.stringify(payload), actor ?? null);
+  }
+
+  /** Events of these kinds caused by one actor since an ISO timestamp — the budget window. */
+  countActorEventsSince(actor: string, kinds: readonly string[], sinceIso: string): number {
+    const marks = kinds.map(() => "?").join(", ");
+    const row = this.db
+      .prepare(
+        `SELECT COUNT(*) AS n FROM events
+          WHERE actor = ? AND kind IN (${marks}) AND ts >= ?`,
+      )
+      .get(actor, ...kinds, sinceIso) as { n: number };
+    return row.n;
   }
 
   close(): void {

@@ -160,7 +160,7 @@
       {
         "match": { "slug": "equipment-lending" },
         "response": {
-          "uri": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "uri": "https://schemalattice.com/s/equipment-lending@ccdd44556677",
           "slug": "equipment-lending",
           "title": "Equipment lending",
           "published": true
@@ -169,7 +169,7 @@
       {
         "match": {},
         "response": {
-          "uri": "https://schemalattice.io/s/user-provided@eeff00112233",
+          "uri": "https://schemalattice.com/s/user-provided@eeff00112233",
           "slug": "user-provided",
           "title": "(mock fallback — real server would reject non-standard slug)",
           "published": true
@@ -180,8 +180,8 @@
       {
         "match": { "prefLabel": "*Library Item*" },
         "response": {
-          "uri": "https://schemalattice.io/c/equipment-lending/library-item@aa11bb22cc33",
-          "context": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "uri": "https://schemalattice.com/c/equipment-lending/library-item@aa11bb22cc33",
+          "context": "https://schemalattice.com/s/equipment-lending@ccdd44556677",
           "warnings": [],
           "published": true
         }
@@ -189,8 +189,8 @@
       {
         "match": { "prefLabel": "*Transaction*" },
         "response": {
-          "uri": "https://schemalattice.io/c/equipment-lending/library-transaction@dd44ee55ff66",
-          "context": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "uri": "https://schemalattice.com/c/equipment-lending/library-transaction@dd44ee55ff66",
+          "context": "https://schemalattice.com/s/equipment-lending@ccdd44556677",
           "warnings": [],
           "published": true
         }
@@ -198,8 +198,8 @@
       {
         "match": { "prefLabel": "*Battery*" },
         "response": {
-          "uri": "https://schemalattice.io/c/equipment-lending/battery@778899aabbcc",
-          "context": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "uri": "https://schemalattice.com/c/equipment-lending/battery@778899aabbcc",
+          "context": "https://schemalattice.com/s/equipment-lending@ccdd44556677",
           "warnings": [],
           "published": true
         }
@@ -207,8 +207,8 @@
       {
         "match": { "prefLabel": "*Status*" },
         "response": {
-          "uri": "https://schemalattice.io/c/equipment-lending/item-status@1122334455aa",
-          "context": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "uri": "https://schemalattice.com/c/equipment-lending/item-status@1122334455aa",
+          "context": "https://schemalattice.com/s/equipment-lending@ccdd44556677",
           "warnings": [],
           "published": true
         }
@@ -216,8 +216,8 @@
       {
         "match": {},
         "response": {
-          "uri": "https://schemalattice.io/c/equipment-lending/generic@bbccdd667788",
-          "context": "https://schemalattice.io/s/equipment-lending@ccdd44556677",
+          "uri": "https://schemalattice.com/c/equipment-lending/generic@bbccdd667788",
+          "context": "https://schemalattice.com/s/equipment-lending@ccdd44556677",
           "warnings": [],
           "published": true
         }
@@ -227,7 +227,7 @@
       {
         "match": {},
         "response": {
-          "uri": "https://schemalattice.io/c/equipment-lending/forked@mockforkabcdef",
+          "uri": "https://schemalattice.com/c/equipment-lending/forked@mockforkabcdef",
           "forkedFrom": "(mocked)",
           "upgradable": true,
           "warnings": [],

@@ -158,7 +158,7 @@ async function main() {
       unit: "Nowhere",
       owner: "No One",
       status: "experiment",
-      concepts: [{ uri: "https://schemalattice.io/c/x/y@000000000000", status: "adopted" }],
+      concepts: [{ uri: "https://schemalattice.com/c/x/y@000000000000", status: "adopted" }],
     });
     check("unknown-concept-rejected", false, "registration unexpectedly succeeded");
   } catch (e) {

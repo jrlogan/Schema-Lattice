@@ -10,9 +10,9 @@ to other locked decisions.
   Mycelium (organic metaphor), Atlas (maps callback), Taproot, Graft,
   Concord. SchemaLattice chosen for precision — "lattice" captures the
   crystalline DAG structure, "schema" is technically honest.
-- **Domain: schemalattice.io.**
+- **Domain: schemalattice.com.**
 - **URIs are canonical regardless of server location.** A concept's
-  URI is always `https://schemalattice.io/c/{context}/{slug}@{hash}`,
+  URI is always `https://schemalattice.com/c/{context}/{slug}@{hash}`,
   even when the record is served from `localhost:7000` during local
   testing. Clients pick which server resolves a URI via config; the
   URI itself is a stable identifier, not a live URL.
@@ -103,7 +103,7 @@ to other locked decisions.
 - **v0.1 is single-instance.** Federation is the thing that kills
   these projects; explicitly deferred to v0.2 or later.
 - **Local testing first.** Users run a local instance against their
-  own apps before ever touching schemalattice.io. The same codebase
+  own apps before ever touching schemalattice.com. The same codebase
   runs both modes.
 - **Hosting (eventual): Hetzner CX11** at €3.29/month for the shared
   public instance. Caddy for automatic HTTPS.
@@ -155,7 +155,7 @@ to other locked decisions.
 - Seven spec documents in `specs/`
 - Claude skill file
 - Local-test flow that the operator can run against their own apps
-- Deployment target at schemalattice.io
+- Deployment target at schemalattice.com
 
 **Out of scope, deferred to v0.2:**
 - Cambria lens layer for bidirectional translation

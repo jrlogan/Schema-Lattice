@@ -29,7 +29,11 @@ export function toToolError(err: unknown): ToolError {
   if (err instanceof PublishError) {
     return {
       error: {
-        code: NOT_FOUND_CODES.has(err.code) ? "not-found" : "invalid-parameter",
+        code: NOT_FOUND_CODES.has(err.code)
+          ? "not-found"
+          : err.code === "ERR_ORIGINATE_BUDGET"
+            ? "rate-limited"
+            : "invalid-parameter",
         message: err.message,
         details: { latticeCode: err.code, ...(asObject(err.detail) ?? {}) },
       },

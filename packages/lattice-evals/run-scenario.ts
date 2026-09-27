@@ -402,7 +402,7 @@ function convertSchemaNode(node: unknown): unknown {
 function buildSystemPrompt(skillBody: string): string {
   return [
     "You are an AI assistant helping a developer design data schemas",
-    "for their project. You have access to SchemaLattice (schemalattice.io),",
+    "for their project. You have access to SchemaLattice (schemalattice.com),",
     "a shared catalog of data model concepts, via function-calling tools.",
     "",
     "This is a MOCK test environment. The tool responses are canned.",

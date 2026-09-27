@@ -12,7 +12,7 @@
       "en": "A concept whose broader URI points into thin air; the ancestry walk should fail to reach the skeleton."
     },
     "broader": [
-      "https://schemalattice.io/c/test/does-not-exist@deadbeef0000"
+      "https://schemalattice.com/c/test/does-not-exist@deadbeef0000"
     ]
   }
 }

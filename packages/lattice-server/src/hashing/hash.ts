@@ -14,7 +14,7 @@ export function hashContext(record: ContextRecord): string {
   return shortHash(canonicalizeContext(record));
 }
 
-export const BASE_AUTHORITY = "https://schemalattice.io";
+export const BASE_AUTHORITY = "https://schemalattice.com";
 
 export function conceptUri(contextSlug: string, conceptSlug: string, hash: string): string {
   return `${BASE_AUTHORITY}/c/${contextSlug}/${conceptSlug}@${hash}`;

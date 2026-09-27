@@ -184,7 +184,7 @@ is explicitly NOT optimized for runtime translation between live apps.
   until then.
 - Embeddings, vector search, and duplicate detection run locally on
   the developer's machine whenever possible. The public
-  `schemalattice.io` instance is a convenience, not a dependency.
+  `schemalattice.com` instance is a convenience, not a dependency.
 
 **Enforcement point.** Code review discipline, plus an eval in
 `packages/lattice-evals` that fails if `lattice-client` grows a

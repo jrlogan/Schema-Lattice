@@ -21,6 +21,8 @@ export const RESERVED_CONTEXT_SLUGS = new Set([
 ]);
 
 export interface PublishContextInput {
+  /** Authenticated writer, for the audit log. */
+  actor?: string;
   slug: string;
   title: string;
   definition: string;
@@ -110,6 +112,6 @@ export function publishContext(
   }
 
   store.insertContext({ uri, slug, hash, record: { ...record, uri } });
-  store.logEvent("publish_context", { uri, slug, hash });
+  store.logEvent("publish_context", { uri, slug, hash }, input.actor ?? null);
   return { uri, slug, title, published: true };
 }

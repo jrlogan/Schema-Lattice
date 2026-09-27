@@ -30,34 +30,34 @@ Plain JSON. No dependency on JSON-LD processors.
 
 ```json
 {
-  "$schema": "https://schemalattice.io/schema/manifest-v1.json",
-  "lattice": "https://schemalattice.io",
+  "$schema": "https://schemalattice.com/schema/manifest-v1.json",
+  "lattice": "https://schemalattice.com",
   "project": {
     "name": "scuba-club-app",
     "description": "Dive tracking and club trip planning"
   },
   "concepts": {
     "DiveLog": {
-      "uri": "https://schemalattice.io/c/scuba-ops/dive-log@a1b2c3d4e5f6",
+      "uri": "https://schemalattice.com/c/scuba-ops/dive-log@a1b2c3d4e5f6",
       "status": "forked",
-      "forkedFrom": "https://schemalattice.io/c/activity-log/session@998877665544",
+      "forkedFrom": "https://schemalattice.com/c/activity-log/session@998877665544",
       "localLocation": "src/models/dive_log.py",
       "notes": "Added depth/gas/deco fields for scuba specifics"
     },
     "DiveSite": {
-      "uri": "https://schemalattice.io/c/scuba-ops/dive-site@7766554433aa",
+      "uri": "https://schemalattice.com/c/scuba-ops/dive-site@7766554433aa",
       "status": "forked",
-      "forkedFrom": "https://schemalattice.io/c/marina-ops/marina@112233445566",
-      "coRefersWith": ["https://schemalattice.io/c/marina-ops/marina@112233445566"],
+      "forkedFrom": "https://schemalattice.com/c/marina-ops/marina@112233445566",
+      "coRefersWith": ["https://schemalattice.com/c/marina-ops/marina@112233445566"],
       "localLocation": "src/models/dive_site.py"
     },
     "Goal": {
-      "uri": "https://schemalattice.io/c/personal-goals/goal@ffee00112233",
+      "uri": "https://schemalattice.com/c/personal-goals/goal@ffee00112233",
       "status": "adopted",
       "localLocation": "src/models/goal.py"
     },
     "BuddyPair": {
-      "uri": "https://schemalattice.io/c/scuba-ops/buddy-pair@bb11cc22dd33",
+      "uri": "https://schemalattice.com/c/scuba-ops/buddy-pair@bb11cc22dd33",
       "status": "originated",
       "localLocation": "src/models/buddy_pair.py"
     }

@@ -14,22 +14,22 @@ in code, and resolved by any SchemaLattice instance.
 All SchemaLattice URIs share one base authority regardless of which
 server physically resolves them:
 
-    https://schemalattice.io
+    https://schemalattice.com
 
 Three resource types, each with a distinct path prefix:
 
 ```
-Concepts:    https://schemalattice.io/c/{context-slug}/{concept-slug}@{hash}
-Contexts:    https://schemalattice.io/s/{context-slug}@{hash}
-Lenses:      https://schemalattice.io/l/{lens-id}@{hash}      (v0.2+)
+Concepts:    https://schemalattice.com/c/{context-slug}/{concept-slug}@{hash}
+Contexts:    https://schemalattice.com/s/{context-slug}@{hash}
+Lenses:      https://schemalattice.com/l/{lens-id}@{hash}      (v0.2+)
 ```
 
 ### Examples
 
 ```
-https://schemalattice.io/c/scuba-ops/dive-log@a1b2c3d4e5f6
-https://schemalattice.io/c/marina-ops/vessel-inspection@7788aabbccdd
-https://schemalattice.io/s/scuba-ops@1122334455ff
+https://schemalattice.com/c/scuba-ops/dive-log@a1b2c3d4e5f6
+https://schemalattice.com/c/marina-ops/vessel-inspection@7788aabbccdd
+https://schemalattice.com/s/scuba-ops@1122334455ff
 ```
 
 ## Field rules
@@ -60,12 +60,12 @@ https://schemalattice.io/s/scuba-ops@1122334455ff
 
 When running SchemaLattice locally for testing, the canonical URI form
 is unchanged. A concept created on `http://localhost:7000` still has
-a URI of `https://schemalattice.io/c/...@...`. The local server
+a URI of `https://schemalattice.com/c/...@...`. The local server
 resolves these URIs against its own storage.
 
 Client configuration chooses which server resolves a URI. A client
 pointed at `http://localhost:7000` will receive local records; a
-client pointed at `https://schemalattice.io` will receive the
+client pointed at `https://schemalattice.com` will receive the
 shared public instance's records.
 
 This separation matters: it means a concept designed locally and
@@ -89,7 +89,7 @@ Alongside content-addressed URIs, the server maintains a mutable
 "latest version" pointer for each concept slug:
 
 ```
-GET https://schemalattice.io/c/scuba-ops/dive-log
+GET https://schemalattice.com/c/scuba-ops/dive-log
     → 302 redirect to /c/scuba-ops/dive-log@<latest-hash>
 ```
 
@@ -120,7 +120,7 @@ is unambiguous:
 ```
 
 Equivalent to the full form. Tools expanding manifests MUST prepend
-the configured base authority (default: `https://schemalattice.io`).
+the configured base authority (default: `https://schemalattice.com`).
 
 ## Reserved slugs
 

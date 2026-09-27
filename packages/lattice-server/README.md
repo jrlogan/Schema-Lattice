@@ -59,14 +59,38 @@ The HTTP surface:
 | `POST /api/tools/{name}` | call any tool |
 | `POST /mcp` | MCP over streamable HTTP (stateless) |
 
-Canonical URIs stay `https://schemalattice.io/...` no matter which host
+Canonical URIs stay `https://schemalattice.com/...` no matter which host
 serves them, so the resolution routes match on path alone — a URI minted
 on `localhost:7000` resolves unchanged against the public instance.
 
-Reads are public. The five write tools require `Authorization: Bearer
-$LATTICE_API_KEY` when that variable is set; with it unset (local dev)
-writes are open and the startup banner says so. `/mcp` is gated as a
-whole whenever a key is set, because it exposes the write tools.
+Reads are public. Writes require `Authorization: Bearer <key>` when
+`LATTICE_API_KEY` is set; with it unset (local dev) writes are open and the
+startup banner says so. `/mcp` is gated as a whole whenever a key is set,
+because it exposes the write tools.
+
+Two kinds of key. `LATTICE_API_KEY` is the **operator** key — one per
+instance, from the environment. Everything else is an **app** key, minted by
+`lattice_register_app` and stored as a SHA-256 hash, returned once at
+registration. Self-registration needs no approval; that call is the single
+write an unauthenticated caller may make, and it can only create a slug,
+never overwrite one.
+
+App keys carry a tier, graded by blast radius rather than seniority:
+
+| | low (self-serve) | contributor | operator |
+|---|---|---|---|
+| fork | ∞ | ∞ | ∞ |
+| originate | 3/day | ∞ | ∞ |
+| create context | — | ✓ | ✓ |
+| promote, reissue keys | — | — | ✓ |
+
+`lattice_set_app_tier` promotes; `lattice_reissue_app_key` rotates a lost or
+leaked key and invalidates the old one. Every write is recorded in `events`
+against `app:<slug>` or `operator`, so the audit log answers "who".
+
+Tiers govern how much a caller may do, never how good it has to be: the
+friction gates in `publish/friction.ts` apply identically to every writer,
+operator included.
 
 Configuration is environment-only: `LATTICE_DATA_DIR` (default `var/`,
 resolved against this package), `LATTICE_HOST`, `LATTICE_PORT`,

@@ -60,7 +60,7 @@ if quality demands it, but v0.1 is fully local.
 **Single-instance by choice.** v0.1 runs as one server. Federation is
 the thing that kills semantic-web projects in the first six months; we
 explicitly defer it. Users run their own instance locally to start;
-schemalattice.io is a shared public instance at the same codebase.
+schemalattice.com is a shared public instance at the same codebase.
 
 ## Storage model
 

@@ -95,7 +95,7 @@ using synthetic multi-project fixtures.
   API. All data migrations are generated at coding time as code the
   AI commits into the consuming app's repo.
 - Embeddings, duplicate detection, and discover all run locally by
-  default. Remote calls to `schemalattice.io` are opt-in via
+  default. Remote calls to `schemalattice.com` are opt-in via
   explicit client configuration.
 - The v0.2 `/reconcile` endpoint is framed as a build-time
   AI-to-AI negotiator, not a runtime RPC. `DECISIONS.md` should be

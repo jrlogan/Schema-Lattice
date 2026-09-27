@@ -13,7 +13,7 @@ vocabulary.
 ## Published location
 
 ```
-https://schemalattice.io/context/v1.jsonld
+https://schemalattice.com/context/v1.jsonld
 ```
 
 Every concept and context record references this URL in its `@context`
@@ -21,7 +21,7 @@ field:
 
 ```json
 {
-  "@context": "https://schemalattice.io/context/v1.jsonld",
+  "@context": "https://schemalattice.com/context/v1.jsonld",
   "type": "Concept",
   ...
 }
@@ -41,7 +41,7 @@ mutating v1.
     "skos": "http://www.w3.org/2004/02/skos/core#",
     "pav":  "http://purl.org/pav/",
     "dct":  "http://purl.org/dc/terms/",
-    "sl":   "https://schemalattice.io/ns/v1#",
+    "sl":   "https://schemalattice.com/ns/v1#",
     "xsd":  "http://www.w3.org/2001/XMLSchema#",
 
     "Concept":       "skos:Concept",
@@ -132,7 +132,7 @@ v0.2.
 - **PAV** terms for provenance and versioning are similarly shortened.
 - **Three SchemaLattice-specific** namespaces: `sl:forkedFrom`,
   `sl:coRefersWith`, `sl:entryLevel`, `sl:collapsesTo`. These live
-  under `https://schemalattice.io/ns/v1#` to make clear what's ours.
+  under `https://schemalattice.com/ns/v1#` to make clear what's ours.
 - **No prefixes in record bodies.** A record writes `prefLabel` not
   `skos:prefLabel`; the `@context` resolves the shortening.
 

@@ -21,9 +21,9 @@ identity.
 ```json
 {
   "type": "Concept",
-  "inScheme": "https://schemalattice.io/s/scuba-ops@...",
+  "inScheme": "https://schemalattice.com/s/scuba-ops@...",
   "prefLabel": {"en": "Dive Log"},
-  "forkedFrom": "https://schemalattice.io/c/activity-log/session@998877665544",
+  "forkedFrom": "https://schemalattice.com/c/activity-log/session@998877665544",
   "changeset": {
     "ops": [
       {"op": "add", "field": "maxDepth", "type": "number", "unit": "meters"},
@@ -215,7 +215,7 @@ Child:
 {
   "type": "Concept",
   "prefLabel": {"en": "Dive Log"},
-  "forkedFrom": "https://schemalattice.io/c/activity-log/session@...",
+  "forkedFrom": "https://schemalattice.com/c/activity-log/session@...",
   "structure": {
     "fields": [
       {"name": "startedAt", "type": "dateTime"},

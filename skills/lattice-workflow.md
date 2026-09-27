@@ -1,12 +1,12 @@
 ---
 name: lattice-workflow
-description: Use when working in a project that is or should be integrated with SchemaLattice (schemalattice.io). Triggers on the presence of schemalattice.json in the project tree, mentions of "lattice"/"schemalattice"/"publish to lattice", or when the user asks to design schemas, make an app interoperable, discover existing schemas, or compare two apps' data models.
+description: Use when working in a project that is or should be integrated with SchemaLattice (schemalattice.com). Triggers on the presence of schemalattice.json in the project tree, mentions of "lattice"/"schemalattice"/"publish to lattice", or when the user asks to design schemas, make an app interoperable, discover existing schemas, or compare two apps' data models.
 ---
 
 # SchemaLattice workflow skill
 
 You are working in a project that may interact with SchemaLattice, a
-shared catalog of data model concepts at `schemalattice.io`. This
+shared catalog of data model concepts at `schemalattice.com`. This
 skill tells you when to consult the lattice and how to annotate your
 output so future tools can trace your work. Follow it whenever you
 are designing, modifying, or reading data model code and the lattice
@@ -18,12 +18,13 @@ MCP server is available.
    `.schemalattice/manifest.json`). If found, read it into working
    context — it is your source of truth for which local short names
    map to which lattice concept URIs.
-2. If not present and the user is starting new schema work, create
+2. If not present and the user is creating a durable local schema that
+   benefits from concept lineage, create
    the manifest with minimum fields:
    ```json
    {
-     "$schema": "https://schemalattice.io/schema/manifest-v1.json",
-     "lattice": "https://schemalattice.io",
+     "$schema": "https://schemalattice.com/schema/manifest-v1.json",
+     "lattice": "https://schemalattice.com",
      "project": { "name": "<project-name>" },
      "concepts": {}
    }
@@ -49,11 +50,11 @@ MCP server is available.
    URIs or pretend the lattice exists if you can't reach it.
 
    Note on hosts vs URIs: canonical concept URIs are ALWAYS
-   `https://schemalattice.io/c/...` regardless of which host serves
+   `https://schemalattice.com/c/...` regardless of which host serves
    them — the URI is a stable identifier, not a live URL. To fetch a
    record, take the URI's path and request it from the host you
    resolved above. Never treat a failure to dereference
-   `schemalattice.io` itself as the catalog being down.
+   `schemalattice.com` itself as the catalog being down.
 
 4. **Keep one sessionId for the whole working session.** Every
    `lattice_discover` response returns a `sessionId` (yours echoed
@@ -64,7 +65,60 @@ MCP server is available.
    and publishing with a fresh one will be rejected
    (`ERR_NO_PRIOR_DISCOVER`).
 
+## Getting write access
+
+Reads never need a key: discover, resolve, list, and every report are open.
+Writes need one, and you can issue yourself one — no human approval, no waiting.
+
+1. Call `lattice_register_app` with your app's slug, name, unit, owner, and
+   status (`concepts` may be an empty array on the first call). It returns
+   `apiKey` **exactly once**. Store it; the server keeps only a hash and can
+   reissue but never recover it.
+2. Send it as `Authorization: Bearer <key>` on every write call.
+3. Re-registering the same slug later updates your manifest in place, and
+   requires that key. A slug someone else registered is refused
+   (`ERR_APP_NOT_YOURS`) — pick your own rather than adopting theirs.
+
+A self-issued key is **low tier**, which is graded by blast radius, not by
+seniority:
+
+| | low (self-serve) | contributor (promoted) |
+|---|---|---|
+| `lattice_publish_fork` | unlimited | unlimited |
+| `lattice_publish_concept` | small daily budget | unlimited |
+| `lattice_publish_context` | denied | allowed |
+
+Forking is never budgeted, deliberately: it carries lineage, so it is the move
+you should be making when you are unsure. If you hit `ERR_ORIGINATE_BUDGET`,
+that is the signal to look harder for a parent to fork — not to wait out the
+window. `ERR_TIER_TOO_LOW` on a context means publish into an existing one; a
+context is a namespace the whole catalog inherits, so ask the operator rather
+than working around it.
+
+Nothing here relaxes the quality gates. Every writer, operator included, passes
+the same friction checks — prior discover, root ancestry, definition quality,
+external match. Tiers govern *how much* you can do, never *how good it has to
+be*, and every write is recorded against the app that made it.
+
 ## The core loop (Checkpoints 1A → 2B)
+
+### When the app uses an existing backend
+
+First read the backend's published API discovery, versioned wire schema,
+authentication and capability documentation. Those contracts determine what
+the app can read or write. Use the lattice to choose and explain concepts in
+the app's own model and at its integration boundaries; a similarity score is
+never evidence that a backend accepts a field or grants an operation.
+
+Keep three things distinct in the result: the user's source data, the app's
+local representation, and the backend's accepted payload. Show the mapping
+between them, including units, provenance, uncertainty, and omitted fields.
+Validate a proposed payload against the backend's schema and use its preview
+or dry-run operation before any commit, when available. If a concept is
+missing from the lattice, that does not block a supported backend operation.
+Search and record the gap, then continue under the backend contract. Do not
+publish a new concept, register an app, or send private records to the
+catalog merely because the user is building an interface.
 
 When modeling any persistent or cross-boundary data structure:
 
@@ -127,7 +181,7 @@ When modeling any persistent or cross-boundary data structure:
      entirely.** A missing parent list is always correct; a
      fabricated one is a protocol violation. Do not construct
      plausible-looking URIs like
-     `https://schemalattice.io/s/activity-log@1.0.0` just
+     `https://schemalattice.com/s/activity-log@1.0.0` just
      because a parent "ought to" exist.
 
    Then:

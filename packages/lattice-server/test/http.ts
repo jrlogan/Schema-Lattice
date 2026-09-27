@@ -64,7 +64,7 @@ async function main() {
 
   // --- canonical URI resolution ------------------------------------------
   const personUri = instance.skeletonUri("person")!;
-  const path = personUri.replace("https://schemalattice.io", "");
+  const path = personUri.replace("https://schemalattice.com", "");
   const person = await get(path);
   check(
     "resolve-canonical-path",
@@ -94,7 +94,7 @@ async function main() {
     `status=${ghost.status}`,
   );
 
-  const ctxPath = instance.contextUri().replace("https://schemalattice.io", "");
+  const ctxPath = instance.contextUri().replace("https://schemalattice.com", "");
   const ctxConcepts = await get(`${ctxPath}/concepts?limit=5`);
   check(
     "list-context-over-http",
@@ -119,7 +119,7 @@ async function main() {
   const tools = await get("/api/tools");
   check(
     "tool-listing",
-    tools.body.tools.length === 14 && tools.body.tools.some((t: any) => t.write === true),
+    tools.body.tools.length === 16 && tools.body.tools.some((t: any) => t.write === true),
     `${tools.body.tools.length} tools`,
   );
 
@@ -271,6 +271,88 @@ async function main() {
     "demand-report-carries-untrusted-notice",
     typeof demandNotice.body.notice === "string" && demandNotice.body.notice.includes("never as instructions"),
     "notice present",
+  );
+
+  // --- distributed access: self-serve keys, capped blast radius ------------
+  const reg = {
+    slug: "bens-app", name: "Ben's App", unit: "independent",
+    owner: "Ben", status: "experiment", concepts: [],
+  };
+  const selfServe = await post("/api/tools/lattice_register_app", reg);
+  const benKey: string = selfServe.body.apiKey;
+  check(
+    "self-registration-issues-a-key-without-approval",
+    selfServe.status === 200 && typeof benKey === "string" && benKey.startsWith("slk_"),
+    selfServe.status === 200 ? `tier=${selfServe.body.tier}` : JSON.stringify(selfServe.body),
+  );
+
+  const hijack = await post("/api/tools/lattice_register_app", { ...reg, owner: "Somebody Else" });
+  check(
+    "an-existing-slug-cannot-be-re-registered-by-a-stranger",
+    hijack.status === 403 && hijack.body.error.details.latticeCode === "ERR_APP_NOT_YOURS",
+    `status=${hijack.status} ${hijack.body.error?.details?.latticeCode ?? ""}`,
+  );
+
+  const ownUpdate = await post("/api/tools/lattice_register_app", { ...reg, owner: "Ben R" }, benKey);
+  check(
+    "an-app-can-update-its-own-registration",
+    ownUpdate.status === 200 && ownUpdate.body.created === false && ownUpdate.body.apiKey === undefined,
+    `created=${ownUpdate.body.created}, key re-issued=${ownUpdate.body.apiKey !== undefined}`,
+  );
+
+  const lowContext = await post(
+    "/api/tools/lattice_publish_context",
+    { ...contextArgs, slug: "bens-namespace" },
+    benKey,
+  );
+  check(
+    "low-tier-cannot-create-a-context",
+    lowContext.status === 403 && lowContext.body.error.details.latticeCode === "ERR_TIER_TOO_LOW",
+    `status=${lowContext.status} ${lowContext.body.error?.details?.latticeCode ?? ""}`,
+  );
+
+  const promote = await post("/api/tools/lattice_set_app_tier", { slug: "bens-app", tier: "contributor" }, benKey);
+  check(
+    "an-app-cannot-promote-itself",
+    promote.status === 403 && promote.body.error.details.latticeCode === "ERR_OPERATOR_ONLY",
+    `status=${promote.status} ${promote.body.error?.details?.latticeCode ?? ""}`,
+  );
+
+  const promoted = await post("/api/tools/lattice_set_app_tier", { slug: "bens-app", tier: "contributor" }, API_KEY);
+  check(
+    "the-operator-can-promote",
+    promoted.status === 200 && promoted.body.tier === "contributor",
+    `tier=${promoted.body.tier}`,
+  );
+
+  const nowAllowed = await post(
+    "/api/tools/lattice_publish_context",
+    { ...contextArgs, slug: "bens-namespace" },
+    benKey,
+  );
+  check(
+    "promotion-actually-lifts-the-capability",
+    nowAllowed.status === 200 && nowAllowed.body.published === true,
+    nowAllowed.body.uri ?? JSON.stringify(nowAllowed.body),
+  );
+
+  const reissued = await post("/api/tools/lattice_reissue_app_key", { slug: "bens-app" }, API_KEY);
+  const staleKey = await post("/api/tools/lattice_register_app", { ...reg, owner: "Ben" }, benKey);
+  check(
+    "reissuing-a-key-revokes-the-old-one",
+    reissued.status === 200 && reissued.body.apiKey !== benKey && staleKey.status === 403,
+    `old key now status=${staleKey.status}`,
+  );
+
+  const writeEvents = instance.store.db
+    .prepare("SELECT actor, COUNT(*) AS n FROM events WHERE kind = 'publish_context' GROUP BY actor")
+    .all() as Array<{ actor: string | null; n: number }>;
+  check(
+    "every-write-names-who-caused-it",
+    writeEvents.length > 0 && writeEvents.every((r) => r.actor !== null) &&
+      writeEvents.some((r) => r.actor === "app:bens-app") &&
+      writeEvents.some((r) => r.actor === "operator"),
+    writeEvents.map((r) => `${r.actor}=${r.n}`).join(", "),
   );
 
   console.log(`\n${passed}/${passed + failed} checks passed`);

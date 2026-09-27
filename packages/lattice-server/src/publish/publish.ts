@@ -38,6 +38,8 @@ export interface PublishConceptInput {
   record: ConceptRecord;
   /** Session id matching a prior lattice_discover call (R2). */
   sessionId?: string;
+  /** Authenticated writer, for the audit log. */
+  actor?: string;
 }
 
 export interface DuplicateWarning {
@@ -145,7 +147,7 @@ export async function publishConcept(
     rootAncestor: ancestry.rootAncestor,
     sessionId: input.sessionId ?? null,
     duplicateWarningCount: duplicateWarnings.length,
-  });
+  }, input.actor ?? null);
 
   return { ok: true, uri, hash, rootAncestor: ancestry.rootAncestor, duplicateWarnings };
 }

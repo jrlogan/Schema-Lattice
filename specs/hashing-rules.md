@@ -170,13 +170,13 @@ Minimal concept:
 
 ```json
 {
-  "uri": "https://schemalattice.io/c/scuba-ops/dive-log@PLACEHOLDER",
+  "uri": "https://schemalattice.com/c/scuba-ops/dive-log@PLACEHOLDER",
   "type": "Concept",
-  "inScheme": "https://schemalattice.io/s/scuba-ops@aabbccddeeff",
+  "inScheme": "https://schemalattice.com/s/scuba-ops@aabbccddeeff",
   "prefLabel": {"en": "Dive Log"},
   "definition": {"en": "A record of a single scuba diving session."},
   "broader": [
-    "https://schemalattice.io/c/activity-log/session@001122334455"
+    "https://schemalattice.com/c/activity-log/session@001122334455"
   ],
   "createdOn": "2026-04-12T14:32:00Z",
   "createdBy": ["jrlogan"]
@@ -189,10 +189,10 @@ whitespace):
 ```json
 {
   "broader": [
-    "https://schemalattice.io/c/activity-log/session@001122334455"
+    "https://schemalattice.com/c/activity-log/session@001122334455"
   ],
   "definition": {"en": "A record of a single scuba diving session."},
-  "inScheme": "https://schemalattice.io/s/scuba-ops@aabbccddeeff",
+  "inScheme": "https://schemalattice.com/s/scuba-ops@aabbccddeeff",
   "prefLabel": {"en": "Dive Log"},
   "type": "Concept"
 }
@@ -201,7 +201,7 @@ whitespace):
 Actual byte sequence (whitespace-free, sorted keys):
 
 ```
-{"broader":["https://schemalattice.io/c/activity-log/session@001122334455"],"definition":{"en":"A record of a single scuba diving session."},"inScheme":"https://schemalattice.io/s/scuba-ops@aabbccddeeff","prefLabel":{"en":"Dive Log"},"type":"Concept"}
+{"broader":["https://schemalattice.com/c/activity-log/session@001122334455"],"definition":{"en":"A record of a single scuba diving session."},"inScheme":"https://schemalattice.com/s/scuba-ops@aabbccddeeff","prefLabel":{"en":"Dive Log"},"type":"Concept"}
 ```
 
 SHA-256 of this byte sequence, first 12 hex chars → the hash segment

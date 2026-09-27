@@ -2,7 +2,7 @@
 // streamable MCP endpoint — all over the same tool table as the stdio server.
 //
 // Read is public; write requires the API key (DECISIONS.md § Infrastructure).
-// Canonical URIs stay `https://schemalattice.io/...` regardless of which
+// Canonical URIs stay `https://schemalattice.com/...` regardless of which
 // host actually serves them, so the resolution routes match on path only.
 
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
@@ -17,6 +17,10 @@ import { listContext } from "../query/stats.ts";
 import { landingPage } from "./landing.ts";
 import { RateLimiter, clientKey, DEFAULT_LIMITS, type RateLimits, type Bucket } from "./ratelimit.ts";
 import { REPO_ROOT } from "../server/config.ts";
+import {
+  ANONYMOUS, OPERATOR, actorOf, checkCapability, looksLikeAppKey, matchesOperatorKey,
+  type Principal,
+} from "../server/principals.ts";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -98,17 +102,48 @@ function readBody(req: IncomingMessage): Promise<unknown> {
   });
 }
 
-/** Constant-time-ish bearer check. Absent config key means writes are open. */
-function authorized(req: IncomingMessage, config: LatticeConfig): boolean {
-  if (!config.apiKey) return true;
+function bearer(req: IncomingMessage): string {
   const header = req.headers.authorization ?? "";
-  const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
-  if (token.length !== config.apiKey.length) return false;
-  let diff = 0;
-  for (let i = 0; i < token.length; i++) {
-    diff |= token.charCodeAt(i) ^ config.apiKey.charCodeAt(i);
+  return header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+}
+
+/**
+ * Resolve the caller. Two kinds of key: the single operator token from the
+ * environment, and a per-app key minted by lattice_register_app and stored as a
+ * hash. No key at all is ANONYMOUS — which can still read everything, and can
+ * still register a new app to get a key.
+ *
+ * With no operator key configured (local dev) every caller is the operator, so
+ * a laptop instance behaves as it always has.
+ */
+function resolvePrincipal(req: IncomingMessage, config: LatticeConfig, instance: LatticeInstance): Principal {
+  if (!config.apiKey) return OPERATOR;
+  const token = bearer(req);
+  if (token.length === 0) return ANONYMOUS;
+  if (looksLikeAppKey(token)) {
+    return instance.registry.principalForKey(token) ?? ANONYMOUS;
   }
-  return diff === 0;
+  return matchesOperatorKey(token, config.apiKey) ? OPERATOR : ANONYMOUS;
+}
+
+/**
+ * Access denials are still the standard tool-error envelope — the specific
+ * reason travels in `details.latticeCode`, exactly as gate rejections do, so a
+ * client has one place to look. Only the HTTP status differentiates them.
+ */
+const DENIAL_STATUS: Record<string, number> = {
+  ERR_NOT_AUTHENTICATED: 401,
+  ERR_TIER_TOO_LOW: 403,
+  ERR_OPERATOR_ONLY: 403,
+  ERR_APP_NOT_YOURS: 403,
+  ERR_ORIGINATE_BUDGET: 429,
+};
+
+function denialStatus(result: unknown, fallback: number): number {
+  const details = (result as { error?: { details?: { latticeCode?: string } } })?.error?.details;
+  const code = details?.latticeCode;
+  if (code === undefined) return fallback;
+  return DENIAL_STATUS[code] ?? fallback;
 }
 
 export async function startHttpServer(
@@ -153,9 +188,12 @@ async function handle(
   const url = new URL(req.url ?? "/", "http://localhost");
   const path = decodeURIComponent(url.pathname);
 
-  // The operator's own key bypasses limiting; everyone else is counted
-  // per client IP into the bucket their route belongs to.
-  const isOperator = config.apiKey !== null && authorized(req, config);
+  // The operator's own key bypasses limiting. Everyone else is counted into
+  // the bucket their route belongs to — keyed by app when we know who they
+  // are, because an IP is a poor proxy for an agent: several friends' agents
+  // can share one cloud NAT, and one agent can rotate through many addresses.
+  const principal = resolvePrincipal(req, config, instance);
+  const isOperator = principal.tier === "operator" && config.apiKey !== null;
   if (!isOperator) {
     const bucket: Bucket =
       path === "/discover" || path === "/api/tools/lattice_discover"
@@ -163,7 +201,9 @@ async function handle(
         : path === "/api/tools/lattice_feedback"
           ? "feedback"
           : "general";
-    const key = clientKey(req.socket.remoteAddress, req.headers["x-forwarded-for"] as string | undefined);
+    const key = principal.anonymous
+      ? clientKey(req.socket.remoteAddress, req.headers["x-forwarded-for"] as string | undefined)
+      : actorOf(principal);
     const retryAfter = limiter.hit(key, bucket);
     if (retryAfter !== null) {
       const payload = JSON.stringify({
@@ -190,7 +230,7 @@ async function handle(
 
   // --- MCP over streamable HTTP -------------------------------------
   if (path === "/mcp") {
-    if (req.method === "POST" && !authorized(req, config)) {
+    if (req.method === "POST" && principal.anonymous) {
       // The MCP surface exposes write tools, so the whole endpoint is gated
       // whenever a key is configured.
       send(res, 401, {
@@ -353,14 +393,18 @@ async function handle(
       });
       return;
     }
-    if (tool.write && !authorized(req, config)) {
-      send(res, 401, {
-        error: {
-          code: "invalid-parameter",
-          message: `${name} writes to the catalog and requires an API key`,
-        },
-      });
-      return;
+    if (tool.write) {
+      const denial = checkCapability(principal, name);
+      if (denial) {
+        send(res, DENIAL_STATUS[denial.code] ?? 403, {
+          error: {
+            code: "invalid-parameter",
+            message: denial.message,
+            details: { latticeCode: denial.code, guidance: denial.guidance },
+          },
+        });
+        return;
+      }
     }
     let body: unknown;
     try {
@@ -371,8 +415,13 @@ async function handle(
       });
       return;
     }
-    const result = await callTool(instance, name, (body ?? {}) as Record<string, unknown>);
-    send(res, isToolError(result) ? 400 : 200, result);
+    const result = await callTool(
+      instance,
+      name,
+      (body ?? {}) as Record<string, unknown>,
+      principal,
+    );
+    send(res, isToolError(result) ? denialStatus(result, 400) : 200, result);
     return;
   }
 

@@ -6,6 +6,7 @@
 
 import { join } from "node:path";
 import { Store } from "../storage/db.ts";
+import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { seedSkeleton, skeletonUris, type SeedResult } from "../seed/seed.ts";
 import { seedGovernance, type GovernanceSeedResult } from "../seed/governance.ts";
 import {
@@ -52,6 +53,31 @@ export interface InstanceOptions {
   embedder?: Embedder;
 }
 
+/**
+ * The authority is inside the hash (`specs/hashing-rules.md` — `inScheme` and every
+ * relation URI are hashed), so changing it re-mints the whole catalog. A store written
+ * under one authority therefore cannot be served under another: seeding would lay a
+ * second namespace beside the first, `broader` and `forkedFrom` chains would point at
+ * URIs that no longer exist, and ancestry walks would fail one lineage at a time
+ * instead of all at once. Refuse the boot rather than corrupt quietly.
+ *
+ * Checked before seeding, because seeding is itself a write.
+ */
+function assertAuthorityMatches(store: Store): void {
+  const foreign = store
+    .listConceptUris()
+    .find((uri) => !uri.startsWith(`${BASE_AUTHORITY}/`));
+  if (foreign === undefined) return;
+  const theirs = foreign.slice(0, foreign.indexOf("/c/"));
+  throw new Error(
+    `this catalog was minted under ${theirs}, but the build mints ${BASE_AUTHORITY}.\n` +
+      `Changing the authority re-mints every URI — there is no in-place rename. Either ` +
+      `restore BASE_AUTHORITY to ${theirs}, or point LATTICE_DATA_DIR at a fresh directory ` +
+      `and re-publish. If anyone has recorded URIs from this instance, they must be ` +
+      `re-resolved either way.`,
+  );
+}
+
 export class LatticeInstance {
   readonly store: Store;
   readonly seed: SeedResult;
@@ -66,6 +92,7 @@ export class LatticeInstance {
       dbPath: join(opts.dataDir, "dev.db"),
       blobDir: join(opts.dataDir, "blobs"),
     });
+    assertAuthorityMatches(this.store);
     this.seed = seedSkeleton(this.store);
     this.governance = seedGovernance(this.store, this.seed);
     this.ancestryCtx = { skeletonUris: skeletonUris(this.seed) };

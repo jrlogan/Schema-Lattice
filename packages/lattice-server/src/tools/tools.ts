@@ -8,6 +8,11 @@
 import type { LatticeInstance } from "../server/instance.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
 import { InvalidParameter, NotFound, toToolError, type ToolError } from "./errors.ts";
+import {
+  OPERATOR, ORIGINATE_BUDGET, TIERS, actorOf, budgetDenial, checkCapability,
+  type Principal, type Tier,
+} from "../server/principals.ts";
+import { PublishError } from "../publish/errors.ts";
 import type { AppStatus, UsageStatus, AttestationResult } from "../registry/registry.ts";
 
 export interface ToolDef {
@@ -19,6 +24,7 @@ export interface ToolDef {
   handler: (
     instance: LatticeInstance,
     args: Record<string, unknown>,
+    principal: Principal,
   ) => Promise<unknown> | unknown;
 }
 
@@ -85,12 +91,12 @@ function oneOf<T extends string>(
   return v as T;
 }
 
-/** `https://schemalattice.io/s/{slug}@{hash}` → `{slug}`. */
+/** `https://schemalattice.com/s/{slug}@{hash}` → `{slug}`. */
 function contextSlugFromUri(uri: string): string {
   const m = uri.match(/\/s\/([a-z][a-z0-9-]*)@[0-9a-f]+$/);
   if (!m) {
     throw new InvalidParameter(
-      `"${uri}" is not a context URI — expected https://schemalattice.io/s/{slug}@{hash}`,
+      `"${uri}" is not a context URI — expected https://schemalattice.com/s/{slug}@{hash}`,
       { parameter: "contextUri" },
     );
   }
@@ -368,8 +374,9 @@ export const TOOLS: ToolDef[] = [
       },
       required: ["slug", "title", "definition"],
     },
-    handler: (instance, args) =>
+    handler: (instance, args, principal) =>
       instance.publishContext({
+        actor: actorOf(principal),
         slug: requireString(args, "slug"),
         title: requireString(args, "title"),
         definition: requireString(args, "definition"),
@@ -440,7 +447,7 @@ export const TOOLS: ToolDef[] = [
       },
       required: ["contextUri", "prefLabel", "definition"],
     },
-    handler: async (instance, args) => {
+    handler: async (instance, args, principal) => {
       const contextUri = requireString(args, "contextUri");
       const contextSlug = contextSlugFromUri(contextUri);
       const conceptSlug =
@@ -451,6 +458,7 @@ export const TOOLS: ToolDef[] = [
         conceptSlug,
         record,
         sessionId: optionalString(args, "sessionId"),
+        actor: actorOf(principal),
       });
       return {
         uri: result.uri,
@@ -522,7 +530,7 @@ export const TOOLS: ToolDef[] = [
       },
       required: ["parentUri", "contextUri", "prefLabel", "definition", "changeset"],
     },
-    handler: async (instance, args) => {
+    handler: async (instance, args, principal) => {
       const contextUri = requireString(args, "contextUri");
       const changeset = args.changeset as { ops?: unknown } | undefined;
       if (!changeset || typeof changeset !== "object" || !Array.isArray(changeset.ops)) {
@@ -543,6 +551,7 @@ export const TOOLS: ToolDef[] = [
         coRefersWith: optionalStringArray(args, "coRefersWith"),
         sourceAttribution: args.sourceAttribution as never,
         sessionId: optionalString(args, "sessionId"),
+        actor: actorOf(principal),
       });
       return {
         uri: result.uri,
@@ -695,12 +704,13 @@ export const TOOLS: ToolDef[] = [
       },
       required: ["slug", "name", "unit", "owner", "status", "concepts"],
     },
-    handler: (instance, args) => {
+    handler: (instance, args, principal) => {
       const concepts = args.concepts;
       if (!Array.isArray(concepts)) {
         throw new InvalidParameter('"concepts" must be an array', { parameter: "concepts" });
       }
-      return instance.registry.registerApp({
+      const result = instance.registry.registerApp({
+        actor: principal,
         slug: requireString(args, "slug"),
         name: requireString(args, "name"),
         description: optionalString(args, "description"),
@@ -719,6 +729,15 @@ export const TOOLS: ToolDef[] = [
           shortName?: string;
         }>,
       });
+      if (result.apiKey === undefined) return result;
+      return {
+        ...result,
+        tier: "low",
+        note:
+          "Save this key — it is shown once and stored only as a hash. Send it as " +
+          "`Authorization: Bearer <key>` on write calls. Low tier: forking is unlimited, " +
+          "originating is capped per day, and creating a context needs a promotion.",
+      };
     },
   },
 
@@ -743,8 +762,16 @@ export const TOOLS: ToolDef[] = [
       },
       required: ["app", "gate", "result", "performedBy", "performedOn"],
     },
-    handler: (instance, args) =>
-      instance.registry.recordAttestation(requireString(args, "app"), {
+    handler: (instance, args, principal) => {
+      const app = requireString(args, "app");
+      if (principal.tier !== "operator" && principal.app !== app) {
+        throw new PublishError(
+          "ERR_APP_NOT_YOURS",
+          `attestations for "${app}" can only be recorded by that app or the operator`,
+          { guidance: "Record attestations under your own app slug." },
+        );
+      }
+      return instance.registry.recordAttestation(app, {
         gate: requireString(args, "gate"),
         gateVersion: optionalString(args, "gateVersion"),
         result: oneOf(args, "result", ["pass", "fail", "waived"] as const) as AttestationResult,
@@ -752,7 +779,47 @@ export const TOOLS: ToolDef[] = [
         performedOn: requireString(args, "performedOn"),
         findingsRef: optionalString(args, "findingsRef"),
         notes: optionalString(args, "notes"),
-      }),
+      });
+    },
+  },
+
+  {
+    name: "lattice_set_app_tier",
+    write: true,
+    description:
+      "Operator only. Promote or demote a registered app. `low` is what " +
+      "self-registration issues: unlimited forking, a small daily origination " +
+      "budget, and no context creation. `contributor` lifts the budget and " +
+      "allows new contexts. Use it once an app has shown it publishes well.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        slug: { type: "string" },
+        tier: { type: "string", enum: ["low", "contributor"] },
+      },
+      required: ["slug", "tier"],
+    },
+    handler: (instance, args) =>
+      instance.registry.setAppTier(
+        requireString(args, "slug"),
+        oneOf(args, "tier", ["low", "contributor"] as const) as Tier,
+      ),
+  },
+
+  {
+    name: "lattice_reissue_app_key",
+    write: true,
+    description:
+      "Operator only. Issue a fresh key for a registered app, invalidating the " +
+      "previous one. Use for a lost key or a suspected leak — keys are stored " +
+      "hashed, so the old one cannot be recovered, only replaced.",
+    inputSchema: {
+      type: "object",
+      properties: { slug: { type: "string" } },
+      required: ["slug"],
+    },
+    handler: (instance, args) =>
+      instance.registry.reissueKey(requireString(args, "slug")),
   },
 
   {
@@ -819,10 +886,34 @@ export const TOOLS_BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));
  * Run a tool by name, converting any thrown error into the standard
  * envelope. Returns either the tool's result or a `{ error }` object.
  */
+/**
+ * Kinds of event that count against a tier's daily origination budget. Forks
+ * are deliberately absent: a fork carries lineage, so it is the move we want
+ * an uncertain agent to make, and budgeting it would push them to originate.
+ */
+const ORIGINATE_KINDS = ["published"] as const;
+
+function assertBudget(instance: LatticeInstance, principal: Principal, tool: string): void {
+  if (tool !== "lattice_publish_concept") return;
+  const budget = ORIGINATE_BUDGET[principal.tier];
+  if (budget === null) return;
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const used = instance.store.countActorEventsSince(actorOf(principal), ORIGINATE_KINDS, since);
+  if (used < budget) return;
+  const denial = budgetDenial(principal.tier, used, budget);
+  throw new PublishError(denial.code, denial.message, { guidance: denial.guidance });
+}
+
+/**
+ * `principal` defaults to the operator because an in-process caller (tests,
+ * seeds, the stdio MCP server the user launched themselves) already owns the
+ * process. Every network path resolves a real principal and passes it.
+ */
 export async function callTool(
   instance: LatticeInstance,
   name: string,
   args: Record<string, unknown>,
+  principal: Principal = OPERATOR,
 ): Promise<unknown | ToolError> {
   const tool = TOOLS_BY_NAME.get(name);
   if (!tool) {
@@ -835,7 +926,14 @@ export async function callTool(
     };
   }
   try {
-    return await tool.handler(instance, args ?? {});
+    if (tool.write) {
+      const denial = checkCapability(principal, name);
+      if (denial) {
+        throw new PublishError(denial.code, denial.message, { guidance: denial.guidance });
+      }
+      assertBudget(instance, principal, name);
+    }
+    return await tool.handler(instance, args ?? {}, principal);
   } catch (err) {
     return toToolError(err);
   }

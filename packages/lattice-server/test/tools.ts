@@ -223,7 +223,7 @@ async function main() {
   );
 
   const orphanParent = await call("lattice_publish_fork", {
-    parentUri: "https://schemalattice.io/c/trail-ops/nothing@000000000000",
+    parentUri: "https://schemalattice.com/c/trail-ops/nothing@000000000000",
     contextUri: ctx.uri,
     prefLabel: "Nowhere Fork",
     definition:
@@ -255,7 +255,7 @@ async function main() {
   check("resolve", resolved.record.prefLabel.en === "Trail Segment", segment.uri);
 
   const stale = await call("lattice_resolve", {
-    uri: "https://schemalattice.io/c/trail-ops/ghost@aaaaaaaaaaaa",
+    uri: "https://schemalattice.com/c/trail-ops/ghost@aaaaaaaaaaaa",
   });
   check(
     "resolve-stale-is-not-found",

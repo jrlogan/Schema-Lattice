@@ -24,6 +24,10 @@ import {
 } from "../publish/classification.ts";
 import { cosine } from "../discover/embedder.ts";
 import { PublishError } from "../publish/errors.ts";
+import {
+  OPERATOR, TIERS, appPrincipal, actorOf, hashKey, mintKey,
+  type Principal, type Tier,
+} from "../server/principals.ts";
 
 // Unlike concept slugs, app slugs may start with a digit ("311-portal").
 const APP_SLUG_RE = /^[a-z0-9][a-z0-9-]{1,39}$/;
@@ -39,6 +43,8 @@ export interface AppUsage {
 }
 
 export interface AppRegistration {
+  /** Who is registering. Absent means in-process (tests, seeds) and is treated as operator. */
+  actor?: Principal;
   slug: string;
   name: string;
   description?: string;
@@ -144,10 +150,19 @@ export class Registry {
       CREATE INDEX IF NOT EXISTS idx_attestations_app
         ON app_attestations(app_slug);
     `);
+    // An app registration IS the principal: the registry already knew the owner
+    // and the contact, it just had no way to prove a caller was them.
+    this.deps.store.addColumn("apps", "key_hash", "TEXT");
+    this.deps.store.addColumn("apps", "tier", "TEXT NOT NULL DEFAULT 'low'");
+    this.db.exec(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_apps_key ON apps(key_hash) WHERE key_hash IS NOT NULL`,
+    );
   }
 
   // ---------------------------------------------------------------
-  registerApp(input: AppRegistration): { slug: string; created: boolean } {
+  registerApp(
+    input: AppRegistration,
+  ): { slug: string; created: boolean; apiKey?: string } {
     if (!APP_SLUG_RE.test(input.slug)) {
       throw new PublishError(
         "ERR_APP_SLUG_INVALID",
@@ -190,6 +205,24 @@ export class Registry {
       .prepare("SELECT 1 AS ok FROM apps WHERE slug = ?")
       .get(input.slug);
 
+    // Without this, any caller could re-register someone else's slug and
+    // silently rewrite their manifest — the registry's whole value is that
+    // `lattice_app_report` says something true about a named app.
+    const actor = input.actor ?? OPERATOR;
+    if (exists && actor.tier !== "operator" && actor.app !== input.slug) {
+      throw new PublishError(
+        "ERR_APP_NOT_YOURS",
+        `app "${input.slug}" is registered to someone else`,
+        {
+          guidance:
+            "Register under a slug you own. If this is your app and you have lost its key, " +
+            "ask the catalog operator to reissue one.",
+        },
+      );
+    }
+
+    const apiKey = exists ? undefined : mintKey();
+
     const tx = this.db.transaction(() => {
       if (exists) {
         this.db
@@ -204,12 +237,13 @@ export class Registry {
       } else {
         this.db
           .prepare(
-            `INSERT INTO apps (slug, name, description, unit, owner, contact, status, registered_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO apps (slug, name, description, unit, owner, contact, status, registered_at, updated_at, key_hash, tier)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
             input.slug, input.name, input.description ?? null, input.unit,
             input.owner, input.contact ?? null, input.status, now, now,
+            hashKey(apiKey as string), "low",
           );
       }
       const ins = this.db.prepare(
@@ -220,14 +254,51 @@ export class Registry {
       }
     });
     tx();
-    this.deps.store.logEvent("register_app", {
-      slug: input.slug,
-      unit: input.unit,
-      status: input.status,
-      conceptCount: input.concepts.length,
-      updated: exists,
-    });
-    return { slug: input.slug, created: !exists };
+    this.deps.store.logEvent(
+      "register_app",
+      {
+        slug: input.slug,
+        unit: input.unit,
+        status: input.status,
+        conceptCount: input.concepts.length,
+        updated: exists,
+      },
+      actorOf(actor),
+    );
+    // The key is returned exactly once, at creation. It is stored hashed, so a
+    // lost key is reissued, never recovered.
+    return { slug: input.slug, created: !exists, apiKey };
+  }
+
+  /** Resolve a bearer token to its app principal, or null if it matches nothing. */
+  principalForKey(key: string): Principal | null {
+    const row = this.db
+      .prepare("SELECT slug, tier FROM apps WHERE key_hash = ?")
+      .get(hashKey(key)) as { slug: string; tier: string } | undefined;
+    if (!row) return null;
+    const tier = (TIERS as readonly string[]).includes(row.tier)
+      ? (row.tier as Tier)
+      : "low";
+    return appPrincipal(row.slug, tier);
+  }
+
+  /** Operator-only promotion/demotion. Returns the tier actually stored. */
+  setAppTier(slug: string, tier: Tier): { slug: string; tier: Tier } {
+    this.requireApp(slug);
+    this.db.prepare("UPDATE apps SET tier = ?, updated_at = ? WHERE slug = ?")
+      .run(tier, new Date().toISOString(), slug);
+    this.deps.store.logEvent("set_app_tier", { slug, tier }, actorOf(OPERATOR));
+    return { slug, tier };
+  }
+
+  /** Reissue a lost key. Operator-only at the tool layer; invalidates the old one. */
+  reissueKey(slug: string): { slug: string; apiKey: string } {
+    this.requireApp(slug);
+    const apiKey = mintKey();
+    this.db.prepare("UPDATE apps SET key_hash = ?, updated_at = ? WHERE slug = ?")
+      .run(hashKey(apiKey), new Date().toISOString(), slug);
+    this.deps.store.logEvent("reissue_key", { slug }, actorOf(OPERATOR));
+    return { slug, apiKey };
   }
 
   recordAttestation(appSlug: string, att: AttestationInput): { id: number } {
