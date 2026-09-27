@@ -1,6 +1,6 @@
 import Database from "better-sqlite3";
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import type { ConceptRecord, ContextRecord } from "../hashing/types.ts";
 
 export interface StoreOptions {
@@ -88,13 +88,20 @@ export class Store {
     return path;
   }
 
+  // blob_path is recorded absolute, but the data directory can move (a restore,
+  // a new box, a remint swap). The blob always lives in this store's blobDir.
+  private readBlob<T>(blobPath: string): T | null {
+    const path = join(this.blobDir, basename(blobPath));
+    if (!existsSync(path)) return null;
+    return JSON.parse(readFileSync(path, "utf8")) as T;
+  }
+
   getConcept(uri: string): ConceptRecord | null {
     const row = this.db
       .prepare("SELECT blob_path FROM concepts WHERE uri = ?")
       .get(uri) as { blob_path: string } | undefined;
     if (!row) return null;
-    if (!existsSync(row.blob_path)) return null;
-    return JSON.parse(readFileSync(row.blob_path, "utf8")) as ConceptRecord;
+    return this.readBlob<ConceptRecord>(row.blob_path);
   }
 
   hasConcept(uri: string): boolean {
@@ -210,8 +217,8 @@ export class Store {
     const row = this.db
       .prepare("SELECT blob_path FROM contexts WHERE uri = ?")
       .get(uri) as { blob_path: string } | undefined;
-    if (!row || !existsSync(row.blob_path)) return null;
-    return JSON.parse(readFileSync(row.blob_path, "utf8")) as ContextRecord;
+    if (!row) return null;
+    return this.readBlob<ContextRecord>(row.blob_path);
   }
 
   /** True if a `discover` event was logged with this session id. */
