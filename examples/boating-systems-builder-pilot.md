@@ -33,6 +33,11 @@ Observed on this date:
   permanent manifest until the authority and existing record migration story
   are reconciled.
 
+Resolved 2026-09-27: the live catalog was re-minted under
+`https://schemalattice.com` (all 66 concepts, lineage, app registrations
+and history carried over; old-to-new map in the data directory's
+`remint-map.json`). The probe now exits 0. Builders may pin `.com` URIs.
+
 ## Builder workflow to evaluate
 
 1. Read the backend's capability document, wire schema, authentication
