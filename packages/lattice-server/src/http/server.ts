@@ -14,7 +14,7 @@ import { TOOLS, TOOLS_BY_NAME, callTool, type CallContext } from "../tools/tools
 import { isToolError } from "../tools/errors.ts";
 import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
-import { landingPage } from "./landing.ts";
+import { landingPage, llmsText } from "./landing.ts";
 import { RateLimiter, clientKey, DEFAULT_LIMITS, type RateLimits, type Bucket } from "./ratelimit.ts";
 import { REPO_ROOT } from "../server/config.ts";
 import {
@@ -266,7 +266,7 @@ async function handle(
     // Browsers get the human front door; API clients get the JSON index.
     if ((req.headers.accept ?? "").includes("text/html")) {
       const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
-      sendText(res, 200, landingPage(host, instance.totals()), "text/html; charset=utf-8");
+      sendText(res, 200, landingPage(host, { ...instance.totals(), apps: instance.registry.listApps().length }), "text/html; charset=utf-8");
       return;
     }
     send(res, 200, {
@@ -295,6 +295,13 @@ async function handle(
       },
       writesRequireKey: config.apiKey !== null,
     });
+    return;
+  }
+
+  // The front page for AI readers: same account, plain markdown.
+  if (path === "/llms.txt" && isRead) {
+    const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
+    sendText(res, 200, llmsText(host, { ...instance.totals(), apps: instance.registry.listApps().length }), "text/markdown; charset=utf-8");
     return;
   }
 

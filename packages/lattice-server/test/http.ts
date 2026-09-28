@@ -136,6 +136,18 @@ async function main() {
       html.includes("What gets recorded"),
     `content-type=${htmlRes.headers.get("content-type")}`,
   );
+  check(
+    "landing-says-what-is-not-built",
+    html.includes("Not built yet") && html.includes("/llms.txt") && html.includes("application/ld+json"),
+    "honesty and AI entry points present",
+  );
+  const llms = await fetch(base + "/llms.txt");
+  const llmsBody = await llms.text();
+  check(
+    "llms-txt-for-ai-readers",
+    llms.status === 200 && llmsBody.startsWith("# SchemaLattice") && llmsBody.includes("/skill"),
+    `status=${llms.status}`,
+  );
   const skillRes = await fetch(base + "/skill");
   const skillText = await skillRes.text();
   check(
