@@ -78,7 +78,7 @@ $G --command="sudo cat /etc/schemalattice/env"        # the write key
 
 ```bash
 tar czf /tmp/lattice.tgz --exclude=node_modules --exclude=var --exclude=.git \
-  packages/lattice-server specs skills *.md
+  packages/lattice-server packages/lattice-client specs skills *.md LICENSE
 gcloud compute scp /tmp/lattice.tgz lattice:~/ --zone=$LATTICE_GCP_ZONE
 $G --command="sudo tar xzf ~/lattice.tgz -C /srv/schemalattice/app \
   && sudo chown -R schemalattice:schemalattice /srv/schemalattice/app \
@@ -87,7 +87,9 @@ $G --command="sudo tar xzf ~/lattice.tgz -C /srv/schemalattice/app \
   && sudo systemctl restart schemalattice"
 ```
 
-Skip the `npm ci` when only source changed.
+Skip the `npm ci` when only source changed. `packages/lattice-client` is in
+the archive because `/cli/schemalattice.mjs` serves it from there; leaving it
+out ships a server whose client is whatever was deployed last.
 
 ### Backups
 
