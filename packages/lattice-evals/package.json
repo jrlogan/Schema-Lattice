@@ -1,6 +1,7 @@
 {
   "name": "schemalattice-evals",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "private": true,
   "type": "module",
   "description": "Scenario-based evaluation harness for the SchemaLattice AI protocol. Mock mode only in v0.1. Uses Gemini for evaluation runs; tool schemas are provider-neutral so other providers can be added.",

@@ -285,8 +285,10 @@ export function landingPage(host: string, totals: LandingTotals): string {
       <a href="/specs/uri-scheme.md">URI scheme</a>, <a href="/specs/hashing-rules.md">hashing</a>,
       <a href="/specs/mcp-tools.md">tools</a>.</li>
     <li><strong>Know the limits.</strong> It is young, run as one instance, and small: most domains have
-      no concepts yet, and an empty result is the common case. The source repository is not public yet;
-      the protocol and every published record are.</li>
+      no concepts yet, and an empty result is the common case.</li>
+    <li><strong>Read the code.</strong> The server, the specs and the skills are open source under
+      Apache-2.0: <a href="https://github.com/jrlogan/Schema-Lattice">github.com/jrlogan/Schema-Lattice</a>.
+      Published concepts carry their own publishers' licenses.</li>
   </ul>
 
   <h2>What gets recorded, honestly</h2>
@@ -401,6 +403,9 @@ Each app keeps schemalattice.json (local names -> concept URIs). Shared URI = sa
 
 ## What is recorded
 Search query text (unless ephemeral:true), best match and score, a random session id. Never code or schemas. Unmet queries appear aggregated in lattice_demand_report.
+
+## Source
+Open source under Apache-2.0: https://github.com/jrlogan/Schema-Lattice (published concepts carry their own publishers' licenses).
 
 ## Specs
 - https://${host}/specs/ai-checkpoints.md

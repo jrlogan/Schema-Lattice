@@ -147,8 +147,13 @@ recalibrated against the real embedding model during M2 — see
 
 ## License
 
-TBD — likely MIT or Apache 2.0 for the code, CC-BY-SA for the concept
-catalog contents (with attribution required per `pav:importedFrom`).
+The code, specs and skills in this repository are licensed under the
+[Apache License 2.0](LICENSE).
+
+The concept catalog is not part of this repository and is not covered by
+it. Each published concept carries the license its publisher chose
+(`sourceLicense`), with attribution in `createdBy`, `importedFrom` and
+`inspiredBySources`; read it on the record before reusing a definition.
 
 ## Credits
 

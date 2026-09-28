@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: Apache-2.0 — https://github.com/jrlogan/Schema-Lattice
 /**
  * schemalattice — publish a platform's data vocabulary to SchemaLattice, generated from its code.
  *
