@@ -269,6 +269,7 @@ async function handle(
       endpoints: {
         skill: "GET /skill (the workflow instructions for AI clients)",
         builderSkill: "GET /skill/builder (one-page brief for apps built on an existing backend)",
+        client: "GET /cli/schemalattice.mjs (publish a platform's vocabulary from its code; vendor it)",
         resolveConcept: "GET /c/{context}/{slug}@{hash}",
         resolveContext: "GET /s/{context}@{hash}",
         listContext: "GET /s/{context}@{hash}/concepts",
@@ -294,6 +295,17 @@ async function handle(
       return;
     }
     sendText(res, 200, readFileSync(file, "utf8"), "text/markdown; charset=utf-8");
+    return;
+  }
+
+  // The publishing client: one dependency-free file that repositories vendor.
+  if (path === "/cli/schemalattice.mjs" && isRead) {
+    const file = join(REPO_ROOT, "packages", "lattice-client", "schemalattice.mjs");
+    if (!existsSync(file)) {
+      send(res, 404, { error: { code: "not-found", message: "client not deployed" } });
+      return;
+    }
+    sendText(res, 200, readFileSync(file, "utf8"), "text/javascript; charset=utf-8");
     return;
   }
 

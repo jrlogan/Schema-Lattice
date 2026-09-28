@@ -150,6 +150,13 @@ async function main() {
     builderRes.status === 200 && builderText.includes("# SchemaLattice builder brief"),
     `status=${builderRes.status}, ${builderText.length} bytes`,
   );
+  const cliRes = await fetch(base + "/cli/schemalattice.mjs");
+  const cliText = await cliRes.text();
+  check(
+    "client-served",
+    cliRes.status === 200 && cliText.includes("export const CLIENT_VERSION"),
+    `status=${cliRes.status}, ${cliText.length} bytes`,
+  );
   const specRes = await fetch(base + "/specs/ai-checkpoints.md");
   check("specs-served", specRes.status === 200, `status=${specRes.status}`);
   const traversal = await fetch(base + "/specs/..%2F..%2Fpackage.json");

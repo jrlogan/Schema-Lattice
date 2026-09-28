@@ -131,8 +131,13 @@ Implementation status (see `REQUIREMENTS.md` for the R-numbers):
   public; writes need an API key. `schemalattice.com` is not registered
   yet, which changes nothing about the records: canonical URIs are
   host-independent by design. See `packages/lattice-server/deploy/`.
-- **Next** — M3 shard-aware storage (R3), then the `lattice-client`
-  Local Register and `audit` CLI (R4/M4).
+- **Publishing client** — `packages/lattice-client/schemalattice.mjs`
+  (served at `/cli/schemalattice.mjs`): a platform publishes its vocabulary
+  from its own schema, with URIs computed locally so a PR shows exactly what
+  publish-on-merge will mint. Adopted by Boating Systems (Zod) and
+  Entrepreneurship Nexus (its generated data standard).
+- **Next** — the rest of R4/M4 (Local Register, `audit`), then M3
+  shard-aware storage (R3).
 
 Similarity thresholds in the skill and checkpoint spec were
 recalibrated against the real embedding model during M2 — see
