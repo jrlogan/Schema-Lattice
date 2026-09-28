@@ -3,7 +3,7 @@ exactly as an external developer's AI would run it (plus the operator key
 so publishes are allowed and rate limits don't apply)."""
 import json, os, urllib.request, urllib.error
 
-BASE = "https://34.75.250.234.sslip.io"
+BASE = os.environ.get("LATTICE_URL", "https://schemalattice.com")
 KEY = os.environ["LATTICE_API_KEY"]
 
 def call(tool, args):

@@ -1,7 +1,11 @@
 # The hosted instance
 
-Live at **https://schemalattice.com** — a GCE `e2-micro` in `$LATTICE_GCP_ZONE`,
-project `$LATTICE_GCP_PROJECT` ("Lattice"), instance name `lattice`.
+Live at **https://schemalattice.com** — a GCE `e2-micro` instance named
+`lattice`. Its Google Cloud project and zone are kept out of this repository:
+copy `deploy/.env.deploy.example` to `deploy/.env.deploy` (gitignored), fill
+them in, and `source` it before any command below that uses
+`$LATTICE_GCP_PROJECT` or `$LATTICE_GCP_ZONE`. The address itself is not a
+secret — `schemalattice.com` resolves straight to it.
 Caddy obtains the Let's Encrypt certificate; `www.` redirects to the apex.
 
 The bootstrap hostname `https://34.75.250.234.sslip.io` (wildcard DNS that
@@ -66,6 +70,7 @@ and `/mcp` is gated as a whole because it exposes those write tools.
 ## Operating it
 
 ```bash
+source packages/lattice-server/deploy/.env.deploy   # project and zone
 G="gcloud compute ssh lattice --zone=$LATTICE_GCP_ZONE --project=$LATTICE_GCP_PROJECT"
 
 $G --command="sudo systemctl status schemalattice"
@@ -79,7 +84,7 @@ $G --command="sudo cat /etc/schemalattice/env"        # the write key
 ```bash
 tar czf /tmp/lattice.tgz --exclude=node_modules --exclude=var --exclude=.git \
   packages/lattice-server packages/lattice-client specs skills *.md LICENSE
-gcloud compute scp /tmp/lattice.tgz lattice:~/ --zone=$LATTICE_GCP_ZONE
+gcloud compute scp /tmp/lattice.tgz lattice:~/ --zone=$LATTICE_GCP_ZONE --project=$LATTICE_GCP_PROJECT
 $G --command="sudo tar xzf ~/lattice.tgz -C /srv/schemalattice/app \
   && sudo chown -R schemalattice:schemalattice /srv/schemalattice/app \
   && cd /srv/schemalattice/app/packages/lattice-server \
@@ -147,7 +152,7 @@ rebuildable from it.
 $G --command="sudo -u schemalattice sqlite3 /srv/schemalattice/data/dev.db \
   \".backup '/tmp/lattice.db'\" && sudo tar czf /tmp/lattice-backup.tgz \
   -C /srv/schemalattice/data blobs -C /tmp lattice.db"
-gcloud compute scp lattice:/tmp/lattice-backup.tgz . --zone=$LATTICE_GCP_ZONE
+gcloud compute scp lattice:/tmp/lattice-backup.tgz . --zone=$LATTICE_GCP_ZONE --project=$LATTICE_GCP_PROJECT
 ```
 
 ## Verifying
