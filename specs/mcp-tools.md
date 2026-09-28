@@ -174,21 +174,38 @@ may also repeat).
 
 **Description:**
 
-> List all concepts in a SchemaLattice context. Use this after you've
-> found a relevant context through discover and want to see the full
-> vocabulary available, not just semantically-nearest matches.
+> With a contextUri, list all concepts in that SchemaLattice context —
+> the full vocabulary, not just semantically-nearest matches. Without
+> one, list every context in the catalog (slug, title, concept count,
+> and which version is latest), which is how to find an existing
+> context to publish into.
 
 **Parameters:**
 
 ```typescript
 {
-  contextUri: string;
+  contextUri?: string;           // Omit to list every context
   limit?: number;                // Default 100
   offset?: number;
 }
 ```
 
-**Returns:**
+**Returns, with no `contextUri`:**
+
+```typescript
+{
+  contexts: Array<{
+    uri: string;
+    slug: string;
+    title: string;
+    definitionExcerpt: string;
+    conceptCount: number;
+    latest: boolean;             // other versions share the slug
+  }>;                            // sorted by slug, latest version first
+}
+```
+
+**Returns, with a `contextUri`:**
 
 ```typescript
 {
@@ -301,7 +318,7 @@ new one. Prefer reuse over narrow origination.
   coRefersWith?: string[];       // URIs
   sourceAttribution?: {
     importedFrom?: string;
-    authoredBy?: string[];
+    authoredBy?: string | string[]; // one author may be a plain string
     sourceLicense?: string;
     sourceNotes?: string;
     inspiredBySources?: Array<
@@ -383,7 +400,7 @@ open-source projects are most influential in the catalog.
   coRefersWith?: string[];
   sourceAttribution?: {
     importedFrom?: string;
-    authoredBy?: string[];
+    authoredBy?: string | string[]; // one author may be a plain string
     sourceLicense?: string;
   };
 }

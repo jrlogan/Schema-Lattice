@@ -39,6 +39,34 @@ export interface ToolDef {
 // ---------------------------------------------------------------
 // argument helpers
 
+/**
+ * `authoredBy` as callers actually write it. A single author is naturally a
+ * string, and the retrofit protocol calls a missing author a violation — so a
+ * string that was silently dropped left the catalog saying nobody wrote a
+ * concept whose author had been given. Anything else is refused, not ignored.
+ */
+function normalizedAttribution(value: unknown): unknown {
+  if (!value || typeof value !== "object") return value;
+  const attribution = { ...(value as Record<string, unknown>) };
+  const authors = authorsOf(attribution.authoredBy);
+  if (authors) attribution.authoredBy = authors;
+  else delete attribution.authoredBy;
+  return attribution;
+}
+
+export function authorsOf(value: unknown): string[] | undefined {
+  if (value === undefined || value === null) return undefined;
+  const list = typeof value === "string" ? [value] : value;
+  if (!Array.isArray(list) || list.some((entry) => typeof entry !== "string")) {
+    throw new InvalidParameter(
+      '"sourceAttribution.authoredBy" must be a string or an array of strings',
+      { parameter: "sourceAttribution.authoredBy" },
+    );
+  }
+  const authors = (list as string[]).map((entry) => entry.trim()).filter(Boolean);
+  return authors.length ? authors : undefined;
+}
+
 function requireString(args: Record<string, unknown>, key: string): string {
   const v = args[key];
   if (typeof v !== "string" || v.trim().length === 0) {
@@ -216,9 +244,8 @@ function buildConceptRecord(
     if (typeof attribution.importedFrom === "string") {
       record.importedFrom = attribution.importedFrom;
     }
-    if (Array.isArray(attribution.authoredBy)) {
-      record.createdBy = attribution.authoredBy as string[];
-    }
+    const authors = authorsOf(attribution.authoredBy);
+    if (authors) record.createdBy = authors;
     if (typeof attribution.sourceLicense === "string") {
       record.sourceLicense = attribution.sourceLicense;
     }
@@ -383,19 +410,23 @@ export const TOOLS: ToolDef[] = [
     name: "lattice_list_context",
     write: false,
     description:
-      "List all concepts in a SchemaLattice context. Use this after you've " +
-      "found a relevant context through discover and want to see the full " +
-      "vocabulary available, not just semantically-nearest matches.",
+      "With a contextUri, list all concepts in that SchemaLattice context — the " +
+      "full vocabulary, not just semantically-nearest matches. Without one, list " +
+      "every context in the catalog (slug, title, concept count, and which version " +
+      "is latest), which is how to find an existing context to publish into.",
     inputSchema: {
       type: "object",
       properties: {
-        contextUri: { type: "string" },
+        contextUri: { type: "string", description: "Omit to list every context" },
         limit: { type: "number", description: "Default 100" },
         offset: { type: "number" },
       },
-      required: ["contextUri"],
+      required: [],
     },
     handler: (instance, args) => {
+      if (args.contextUri === undefined || args.contextUri === null || args.contextUri === "") {
+        return { contexts: instance.listContexts() };
+      }
       const uri = requireString(args, "contextUri");
       const result = instance.listContext(
         uri,
@@ -607,7 +638,7 @@ export const TOOLS: ToolDef[] = [
         changeset: changeset as never,
         structure: args.structure,
         coRefersWith: optionalStringArray(args, "coRefersWith"),
-        sourceAttribution: args.sourceAttribution as never,
+        sourceAttribution: normalizedAttribution(args.sourceAttribution) as never,
         sessionId: optionalString(args, "sessionId"),
         actor: actorOf(principal),
       });

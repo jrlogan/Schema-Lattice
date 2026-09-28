@@ -234,7 +234,7 @@ export class Store {
     return !!row;
   }
 
-  /** All contexts, newest first. */
+  /** All contexts, oldest first (insertion order). */
   listContexts(): Array<{ uri: string; slug: string; createdAt: string }> {
     return this.db
       .prepare("SELECT uri, slug, created_at AS createdAt FROM contexts ORDER BY rowid")

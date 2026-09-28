@@ -18,7 +18,7 @@ import { landingPage } from "./landing.ts";
 import { RateLimiter, clientKey, DEFAULT_LIMITS, type RateLimits, type Bucket } from "./ratelimit.ts";
 import { REPO_ROOT } from "../server/config.ts";
 import {
-  ANONYMOUS, OPERATOR, actorOf, checkCapability, looksLikeAppKey, matchesOperatorKey,
+  OPERATOR, actorOf, anonymousBecause, credentialGuidance, checkCapability, looksLikeAppKey, matchesOperatorKey,
   type Principal,
 } from "../server/principals.ts";
 import { readFileSync, existsSync } from "node:fs";
@@ -102,9 +102,15 @@ function readBody(req: IncomingMessage): Promise<unknown> {
   });
 }
 
-function bearer(req: IncomingMessage): string {
-  const header = req.headers.authorization ?? "";
-  return header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+type Presented = { token: string } | { problem: "none" | "empty" | "malformed" };
+
+function bearer(req: IncomingMessage): Presented {
+  const header = req.headers.authorization;
+  if (header === undefined) return { problem: "none" };
+  const match = header.match(/^Bearer(?:\s+(.*))?$/i);
+  if (!match) return header.trim() === "" ? { problem: "empty" } : { problem: "malformed" };
+  const token = (match[1] ?? "").trim();
+  return token ? { token } : { problem: "empty" };
 }
 
 /**
@@ -118,12 +124,13 @@ function bearer(req: IncomingMessage): string {
  */
 function resolvePrincipal(req: IncomingMessage, config: LatticeConfig, instance: LatticeInstance): Principal {
   if (!config.apiKey) return OPERATOR;
-  const token = bearer(req);
-  if (token.length === 0) return ANONYMOUS;
+  const presented = bearer(req);
+  if ("problem" in presented) return anonymousBecause(presented.problem);
+  const { token } = presented;
   if (looksLikeAppKey(token)) {
-    return instance.registry.principalForKey(token) ?? ANONYMOUS;
+    return instance.registry.principalForKey(token) ?? anonymousBecause("unrecognised");
   }
-  return matchesOperatorKey(token, config.apiKey) ? OPERATOR : ANONYMOUS;
+  return matchesOperatorKey(token, config.apiKey) ? OPERATOR : anonymousBecause("unrecognised");
 }
 
 /**
@@ -235,8 +242,13 @@ async function handle(
     if (req.method === "POST" && principal.anonymous) {
       // The MCP surface exposes write tools, so the whole endpoint is gated
       // whenever a key is configured.
+      const { message, guidance } = credentialGuidance(principal.credential);
       send(res, 401, {
-        error: { code: "invalid-parameter", message: "missing or invalid API key" },
+        error: {
+          code: "invalid-parameter",
+          message: `the MCP endpoint requires an API key: ${message}`,
+          details: { latticeCode: "ERR_NOT_AUTHENTICATED", guidance },
+        },
       });
       return;
     }
@@ -275,6 +287,7 @@ async function handle(
         resolveConcept: "GET /c/{context}/{slug}@{hash}",
         resolveContext: "GET /s/{context}@{hash}",
         listContext: "GET /s/{context}@{hash}/concepts",
+        listContexts: "POST /api/tools/lattice_list_context with {} — every context",
         discover: "GET /discover?description=...&limit=10&context=<slug>&ephemeral=true",
         tools: "GET /api/tools",
         callTool: "POST /api/tools/{name}",

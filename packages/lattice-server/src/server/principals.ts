@@ -23,10 +23,62 @@ export interface Principal {
   app: string | null;
   tier: Tier;
   anonymous: boolean;
+  /**
+   * Why an anonymous caller is anonymous. Sending no key and sending one that
+   * did not arrive are different mistakes: telling an operator whose key was
+   * blank to "register your app" sends them the wrong way.
+   */
+  credential?: CredentialProblem;
 }
 
+/**
+ * none: no Authorization header. empty: `Bearer ` with nothing after it —
+ * usually an unset shell variable. malformed: a header that is not
+ * `Bearer <key>`. unrecognised: a key that matches nothing — reissued,
+ * truncated, or meant for another instance.
+ */
+export type CredentialProblem = "none" | "empty" | "malformed" | "unrecognised";
+
 export const OPERATOR: Principal = { app: null, tier: "operator", anonymous: false };
-export const ANONYMOUS: Principal = { app: null, tier: "low", anonymous: true };
+export const ANONYMOUS: Principal = { app: null, tier: "low", anonymous: true, credential: "none" };
+
+export function anonymousBecause(credential: CredentialProblem): Principal {
+  return { ...ANONYMOUS, credential };
+}
+
+/** What to tell a caller whose key was not accepted, by why it was not. */
+export function credentialGuidance(credential: CredentialProblem = "none"): { message: string; guidance: string } {
+  switch (credential) {
+    case "empty":
+      return {
+        message: "the Authorization header was sent with an empty key",
+        guidance:
+          "The header read `Bearer ` with nothing after it, which usually means the variable holding the key " +
+          "was unset in the shell that sent it. Check the key is actually in the request. If you have no key " +
+          "yet, lattice_register_app issues one immediately.",
+      };
+    case "malformed":
+      return {
+        message: "the Authorization header is not in the form `Bearer <key>`",
+        guidance: "Send `Authorization: Bearer <key>`, with the word Bearer, one space, then the key.",
+      };
+    case "unrecognised":
+      return {
+        message: "the key sent does not match any app or the operator",
+        guidance:
+          "It may have been reissued (lattice_reissue_app_key invalidates the old one), copied incompletely, or " +
+          "be for a different lattice instance. Registering again under the same slug needs the current key; " +
+          "a lost key is reissued by the operator.",
+      };
+    default:
+      return {
+        message: "no API key was sent",
+        guidance:
+          "Call lattice_register_app to register your app and receive a key. It is issued immediately, no " +
+          "approval needed. Reads never require a key.",
+      };
+  }
+}
 
 export function appPrincipal(app: string, tier: Tier): Principal {
   return { app, tier, anonymous: false };
@@ -61,12 +113,11 @@ export function checkCapability(p: Principal, tool: string): Denial | null {
     // key for it. Re-registering a slug that already exists is refused inside
     // the registry, so this door only ever creates, never overwrites.
     if (tool === "lattice_register_app") return null;
+    const { message, guidance } = credentialGuidance(p.credential);
     return {
       code: "ERR_NOT_AUTHENTICATED",
-      message: `${tool} writes to the catalog and requires an API key`,
-      guidance:
-        "Call lattice_register_app to register your app and receive a key. It is issued " +
-        "immediately, no approval needed. Reads never require a key.",
+      message: `${tool} writes to the catalog and requires an API key: ${message}`,
+      guidance,
     };
   }
   if (tool === "lattice_publish_context" && p.tier === "low") {
@@ -75,7 +126,8 @@ export function checkCapability(p: Principal, tool: string): Denial | null {
       message: "creating a context is restricted to contributor tier and above",
       guidance:
         "A context is a namespace every later concept inherits, and it cannot be renamed. " +
-        "Publish into an existing context (lattice_list_context shows what exists), or ask " +
+        "Publish into an existing context (lattice_list_context with no arguments lists every " +
+        "one), or ask " +
         "the catalog operator to promote your app.",
     };
   }

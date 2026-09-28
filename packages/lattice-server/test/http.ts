@@ -229,11 +229,56 @@ async function main() {
   const wrongKey = await post("/api/tools/lattice_publish_context", contextArgs, "not-the-key");
   check("write-with-wrong-key-rejected", wrongKey.status === 401, `status=${wrongKey.status}`);
 
+  // Each way a key can fail to arrive says which, rather than all of them
+  // telling an operator with a blank variable to "register your app".
+  const rawPost = async (path: string, body: unknown, authorization: string) => {
+    const res = await fetch(base + path, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization },
+      body: JSON.stringify(body),
+    });
+    return { status: res.status, body: await res.json() as any };
+  };
+  const emptyKey = await rawPost("/api/tools/lattice_publish_context", contextArgs, "Bearer ");
+  check(
+    "empty-bearer-says-empty",
+    emptyKey.status === 401 && /empty key/.test(emptyKey.body.error.message) && !/register your app/i.test(emptyKey.body.error.details.guidance),
+    emptyKey.body.error?.message,
+  );
+  const malformed = await rawPost("/api/tools/lattice_publish_context", contextArgs, "Token abc");
+  check(
+    "malformed-header-says-malformed",
+    malformed.status === 401 && /Bearer <key>/.test(malformed.body.error.message),
+    malformed.body.error?.message,
+  );
+  check(
+    "wrong-key-says-unrecognised",
+    /does not match any app/.test(wrongKey.body.error.message),
+    wrongKey.body.error?.message,
+  );
+  check(
+    "no-key-says-register",
+    /no API key was sent/.test(unauthed.body.error.message) && /lattice_register_app/.test(unauthed.body.error.details.guidance),
+    unauthed.body.error?.message,
+  );
+  const mcpEmpty = await rawPost("/mcp", { jsonrpc: "2.0", id: 1, method: "ping" }, "Bearer ");
+  check("mcp-empty-bearer-says-empty", mcpEmpty.status === 401 && /empty key/.test(mcpEmpty.body.error.message), mcpEmpty.body.error?.message);
+
   const authed = await post("/api/tools/lattice_publish_context", contextArgs, API_KEY);
   check(
     "write-with-key-accepted",
     authed.status === 200 && authed.body.published === true,
     authed.body.uri ?? JSON.stringify(authed.body),
+  );
+
+  // Finding a context to publish into, with no URI in hand.
+  const allContexts = await post("/api/tools/lattice_list_context", {});
+  const harbor = allContexts.body.contexts?.find((c: { slug: string }) => c.slug === "harbor-ops");
+  check(
+    "list-every-context-without-a-uri",
+    allContexts.status === 200 && harbor?.uri === authed.body.uri && harbor?.latest === true &&
+      allContexts.body.contexts.some((c: { slug: string }) => c.slug === "schemalattice"),
+    `n=${allContexts.body.contexts?.length}, harbor-ops latest=${harbor?.latest}`,
   );
 
   // --- gate rejections come back as the standard envelope -------------------

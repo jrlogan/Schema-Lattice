@@ -159,8 +159,9 @@ When modeling any persistent or cross-boundary data structure:
    by one of three paths:
    - It was returned by `lattice_discover` or `lattice_resolve`
      against an existing concept whose `inScheme` you can reuse.
-   - You found it via `lattice_list_context` when browsing the
-     catalog for related domains.
+   - You found it via `lattice_list_context` — called with no
+     arguments, it lists every context in the catalog; with a
+     `contextUri`, every concept in that one.
    - **No suitable context exists yet** — in that case, call
      `lattice_publish_context` FIRST with a domain-generic slug
      (scuba-ops, trail-ops, volunteer-ops, equipment-lending — NOT
@@ -264,7 +265,8 @@ rules are different from Checkpoint 1D JIT mining. The project IS
 the authoritative source, not an adjacent reference.
 
 Required on every publish call during retrofit:
-- **`sourceAttribution.authoredBy`** — the project's author(s) or
+- **`sourceAttribution.authoredBy`** — a string, or an array of
+  strings for several — the project's author(s) or
   organization, extracted from the module's info.yml, package.json,
   composer.json, LICENSE, README byline, or git history. If you
   cannot determine authorship, use the repository owner's name or

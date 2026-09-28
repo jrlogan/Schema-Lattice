@@ -77,6 +77,41 @@ export function listContext(
   };
 }
 
+export interface ContextSummary {
+  uri: string;
+  slug: string;
+  title: string;
+  definitionExcerpt: string;
+  conceptCount: number;
+  /** Other versions share the slug; the latest is the one to publish into. */
+  latest: boolean;
+}
+
+/**
+ * Every context in the catalog. The ERR_TIER_TOO_LOW guidance says "publish
+ * into an existing context", and until this existed the only way to find one
+ * was to fish its URI out of discover results — the one tool named for the
+ * job needed a URI you did not have.
+ */
+export function listContexts(store: Store): ContextSummary[] {
+  const rows = store.listContexts();
+  const latestBySlug = new Map<string, string>();
+  for (const row of rows) latestBySlug.set(row.slug, row.uri); // rowid order: last wins
+  return rows
+    .map((row) => {
+      const ctx = store.getContext(row.uri);
+      return {
+        uri: row.uri,
+        slug: row.slug,
+        title: firstLang(ctx?.prefLabel),
+        definitionExcerpt: excerpt(firstLang(ctx?.definition as Record<string, string> | undefined)),
+        conceptCount: store.countConceptsInContext(row.slug),
+        latest: latestBySlug.get(row.slug) === row.uri,
+      };
+    })
+    .sort((a, b) => a.slug.localeCompare(b.slug) || Number(b.latest) - Number(a.latest));
+}
+
 /** `.../c/{context}/{slug}@{hash}` or `.../s/{context}@{hash}` → context slug. */
 function slugOf(uri: string): string {
   const concept = uri.match(/\/c\/([^/]+)\//);

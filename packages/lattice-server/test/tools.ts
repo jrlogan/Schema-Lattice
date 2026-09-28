@@ -89,9 +89,33 @@ async function main() {
         { name: "lastInspectedOn", type: "dateTime", classification: "public" },
       ],
     },
+    // One author, written the way people write one: a string.
+    sourceAttribution: { authoredBy: "Trail Crew", sourceNotes: "Test fixture." },
     sessionId,
   })) as { uri: string; published: boolean; warnings: unknown[] };
   check("publish-concept", segment.published === true, note(segment, segment.uri));
+  const segmentRecord = (await call("lattice_resolve", { uri: segment.uri })) as { record: { createdBy?: unknown } };
+  check(
+    "string-author-is-kept",
+    JSON.stringify(segmentRecord.record.createdBy) === JSON.stringify(["Trail Crew"]),
+    `createdBy=${JSON.stringify(segmentRecord.record.createdBy)}`,
+  );
+  const badAuthor = await call("lattice_publish_concept", {
+    contextUri: ctx.uri,
+    prefLabel: "Numbered Author",
+    definition: "A fixture whose author is a number, which must be refused rather than silently dropped from the record.",
+    broader: [instance.skeletonUri("thing")!],
+    closeMatch: ["schema:Thing"],
+    coRefersWith: [],
+    coRefersRationale: "Test fixture.",
+    sourceAttribution: { authoredBy: 42 },
+    sessionId,
+  });
+  check(
+    "non-string-author-refused",
+    isToolError(badAuthor) && /authoredBy/.test(badAuthor.error.message),
+    isToolError(badAuthor) ? badAuthor.error.message : "accepted",
+  );
 
   const noDiscover = await call("lattice_publish_concept", {
     contextUri: ctx.uri,

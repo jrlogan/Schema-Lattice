@@ -42,6 +42,8 @@ import {
 } from "../publish/fork.ts";
 import {
   listContext,
+  listContexts,
+  type ContextSummary,
   conceptStats,
   type ListContextResponse,
   type ConceptStats,
@@ -167,6 +169,10 @@ export class LatticeInstance {
 
   listContext(uri: string, limit?: number, offset?: number): ListContextResponse | null {
     return listContext(this.store, uri, limit, offset);
+  }
+
+  listContexts(): ContextSummary[] {
+    return listContexts(this.store);
   }
 
   stats(uri: string): ConceptStats | null {
