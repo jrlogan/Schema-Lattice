@@ -15,6 +15,12 @@ import {
 import { PublishError } from "../publish/errors.ts";
 import type { AppStatus, UsageStatus, AttestationResult } from "../registry/registry.ts";
 
+/** Where a call came from, for tools that need more than the principal. */
+export interface CallContext {
+  /** Client network address as the HTTP layer saw it; absent for stdio. */
+  clientAddress?: string;
+}
+
 export interface ToolDef {
   name: string;
   description: string;
@@ -25,6 +31,7 @@ export interface ToolDef {
     instance: LatticeInstance,
     args: Record<string, unknown>,
     principal: Principal,
+    ctx: CallContext,
   ) => Promise<unknown> | unknown;
 }
 
@@ -958,6 +965,7 @@ export async function callTool(
   name: string,
   args: Record<string, unknown>,
   principal: Principal = OPERATOR,
+  ctx: CallContext = {},
 ): Promise<unknown | ToolError> {
   const tool = TOOLS_BY_NAME.get(name);
   if (!tool) {
@@ -977,7 +985,7 @@ export async function callTool(
       }
       assertBudget(instance, principal, name);
     }
-    return await tool.handler(instance, args ?? {}, principal);
+    return await tool.handler(instance, args ?? {}, principal, ctx);
   } catch (err) {
     return toToolError(err);
   }

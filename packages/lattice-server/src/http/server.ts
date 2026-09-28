@@ -10,7 +10,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import type { LatticeInstance } from "../server/instance.ts";
 import type { LatticeConfig } from "../server/config.ts";
 import { createMcpServer } from "../mcp/server.ts";
-import { TOOLS, TOOLS_BY_NAME, callTool } from "../tools/tools.ts";
+import { TOOLS, TOOLS_BY_NAME, callTool, type CallContext } from "../tools/tools.ts";
 import { isToolError } from "../tools/errors.ts";
 import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
@@ -238,7 +238,7 @@ async function handle(
       });
       return;
     }
-    await handleMcp(req, res, instance);
+    await handleMcp(req, res, instance, principal, callContext(req));
     return;
   }
 
@@ -386,7 +386,7 @@ async function handle(
       sessionId: url.searchParams.get("sessionId") ?? undefined,
       ...(contexts.length > 0 ? { contexts } : {}),
       ephemeral: url.searchParams.get("ephemeral") === "true",
-    });
+    }, principal, callContext(req));
     send(res, isToolError(result) ? 400 : 200, result);
     return;
   }
@@ -445,6 +445,7 @@ async function handle(
       name,
       (body ?? {}) as Record<string, unknown>,
       principal,
+      callContext(req),
     );
     send(res, isToolError(result) ? denialStatus(result, 400) : 200, result);
     return;
@@ -458,12 +459,20 @@ async function handle(
  * all its state in SQLite, so there is nothing session-scoped to preserve and
  * this avoids leaking transports on a public endpoint.
  */
+function callContext(req: IncomingMessage): CallContext {
+  return {
+    clientAddress: clientKey(req.socket.remoteAddress, req.headers["x-forwarded-for"] as string | undefined),
+  };
+}
+
 async function handleMcp(
   req: IncomingMessage,
   res: ServerResponse,
   instance: LatticeInstance,
+  principal: Principal,
+  ctx: CallContext,
 ): Promise<void> {
-  const server = createMcpServer(instance);
+  const server = createMcpServer(instance, principal, ctx);
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   res.on("close", () => {
     void transport.close();

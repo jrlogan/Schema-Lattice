@@ -387,6 +387,37 @@ async function main() {
     `old key now status=${staleKey.status}`,
   );
 
+  // An app key over MCP must carry the app's own tier, not the operator's.
+  // (MCP tool calls once defaulted to the operator principal.)
+  const lowKey = reissued.body.apiKey as string;
+  const mcpCall = async (key: string, name: string, args: Record<string, unknown>) => {
+    const r = await fetch(`${base}/mcp`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json, text/event-stream",
+        authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 7, method: "tools/call", params: { name, arguments: args } }),
+    });
+    const text = await r.text();
+    const json = JSON.parse(text.includes("data:") ? text.split("data:").pop()!.trim() : text);
+    return JSON.parse(json.result.content[0].text);
+  };
+  await post("/api/tools/lattice_set_app_tier", { slug: "bens-app", tier: "low" }, API_KEY);
+  const escalate = await mcpCall(lowKey, "lattice_set_app_tier", { slug: "bens-app", tier: "contributor" });
+  check(
+    "mcp-carries-the-callers-tier",
+    escalate?.error?.details?.latticeCode === "ERR_OPERATOR_ONLY",
+    JSON.stringify(escalate).slice(0, 120),
+  );
+  const mcpContext = await mcpCall(lowKey, "lattice_publish_context", { ...contextArgs, slug: "bens-other-namespace" });
+  check(
+    "mcp-low-tier-cannot-create-a-context",
+    mcpContext?.error?.details?.latticeCode === "ERR_TIER_TOO_LOW",
+    JSON.stringify(mcpContext).slice(0, 120),
+  );
+
   const writeEvents = instance.store.db
     .prepare("SELECT actor, COUNT(*) AS n FROM events WHERE kind = 'publish_context' GROUP BY actor")
     .all() as Array<{ actor: string | null; n: number }>;
