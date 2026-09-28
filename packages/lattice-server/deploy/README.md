@@ -89,6 +89,15 @@ $G --command="sudo tar xzf ~/lattice.tgz -C /srv/schemalattice/app \
 
 Skip the `npm ci` when only source changed.
 
+### Backups
+
+The boot disk (`lattice`, which holds `/srv/schemalattice/data`) has the
+snapshot schedule `lattice-daily`: one snapshot a day at 07:00 UTC, kept 14
+days, stored in `us-east1`, retained even if the disk is deleted. Restore by
+creating a disk from a snapshot (`gcloud compute snapshots list
+--project=$LATTICE_GCP_PROJECT`) and attaching it, or copy `blobs/` and
+`dev.db` off it. Only `data/` is precious; the app is re-deployable from git.
+
 ### Reading feedback
 
 `lattice_feedback` notes land in the events table:
