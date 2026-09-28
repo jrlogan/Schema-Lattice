@@ -17,3 +17,6 @@ packages/lattice-evals/runs/
 
 # Local MCP overrides that may carry a key
 .mcp.remote.json
+
+# Where the hosted instance lives. Local only; see deploy/README.md.
+packages/lattice-server/deploy/.env.deploy
