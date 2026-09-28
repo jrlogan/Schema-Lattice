@@ -5,6 +5,7 @@
 // LatticeInstance. The MCP server and the HTTP server both mount this same
 // table so the two transports cannot drift apart.
 
+import { EvidenceRejected } from "../evidence/ledger.ts";
 import type { LatticeInstance } from "../server/instance.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
 import { InvalidParameter, NotFound, toToolError, type ToolError } from "./errors.ts";
@@ -350,12 +351,18 @@ export const TOOLS: ToolDef[] = [
       "to adopt it.",
     inputSchema: {
       type: "object",
-      properties: { uri: { type: "string" } },
+      properties: {
+        uri: { type: "string" },
+        sessionId: {
+          type: "string",
+          description: "Optional: your discover sessionId, so a later lattice_propose verdict counts as informed",
+        },
+      },
       required: ["uri"],
     },
     handler: (instance, args) => {
       const uri = requireString(args, "uri");
-      const record = instance.resolve(uri);
+      const record = instance.resolve(uri, optionalString(args, "sessionId"));
       if (!record) {
         throw new NotFound(
           `no concept at ${uri} — the URI may be stale, re-run lattice_discover`,
@@ -713,6 +720,103 @@ export const TOOLS: ToolDef[] = [
         sessionId: optionalString(args, "sessionId") ?? null,
       });
       return { recorded: true, thanks: "Read by the maintainers; not redistributed." };
+    },
+  },
+
+  // ------------------------------------------------------------- evidence
+  {
+    name: "lattice_propose",
+    // Not key-gated: it creates nothing in the catalog, only a quarantined
+    // ledger row (specs/evidence-ledger.md). Phase 1 accepts `match` claims.
+    write: false,
+    description:
+      "After you resolve a lattice_discover result and decide, say whether it was right or wrong for " +
+      "your query. One call; it is how the next builder gets better results. The claim must name a " +
+      "concept that discover returned to your sessionId. It is quarantined, and changes discover only " +
+      "after a waiting period and agreement from several independent sources. Anonymous calls are " +
+      "welcome; an app key makes your evidence count for more. Never include private data in the note.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        kind: { type: "string", enum: ["match"], description: "Phase 1: only match" },
+        sessionId: { type: "string", description: "The sessionId from your lattice_discover call" },
+        conceptUri: { type: "string", description: "A result that discover call returned" },
+        verdict: { type: "string", enum: ["right", "wrong"] },
+        reason: {
+          type: "string",
+          enum: ["different-referent", "too-broad", "too-narrow", "wrong-domain"],
+          description: "Required when verdict is wrong",
+        },
+        note: { type: "string", description: "Optional, up to 500 characters, shown truncated in the public report" },
+      },
+      required: ["sessionId", "conceptUri", "verdict"],
+    },
+    handler: async (instance, args, principal, ctx) => {
+      const kind = optionalString(args, "kind") ?? "match";
+      if (kind !== "match") throw new InvalidParameter(`kind "${kind}" is not accepted yet; phase 1 accepts match`);
+      try {
+        return await instance.evidence.proposeMatch(
+          {
+            sessionId: requireString(args, "sessionId"),
+            conceptUri: requireString(args, "conceptUri"),
+            verdict: requireString(args, "verdict") as "right" | "wrong",
+            reason: optionalString(args, "reason"),
+            note: optionalString(args, "note"),
+          },
+          instance.evidence.sourceOf(principal, ctx.clientAddress),
+        );
+      } catch (err) {
+        if (err instanceof EvidenceRejected) throw new InvalidParameter(err.message, { rejected: true, ...err.details });
+        throw err;
+      }
+    },
+  },
+  {
+    name: "lattice_evidence_report",
+    write: false,
+    description:
+      "Public view of the evidence ledger: match claims that are pending (with progress toward " +
+      "promotion), promoted (affecting discover), retracted or frozen, plus the promotion rules.",
+    inputSchema: { type: "object", properties: {} },
+    handler: (instance) => instance.evidence.report(),
+  },
+  {
+    name: "lattice_evidence_admin",
+    write: true,
+    description:
+      "Operator only. Freeze, unfreeze or retract an evidence claim (by claim key or state key), " +
+      "purge every claim from one source, or switch match evidence acceptance/application on or off.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        action: { type: "string", enum: ["freeze", "unfreeze", "retract", "purge-source", "switch"] },
+        target: { type: "string", description: "Claim key, state key or source; for switch: accept | apply" },
+        on: { type: "boolean", description: "For switch" },
+        reason: { type: "string" },
+      },
+      required: ["action", "target"],
+    },
+    handler: (instance, args) => {
+      const action = requireString(args, "action");
+      const target = requireString(args, "target");
+      try {
+        if (action === "switch") {
+          if (target !== "accept" && target !== "apply") throw new InvalidParameter('switch target must be "accept" or "apply"');
+          instance.evidence.setSwitch(target, args.on !== false);
+          return { switches: instance.evidence.switches() };
+        }
+        if (!["freeze", "unfreeze", "retract", "purge-source"].includes(action)) {
+          throw new InvalidParameter(`unknown action ${action}`);
+        }
+        return instance.evidence.admin(
+          action as "freeze" | "unfreeze" | "retract" | "purge-source",
+          target,
+          optionalString(args, "reason") ?? "no reason given",
+        );
+      } catch (err) {
+        if (err instanceof EvidenceRejected) throw new InvalidParameter(err.message, err.details);
+        throw err;
+      }
     },
   },
 

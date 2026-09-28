@@ -145,6 +145,12 @@ When modeling any persistent or cross-boundary data structure:
      Read 2–5 promising repositories' data models directly. Synthesize
      a draft concept from what you find. Only originate after you've
      honestly attempted this mining step.
+   After deciding, report the verdict with `lattice_propose`
+   (`{ sessionId, conceptUri, verdict: "right" | "wrong", reason }`) —
+   right if you adopted or forked from it, wrong (with a reason) if you
+   resolved it and rejected it. Pass the same `sessionId` to
+   `lattice_resolve` so the verdict counts as informed. This is how the
+   catalog learns which results mislead; see `specs/evidence-ledger.md`.
 4. **Checkpoint 2A.** Execute the decision via the correct tool.
 
    **Before calling any publish tool, ensure you have a valid

@@ -540,6 +540,57 @@ Two related M3 behaviors of `lattice_discover`:
   prior discover under the same id (R2), so clients quote this value
   back rather than inventing one at publish time.
 
+## Evidence tools (v0.2 phase 1)
+
+See `specs/evidence-ledger.md` for the model: claims are quarantined and
+only change discover once independent, weighted sources agree.
+
+### `lattice_propose`
+
+> After you resolve a discover result and decide, say whether it was
+> right or wrong for your query.
+
+```typescript
+{
+  kind?: "match";                 // phase 1 accepts only match
+  sessionId: string;              // your lattice_discover session
+  conceptUri: string;             // must be a result that session was shown
+  verdict: "right" | "wrong";
+  reason?: "different-referent" | "too-broad" | "too-narrow" | "wrong-domain";  // required when wrong
+  note?: string;                  // ≤500 chars; public report shows 240
+}
+→ { id, status: "pending", claimKey,
+    corroboration: { independentSources, needed, nonAnonymousNeeded, earliestPromotion } }
+```
+
+Not key-gated; rate-limited in its own `evidence` bucket (20/min per
+client) plus 200/day per source. An app key makes the evidence count
+for more once the app is established. Pass the same `sessionId` to
+`lattice_resolve` first: verdicts on unresolved concepts weigh half.
+
+### `lattice_evidence_report`
+
+Public. Pending claims with their progress toward promotion, promoted
+claims (affecting discover), retracted and frozen ones, the rules, and
+the operator switches. Notes are truncated and marked untrusted.
+
+### `lattice_evidence_admin`
+
+Operator only. `freeze` / `unfreeze` / `retract` a claim (by claim key
+or state key), `purge-source`, or `switch` `accept` / `apply` on or off.
+
+### Effect on `lattice_discover`
+
+A result covered by promoted evidence for queries like yours carries:
+
+```typescript
+adjustedSimilarity: number;       // raw − 0.05 for a promoted "wrong"; raw + 0.02 for "right"
+evidence: { caution?: { reason, sources }, confirmed?: { sources }, note }
+```
+
+Results are ordered by the adjusted score; `similarity` stays raw and
+`verdict` is always computed on raw scores.
+
 ## Registry tools (v0.1 M2.75)
 
 The app registry is the aggregation point for manifests, ownership,

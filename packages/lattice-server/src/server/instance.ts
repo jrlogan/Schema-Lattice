@@ -23,6 +23,7 @@ import type { AncestryContext } from "../publish/ancestry.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
 import { TransformersEmbedder, type Embedder } from "../discover/embedder.ts";
 import { VectorIndex } from "../discover/vectors.ts";
+import { EvidenceLedger } from "../evidence/ledger.ts";
 import {
   discover,
   type DiscoverInput,
@@ -86,6 +87,7 @@ export class LatticeInstance {
   readonly embedder: Embedder;
   readonly vectors: VectorIndex;
   readonly registry: Registry;
+  readonly evidence: EvidenceLedger;
 
   private constructor(opts: InstanceOptions) {
     this.store = new Store({
@@ -103,6 +105,7 @@ export class LatticeInstance {
       governance: this.governance,
       vectors: this.vectors,
     });
+    this.evidence = new EvidenceLedger(this.store, this.embedder);
   }
 
   static async create(opts: InstanceOptions): Promise<LatticeInstance> {
@@ -193,6 +196,7 @@ export class LatticeInstance {
       // Governance data classes tag fields; they are not domain concepts
       // and must not crowd real candidates out of discovery.
       reservedContexts: [this.governance.contextUri],
+      adjust: (candidates, queryVec) => this.evidence.adjust(candidates, queryVec),
     });
   }
 
@@ -208,11 +212,12 @@ export class LatticeInstance {
     );
   }
 
-  resolve(uri: string): ConceptRecord | null {
+  resolve(uri: string, sessionId?: string): ConceptRecord | null {
     const record = this.store.getConcept(uri);
     // DECISIONS.md § Learning loop: resolve is a tracked usage event.
-    // Misses matter too — a stale-URI rate is a health signal.
-    this.store.logEvent("resolve", { uri, found: record !== null });
+    // Misses matter too — a stale-URI rate is a health signal. The session
+    // lets match evidence show the concept was read before it was judged.
+    this.store.logEvent("resolve", { uri, found: record !== null, ...(sessionId ? { sessionId } : {}) });
     return record;
   }
 

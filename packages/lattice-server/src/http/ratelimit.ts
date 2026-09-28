@@ -18,6 +18,8 @@ export interface RateLimits {
   discover: number;
   /** Feedback submissions. */
   feedback: number;
+  /** Evidence ledger submissions (lattice_propose). */
+  evidence: number;
 }
 
 export const DEFAULT_LIMITS: RateLimits = {
@@ -25,6 +27,7 @@ export const DEFAULT_LIMITS: RateLimits = {
   general: 300,
   discover: 60,
   feedback: 10,
+  evidence: 20,
 };
 
 export type Bucket = keyof Omit<RateLimits, "windowMs">;
@@ -47,7 +50,7 @@ export class RateLimiter {
     const now = Date.now();
     let w = this.windows.get(clientKey);
     if (!w || w.resetAt <= now) {
-      w = { resetAt: now + this.limits.windowMs, counts: { general: 0, discover: 0, feedback: 0 } };
+      w = { resetAt: now + this.limits.windowMs, counts: { general: 0, discover: 0, feedback: 0, evidence: 0 } };
       this.windows.set(clientKey, w);
     }
     w.counts[bucket]++;

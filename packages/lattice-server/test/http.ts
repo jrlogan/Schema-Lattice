@@ -119,7 +119,7 @@ async function main() {
   const tools = await get("/api/tools");
   check(
     "tool-listing",
-    tools.body.tools.length === 16 && tools.body.tools.some((t: any) => t.write === true),
+    tools.body.tools.length === 19 && tools.body.tools.some((t: any) => t.write === true),
     `${tools.body.tools.length} tools`,
   );
 

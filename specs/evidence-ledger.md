@@ -1,6 +1,8 @@
 # Spec: Evidence Ledger
 
-**Status:** Draft, proposed for v0.2. Nothing here is implemented. It is
+**Status:** Phase 1 (match feedback) implemented in
+`packages/lattice-server/src/evidence/ledger.ts`, tested by
+`test/evidence.ts`. Phases 2–3 are draft. It is
 the "governance / endorsement / social signal" item README defers to
 v0.2, narrowed to one question: how can the catalog learn from people
 and AIs who use it, without logins and without letting spam in?
@@ -281,44 +283,50 @@ at most a 0.05 ranking move. It is never a permanent record.
 
 ## Data model
 
+As built for phase 1 (`src/evidence/ledger.ts`):
+
 ```sql
-CREATE TABLE evidence (
-  id          TEXT PRIMARY KEY,
-  claim_key   TEXT NOT NULL,        -- kind + normalized identifying fields
-  kind        TEXT NOT NULL,
-  polarity    INTEGER NOT NULL,     -- +1 asserts, -1 negates (e.g. right vs wrong)
-  source      TEXT NOT NULL,        -- 'artifact:github.com/x' | 'app:slug' | 'net:<salted hash>'
-  weight      REAL NOT NULL,        -- at submission (halved for unresolved match claims); re-derived when a source's standing changes
-  claim       TEXT NOT NULL,        -- the JSON claim
-  query_vec   BLOB,                 -- match claims from non-ephemeral sessions only
-  created_at  TEXT NOT NULL,
-  updated_at  TEXT NOT NULL,
+CREATE TABLE evidence (             -- the source of truth for this layer
+  id TEXT PRIMARY KEY,
+  claim_key TEXT NOT NULL,          -- match|<conceptUri>|<cluster>; cluster "*" = ephemeral, totals only
+  kind TEXT NOT NULL, subject TEXT NOT NULL,
+  cluster TEXT NOT NULL,            -- id of the claim that anchors the query cluster
+  polarity INTEGER NOT NULL,        -- +1 wrong, -1 right
+  source TEXT NOT NULL,             -- 'app:slug' | 'operator' | 'net:<salted hash of /24 or /48>'
+  resolved INTEGER NOT NULL,        -- the session resolved the concept before judging it
+  claim TEXT NOT NULL,              -- the JSON claim
+  query_vec BLOB,                   -- non-ephemeral sessions only
+  created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
   UNIQUE (claim_key, source)
 );
-CREATE TABLE claim_state (
-  claim_key   TEXT PRIMARY KEY,
-  status      TEXT NOT NULL,        -- pending | promoted | retracted | frozen | rejected
-  score       REAL NOT NULL,
-  sources     INTEGER NOT NULL,
-  first_at    TEXT NOT NULL,
-  changed_at  TEXT NOT NULL,
-  reason      TEXT
+CREATE TABLE claim_state (          -- derived; one row per claim key AND direction
+  state_key TEXT PRIMARY KEY,       -- <claim_key>#wrong | #right
+  claim_key TEXT, direction TEXT,
+  status TEXT,                      -- pending | promoted | retracted | frozen | operator-retracted | totals-only | rejected
+  score REAL, sources INTEGER, first_at TEXT, changed_at TEXT, reason TEXT
 );
-CREATE TABLE links (               -- the promoted, mutable layer read by resolve/discover
-  from_uri TEXT NOT NULL, to_ref TEXT NOT NULL, kind TEXT NOT NULL,
-  claim_key TEXT NOT NULL, sources INTEGER NOT NULL, promoted_at TEXT NOT NULL,
-  PRIMARY KEY (from_uri, to_ref, kind)
+CREATE TABLE evidence_links (       -- derived; what discover reads
+  subject TEXT, state_key TEXT, direction TEXT,
+  centroid BLOB,                    -- mean query vector of the promoting claims
+  reason TEXT, sources INTEGER, promoted_at TEXT,
+  PRIMARY KEY (subject, state_key)
 );
+CREATE TABLE evidence_meta (key TEXT PRIMARY KEY, value TEXT);   -- salt, operator switches
 ```
 
-Promotion runs as a periodic job (hourly) plus on demand from the
-report. It is idempotent: re-scoring from the `evidence` table
-always reproduces `claim_state` and `links`, so both are derived
-data, like the vector index.
+Weights are **not stored**: `rescore()` computes each row's weight from
+the source's current standing (an app becomes "established" over
+time), whether it resolved first (×0.5 if not) and its age (×0.5 after
+180 days). A claim is "right" and "wrong" at once in the sense that
+each direction is scored separately, with the other as its opposition.
 
-The `evidence` table does not live in `blobs/` and is not part of the
-catalog's content-addressed source of truth. It is backed up with the
-database (daily disk snapshots).
+`rescore()` runs after every submission, on every report, and hourly
+in the server process (the quarantine is time-based). It is
+idempotent; operator decisions (`frozen`, `operator-retracted`) are
+the only state it never overwrites.
+
+The ledger is not part of the catalog's content-addressed source of
+truth and is backed up with the database (daily disk snapshots).
 
 ## Changes to existing behaviour
 

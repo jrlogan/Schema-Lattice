@@ -20,6 +20,12 @@ export interface DiscoverOptions {
    * caller asks for that context by name via contextHint.
    */
   reservedContexts?: string[];
+  /**
+   * Bounded re-ranking from promoted evidence (specs/evidence-ledger.md).
+   * Receives every candidate and the query vector; may add
+   * `adjustedSimilarity` / `evidence`. Verdicts stay on raw similarity.
+   */
+  adjust?: (candidates: DiscoverCandidate[], queryVec: ArrayLike<number>) => DiscoverCandidate[];
 }
 
 export interface DiscoverInput {
@@ -54,6 +60,13 @@ export interface DiscoverCandidate {
   lineageDepth: number;
   forkedFrom?: string;
   nearestNeighborsCount: number;
+  /** Similarity after bounded evidence adjustment, when any applied. */
+  adjustedSimilarity?: number;
+  evidence?: {
+    caution?: { reason: string; sources: number };
+    confirmed?: { sources: number };
+    note: string;
+  };
 }
 
 /** The decision-tree band the top result falls in (specs/ai-checkpoints.md). */
@@ -201,19 +214,26 @@ export async function discover(
     });
   }
 
-  candidates.sort((a, b) => {
+  const adjusted = options.adjust ? options.adjust(candidates, queryVec) : candidates;
+  const rankOf = (c: DiscoverCandidate) => c.adjustedSimilarity ?? c.similarity;
+  adjusted.sort((a, b) => {
     const aScore =
-      a.similarity + (input.contextHint && a.context.uri === input.contextHint ? CONTEXT_HINT_BONUS : 0);
+      rankOf(a) + (input.contextHint && a.context.uri === input.contextHint ? CONTEXT_HINT_BONUS : 0);
     const bScore =
-      b.similarity + (input.contextHint && b.context.uri === input.contextHint ? CONTEXT_HINT_BONUS : 0);
+      rankOf(b) + (input.contextHint && b.context.uri === input.contextHint ? CONTEXT_HINT_BONUS : 0);
     if (bScore !== aScore) return bScore - aScore;
     return b.adoptionCount - a.adoptionCount;
   });
 
-  const results = candidates.slice(0, limit);
+  const results = adjusted.slice(0, limit);
 
   const refinements: string[] = [];
-  const top = results[0];
+  // The verdict and the no-match advice use the best RAW score: evidence may
+  // reorder results a little, never turn a weak match into an adopt.
+  const top = results.reduce<DiscoverCandidate | undefined>(
+    (best, c) => (!best || c.similarity > best.similarity ? c : best),
+    undefined,
+  );
   if (!top || top.similarity < NO_MATCH_SIM) {
     refinements.push(
       "Include the domain in the description (e.g. 'scuba', 'civic permitting', 'equipment lending'), not just the record type.",
@@ -227,6 +247,9 @@ export async function discover(
     resultCount: results.length,
     topUri: top?.uri ?? null,
     topSimilarity: top?.similarity ?? null,
+    // Every URI shown, so evidence about a result can be checked against
+    // what this session was actually given.
+    resultUris: results.map((r) => r.uri),
   });
 
   const verdict = verdictFor(top?.similarity);

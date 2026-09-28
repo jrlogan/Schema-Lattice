@@ -200,7 +200,9 @@ async function handle(
         ? "discover"
         : path === "/api/tools/lattice_feedback"
           ? "feedback"
-          : "general";
+          : path === "/api/tools/lattice_propose"
+            ? "evidence"
+            : "general";
     const key = principal.anonymous
       ? clientKey(req.socket.remoteAddress, req.headers["x-forwarded-for"] as string | undefined)
       : actorOf(principal);

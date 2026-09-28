@@ -80,12 +80,15 @@ export function checkCapability(p: Principal, tool: string): Denial | null {
     };
   }
   if (
-    (tool === "lattice_set_app_tier" || tool === "lattice_reissue_app_key") &&
+    (tool === "lattice_set_app_tier" || tool === "lattice_reissue_app_key" || tool === "lattice_evidence_admin") &&
     p.tier !== "operator"
   ) {
     return {
       code: "ERR_OPERATOR_ONLY",
-      message: "only the catalog operator can change an app's tier",
+      message:
+        tool === "lattice_evidence_admin"
+          ? "only the catalog operator can administer evidence"
+          : "only the catalog operator can change an app's tier",
       guidance: "Ask the operator of this instance.",
     };
   }

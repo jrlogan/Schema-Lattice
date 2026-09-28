@@ -21,7 +21,19 @@ async function main(): Promise<void> {
       : "  writes    OPEN — set LATTICE_API_KEY before exposing this instance",
   );
 
+  // Evidence promotion is time-based (a quarantine), so re-score hourly even
+  // when nobody submits or reads the report.
+  const rescore = setInterval(() => {
+    try {
+      instance.evidence.rescore();
+    } catch (err) {
+      console.error(`evidence rescore failed: ${(err as Error).message}`);
+    }
+  }, 3_600_000);
+  rescore.unref();
+
   const shutdown = async () => {
+    clearInterval(rescore);
     await handle.close();
     instance.close();
     process.exit(0);

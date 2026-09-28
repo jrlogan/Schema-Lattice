@@ -30,6 +30,12 @@ need, stop and tell the person; do not invent an endpoint.
   `no-match`. `lattice_resolve` anything you might use, and decline a
   high-scoring match whose meaning differs.
 
+- After deciding on a candidate, send one `lattice_propose` call:
+  `{ sessionId, conceptUri, verdict: "right" | "wrong", reason }`. It is
+  checked against what discover showed you, quarantined, and only
+  changes results once independent users agree. Never put private data
+  in its `note`.
+
 ## 3. Adopt the backend's concepts; fork for your extensions
 
 - A concept the backend publishes is the anchor. Adopt it as-is for data
