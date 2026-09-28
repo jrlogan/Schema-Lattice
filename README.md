@@ -85,7 +85,9 @@ Deferred to v0.2:
 - The `/reconcile` endpoint for bar-scene app-to-app negotiation
 - Full Cambria lens layer for bidirectional schema translation
 - Multi-instance federation
-- Governance / endorsement / social signal
+- Governance / endorsement / social signal — drafted as
+  `specs/evidence-ledger.md`: anonymous evidence, quarantined and
+  promoted only when independent sources agree
 
 ## Repository layout
 
