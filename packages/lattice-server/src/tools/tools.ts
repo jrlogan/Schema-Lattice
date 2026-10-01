@@ -9,6 +9,7 @@ import { EvidenceRejected } from "../evidence/ledger.ts";
 import type { LatticeInstance } from "../server/instance.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
 import { InvalidParameter, NotFound, toToolError, type ToolError } from "./errors.ts";
+import { compareConcepts } from "../query/compare.ts";
 import {
   OPERATOR, ORIGINATE_BUDGET, TIERS, actorOf, budgetDenial, checkCapability,
   type Principal, type Tier,
@@ -265,6 +266,14 @@ function buildConceptRecord(
 
 const stringArray = { type: "array", items: { type: "string" } };
 
+const STRUCTURE_DESCRIPTION =
+  "Field shape: { kind, fields: [{ name, type, classification?, provenance?, immutableFrom? }], lifecycle? }. " +
+  "classification names a governance data class (how sensitive the value is); provenance names a " +
+  "governance provenance class (how the value was captured: self-reported, uploaded, device-captured, " +
+  "attested-capture). lifecycle is { field?, initial, states: [{ name, terminal? }], transitions: " +
+  "[{ from, to, on? }] } — the states a record moves through and the named events that move it. " +
+  "immutableFrom names the lifecycle state after which a field may no longer change.";
+
 /**
  * Turn discover's `contexts` filter (slugs or URIs) into context URIs. An
  * unknown entry is an error rather than a silently empty search: a typo'd
@@ -407,6 +416,41 @@ export const TOOLS: ToolDef[] = [
   },
 
   {
+    name: "lattice_compare",
+    write: false,
+    description:
+      "Compare two SchemaLattice concepts side by side: every field on both " +
+      "sides, which were renamed into which (read from the changeset when one " +
+      "forks the other), where type, sensitivity classification or capture " +
+      "provenance differ, and which lifecycle states and transitions only one " +
+      "side has. Returns structured rows, plain-English summary sentences, and " +
+      "a Markdown table. Use it when deciding whether two apps' records mean " +
+      "the same thing, or to show a person what a fork actually changed.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        a: { type: "string", description: "Concept URI — usually the parent or your partner's concept" },
+        b: { type: "string", description: "Concept URI — usually the fork or your own concept" },
+      },
+      required: ["a", "b"],
+    },
+    handler: (instance, args) => {
+      const aUri = requireString(args, "a");
+      const bUri = requireString(args, "b");
+      const a = instance.store.getConcept(aUri);
+      const b = instance.store.getConcept(bUri);
+      for (const [uri, rec] of [[aUri, a], [bUri, b]] as const) {
+        if (!rec) {
+          throw new NotFound(`no concept at ${uri} — the URI may be stale, re-run lattice_discover`, {
+            uri,
+          });
+        }
+      }
+      return compareConcepts(aUri, a!, bUri, b!);
+    },
+  },
+
+  {
     name: "lattice_list_context",
     write: false,
     description:
@@ -501,9 +545,7 @@ export const TOOLS: ToolDef[] = [
         altLabels: stringArray,
         structure: {
           type: "object",
-          description:
-            "Field shape: { kind, fields: [{ name, type, classification }] }. " +
-            "Field classifications name a slug from the governance context.",
+          description: STRUCTURE_DESCRIPTION,
         },
         broader: {
           ...stringArray,
@@ -553,7 +595,7 @@ export const TOOLS: ToolDef[] = [
         uri: result.uri,
         context: contextUri,
         rootAncestor: result.rootAncestor,
-        warnings: duplicateWarnings(result.duplicateWarnings),
+        warnings: [...duplicateWarnings(result.duplicateWarnings), ...result.advisories],
         published: true,
       };
     },
@@ -582,7 +624,7 @@ export const TOOLS: ToolDef[] = [
         definition: { type: "string" },
         conceptSlug: { type: "string", description: "Optional; derived from prefLabel" },
         altLabels: stringArray,
-        structure: { type: "object" },
+        structure: { type: "object", description: STRUCTURE_DESCRIPTION },
         changeset: {
           type: "object",
           properties: {
@@ -646,7 +688,11 @@ export const TOOLS: ToolDef[] = [
         uri: result.uri,
         forkedFrom: result.forkedFrom,
         upgradable: result.upgradable,
-        warnings: [...result.warnings, ...duplicateWarnings(result.duplicateWarnings)],
+        warnings: [
+          ...result.warnings,
+          ...duplicateWarnings(result.duplicateWarnings),
+          ...result.advisories,
+        ],
         published: true,
       };
     },

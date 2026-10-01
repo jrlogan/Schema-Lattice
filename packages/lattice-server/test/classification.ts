@@ -26,8 +26,9 @@ async function main() {
   // Governance vocabulary seeded and discoverable.
   check(
     "governance-seeded",
-    instance.governance.conceptUris.size === 10 &&
+    instance.governance.conceptUris.size === 14 &&
       !!instance.governanceUri("personal-health") &&
+      !!instance.governanceUri("attested-capture") &&
       !!instance.governanceUri("attestation"),
     `${instance.governance.conceptUris.size} governance concepts`,
   );

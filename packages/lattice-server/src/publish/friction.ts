@@ -32,6 +32,40 @@ export const APPROVED_VOCAB_PREFIXES = [
   "dpv-pd:",
 ];
 
+// External matches that are true of nearly anything. They satisfy the
+// approved-vocabulary rule but say almost nothing about meaning, so a
+// concept whose only external anchors are these gets an advisory (never a
+// refusal) suggesting a specific term, ideally from the standard its
+// source data model follows.
+export const GENERIC_EXTERNAL_MATCHES = new Set([
+  "schema:Thing",
+  "schema:CreativeWork",
+  "schema:Intangible",
+  "skos:Concept",
+  "prov:Entity",
+  "dct:Resource",
+  "wd:Q35120",
+]);
+
+/** Advisory when every external anchor is a generic catch-all. */
+export function weakExternalMatchAdvisory(
+  record: ConceptRecord,
+): { kind: string; message: string } | null {
+  if (record.forkedFrom) return null;
+  const external = [...(record.closeMatch ?? []), ...(record.broadMatch ?? [])].filter((iri) =>
+    APPROVED_VOCAB_PREFIXES.some((p) => iri.startsWith(p)),
+  );
+  if (external.length === 0 || !external.every((iri) => GENERIC_EXTERNAL_MATCHES.has(iri))) {
+    return null;
+  }
+  return {
+    kind: "weak-external-match",
+    message:
+      `the only external match${external.length > 1 ? "es are" : " is"} ${external.join(", ")}, which fit${external.length > 1 ? "" : "s"} almost anything. ` +
+      "Add a more specific term — from the standard the source data model follows, if there is one — so other apps can line their concepts up with this one.",
+  };
+}
+
 const MIN_DEF_LEN = 40;
 const MAX_DEF_LEN = 600;
 const PLACEHOLDER_RE = /\b(todo|tbd|fixme|lorem|ipsum|placeholder|xxx)\b/i;

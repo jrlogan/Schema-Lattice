@@ -323,9 +323,14 @@ If the user brings in a second project and wants them to interop:
 6. Find concepts with no relationship → report as non-translatable.
    This is not a failure — it is an honest outcome.
 
+For any pair of concepts that look related, call `lattice_compare`
+(`a` = their concept, `b` = yours). It pairs renamed fields through the
+changeset, flags where sensitivity, capture provenance or lifecycle
+states differ, and returns a Markdown table: show the person that table
+rather than describing the difference yourself.
+
 Note: the full `lattice_reconcile` tool ships in v0.2. For v0.1,
-perform this comparison by walking the manifests manually using
-`lattice_resolve` calls.
+walk the manifests with `lattice_resolve` and `lattice_compare`.
 
 ## Classify what you're building with `conceptKind`
 
@@ -391,6 +396,41 @@ organization runs separate build-time gates (security review, privacy
 check), record their results using the shared
 `governance/attestation` record shape rather than inventing a new
 result format. See `specs/data-classification.md`.
+
+## Record lifecycles, invariants and evidence
+
+When the thing you are modelling moves through states (a request that
+is opened, claimed, reviewed and closed; a booking that is held, then
+confirmed or released), declare them in `structure.lifecycle` rather
+than leaving a bare `status: string`:
+
+```json
+"lifecycle": {
+  "field": "status",
+  "initial": "open",
+  "states": [{ "name": "open" }, { "name": "claimed" }, { "name": "done", "terminal": true }],
+  "transitions": [{ "from": "open", "to": "claimed", "on": "claim.started" }]
+}
+```
+
+Name each transition's `on` after the event or webhook that causes it,
+since that is what an integrating app listens for. When a field must
+not change after some point, mark it `immutableFrom: "<state>"`.
+
+When a field is **evidence** (a photo, a reading, a timestamp someone
+will rely on), add `provenance` saying how it was captured:
+`self-reported` · `uploaded` · `device-captured` · `attested-capture`.
+This is separate from `classification`: a public trail photo can be
+`public` and `attested-capture` at once. Add `vouchedBy: "<role>"` when
+a named role stands behind the capture.
+
+Every state, transition end and `immutableFrom` must name a declared
+state, and provenance must be one of the four classes. Mistakes are
+refused at publish. See `specs/lifecycle-and-provenance.md`.
+
+If a publish comes back with a `weak-external-match` warning, your only
+external anchor is a catch-all like `schema:Thing`. Add the specific
+term from the standard your source follows when there is one.
 
 ## When the catalog comes up empty
 
