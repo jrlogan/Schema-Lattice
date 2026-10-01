@@ -58,6 +58,13 @@ in this shape — or fork it with a changeset — so results are portable
 and aggregatable across gates without the lattice knowing anything
 about what each gate checks.
 
+### Capture-provenance classes
+
+The governance context also holds four capture-provenance classes
+(`self-reported`, `uploaded`, `device-captured`, `attested-capture`) for
+a field's `provenance` key: how a value was captured rather than how
+sensitive it is. See `specs/lifecycle-and-provenance.md`.
+
 ## Field-level classification
 
 Any `structure` field MAY carry a `classification` whose value is a

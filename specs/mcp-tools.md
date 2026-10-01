@@ -24,6 +24,10 @@ Seven tools, organized by which checkpoint calls them:
 | `lattice_publish_concept` | 2A (originate) |
 | `lattice_publish_fork` | 2A (fork) |
 | `lattice_stats` | supporting, called at any checkpoint |
+| `lattice_compare` | 1B (deciding adopt vs fork), 3B (comparing two projects) |
+
+(`lattice_compare` was added after the original seven; see
+`specs/lifecycle-and-provenance.md`.)
 
 ## `lattice_discover`
 
@@ -312,7 +316,10 @@ new one. Prefer reuse over narrow origination.
   conceptKind?: "entity" | "event" | "classification" | "workflow"
               | "measurement" | "agent" | "place";
   altLabels?: string[];
-  structure?: object;            // Optional field shape
+  structure?: object;            // Optional field shape; fields may carry
+                                 // classification, provenance, immutableFrom,
+                                 // and the structure may carry a lifecycle
+                                 // (specs/lifecycle-and-provenance.md)
   broader?: string[];            // URIs — prefer skeleton nodes
   related?: string[];            // URIs
   coRefersWith?: string[];       // URIs
@@ -346,6 +353,10 @@ relations to expect. Valid values mirror those in
     candidateLabel: string;
     similarity: number;
     message: string;
+  } | {
+    kind: "weak-external-match" | "lifecycle-unreachable-state"
+        | "lifecycle-terminal-exit";
+    message: string;             // advisory only; the concept is published
   }>;
   published: boolean;            // False if blocked by warning severity
 }
@@ -433,6 +444,51 @@ open-source projects are most influential in the catalog.
    hashed).
 5. Assign URI, write blob, create `forkedFrom` edge, log `fork` event.
 6. Return URI, upgradable flag, any warnings.
+
+---
+
+## `lattice_compare`
+
+**Description:**
+
+> Compare two SchemaLattice concepts side by side: every field on both
+> sides, which were renamed into which (read from the changeset when one
+> forks the other), where type, sensitivity classification or capture
+> provenance differ, and which lifecycle states and transitions only one
+> side has.
+
+**Parameters:** `{ a: string; b: string }`, two concept URIs. By
+convention `a` is the parent or the partner's concept and `b` the fork or
+your own.
+
+**Returns:**
+
+```typescript
+{
+  a: { uri: string; prefLabel: string; context: string };
+  b: { uri: string; prefLabel: string; context: string };
+  relation:
+    | { kind: "b-forks-a" | "a-forks-b"; changeset: object }
+    | { kind: "siblings"; parent: string }
+    | { kind: "same" | "unrelated" };
+  fields: Array<{
+    change: "same" | "changed" | "renamed" | "only-a" | "only-b";
+    a?: FieldSide; b?: FieldSide;   // name, type, classification,
+                                    // provenance, immutableFrom, unit, required
+    differences: string[];          // attribute names that differ
+  }>;
+  lifecycle: null | {
+    a: { initial: string; states: string[] } | null;
+    b: { initial: string; states: string[] } | null;
+    statesOnlyA: string[]; statesOnlyB: string[];
+    transitionsOnlyA: string[]; transitionsOnlyB: string[];
+  };
+  summary: string[];               // plain-English sentences
+  table: string;                   // the field rows as a Markdown table
+}
+```
+
+Unknown URIs return `not-found`. Read-only; logs nothing.
 
 ---
 

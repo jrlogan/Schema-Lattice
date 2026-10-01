@@ -269,6 +269,62 @@ guidance.
   Nothing is auto-fixed; rank-to-policy mapping stays with the
   organization.
 
+## Lifecycles, invariants, capture provenance, compare (Trail Team pilot)
+
+From the Trail Team × PlacePrize pilot (`examples/trail-team-bounty-pilot.md`),
+the first attempt to carry a real two-system integration contract through
+the catalog. Spec: `specs/lifecycle-and-provenance.md`.
+
+- **The contract that matters is behavior, not fields.** The
+  negotiation argued about states and the events between them, a field
+  that freezes once money is pledged, and how a photo was captured. Field
+  names were easy. So `structure` MAY now carry a `lifecycle`, and fields
+  MAY carry `immutableFrom` and `provenance`. All are optional, hashed
+  (inside `structure`), and additive: existing concepts are unchanged.
+- **Validate names, advise on shape.** Anything that names something
+  unknown (a provenance class, a state) is refused, because two readers
+  would otherwise disagree. Legal-but-odd shapes (unreachable states,
+  exits from terminal states) are advisories. Same stance as
+  classification.
+- **Provenance is a second governance axis, not a data class.** Four
+  seeded classes ordered by `assuranceRank` (metadata, not hashed, not a
+  policy). They sit in the existing `governance` context; its definition
+  text was deliberately left unchanged, because the context hash (and
+  so every governance concept URI) depends on it.
+- **One invariant only.** `immutableFrom` covers the case the pilot
+  needed. Required-in-state, monotonic values and the like wait for a
+  second use case.
+- **`vouchedBy` is recorded, not validated.** Roles ("organizer") are
+  domain vocabulary; the lattice has no business enumerating them.
+- **Catch-all external matches get an advisory, not a refusal.** R2 is
+  unchanged; `schema:Thing`-style anchors now draw a
+  `weak-external-match` warning.
+- **Forks name what their changeset can't say.** Classification,
+  provenance, invariant and lifecycle changes are hashed into a fork but
+  are not changeset ops. Rather than invent non-Cambria ops, the fork
+  returns a `semantic-change-outside-changeset` warning. Lens-level ops
+  for these are a v0.2 question.
+- **`lattice_compare` is read-only and derived.** It never affects
+  identity. It exists because the most useful artifact in the pilot was a
+  hand-written side-by-side table; the tool produces that table.
+
+### Deferred from the pilot
+
+- **Negotiation drafts.** Meaning moved repeatedly while the two parties
+  negotiated (who gets paid flipped twice). Content-addressed publish
+  mints a permanent URI per revision. A draft or proposal state that only
+  mints on agreement would fit negotiation better. Needs design: it
+  touches permanence and the permissionless-publish stance.
+- **Structural discovery.** "Maintenance Schedule" (a recurring duty) and
+  "Contract Award" were good structural analogues for scheduled watering
+  and bounties, but scored about 0.57 and came back `distant`. Ranking by
+  field and lifecycle shape, not only definition text, is worth testing.
+- **Standards as external anchors.** The parent concept came from
+  FixMyStreet and its context names Open311, but nothing could say so
+  formally. Open311 and C2PA have no CURIE prefixes on the approved list.
+  Decide whether non-RDF standards get prefixes or a separate
+  `conformsTo`-style link.
+
 ## Popularity and standardness scoring (v0.2 direction)
 
 The catalog should **encourage but not require** convergence on

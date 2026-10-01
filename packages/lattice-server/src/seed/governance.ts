@@ -18,6 +18,7 @@ import {
   GOVERNANCE_CONTEXT_DEFINITION,
   GOVERNANCE_NODES,
   DATA_CLASS_NODES,
+  PROVENANCE_NODES,
 } from "./governance-data.ts";
 
 export interface GovernanceSeedResult {
@@ -25,6 +26,8 @@ export interface GovernanceSeedResult {
   conceptUris: Map<string, string>; // slug -> uri
   /** slug -> sensitivityRank, for profile computation. */
   ranks: Map<string, number>;
+  /** slug -> assuranceRank, for capture-provenance classes. */
+  assurance: Map<string, number>;
   createdConcepts: number;
 }
 
@@ -50,6 +53,7 @@ export function seedGovernance(
 
   const bySlug = new Map<string, string>();
   const ranks = new Map<string, number>();
+  const assurance = new Map<string, number>();
   let created = 0;
 
   for (const node of GOVERNANCE_NODES) {
@@ -70,6 +74,9 @@ export function seedGovernance(
       ...(node.sensitivityRank !== undefined
         ? { sensitivityRank: node.sensitivityRank }
         : {}),
+      ...(node.assuranceRank !== undefined
+        ? { assuranceRank: node.assuranceRank }
+        : {}),
       ...(node.structure ? { structure: node.structure } : {}),
       rootAncestor: broaderUri,
     };
@@ -77,6 +84,7 @@ export function seedGovernance(
     const uri = conceptUri(GOVERNANCE_CONTEXT_SLUG, node.slug, hash);
     bySlug.set(node.slug, uri);
     if (node.sensitivityRank !== undefined) ranks.set(node.slug, node.sensitivityRank);
+    if (node.assuranceRank !== undefined) assurance.set(node.slug, node.assuranceRank);
 
     if (store.hasConcept(uri)) continue;
     store.insertConcept({
@@ -94,9 +102,13 @@ export function seedGovernance(
     createdConcepts: created,
   });
 
-  return { contextUri: ctxUri, conceptUris: bySlug, ranks, createdConcepts: created };
+  return { contextUri: ctxUri, conceptUris: bySlug, ranks, assurance, createdConcepts: created };
 }
 
 export function dataClassSlugs(): string[] {
   return DATA_CLASS_NODES.map((n) => n.slug);
+}
+
+export function provenanceSlugs(): string[] {
+  return PROVENANCE_NODES.map((n) => n.slug);
 }

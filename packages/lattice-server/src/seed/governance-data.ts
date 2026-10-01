@@ -21,6 +21,8 @@ export interface GovernanceNode {
   broaderSkeletonSlug: string;
   closeMatch: string[];
   sensitivityRank?: number;
+  /** Provenance classes only: how much the capture itself proves (0 = nothing). */
+  assuranceRank?: number;
   structure?: unknown;
 }
 
@@ -122,6 +124,60 @@ export const DATA_CLASS_NODES: GovernanceNode[] = [
   },
 ];
 
+// Capture-provenance classes (specs/lifecycle-and-provenance.md): how a
+// field's value came into being, ordered by how much the capture itself
+// proves. They answer a different question from the data classes above —
+// "how far can I trust where this came from", not "how careful must I be
+// with it" — so a field may carry one of each. Organization-neutral like
+// the data classes: they fit a trail group's before-and-after photos, a
+// clinic's intake form, or a sensor's readings.
+//
+// `assuranceRank` is metadata (not hashed) and, like sensitivityRank, NOT
+// a policy: which rank a prize, an audit or a grant requires is the
+// adopting party's decision.
+export const PROVENANCE_NODES: GovernanceNode[] = [
+  {
+    slug: "self-reported",
+    prefLabel: "Self-Reported",
+    definition:
+      "A value a person states without any accompanying capture evidence — typed hours worked, a remembered date, a described condition taken on trust.",
+    conceptKind: "classification",
+    broaderSkeletonSlug: "classification",
+    closeMatch: [],
+    assuranceRank: 0,
+  },
+  {
+    slug: "uploaded",
+    prefLabel: "Uploaded",
+    definition:
+      "A file supplied after the fact from someone's own storage, whose origin rests only on the metadata it carries, such as a phone photo's embedded time and coordinates.",
+    conceptKind: "classification",
+    broaderSkeletonSlug: "classification",
+    closeMatch: [],
+    assuranceRank: 1,
+  },
+  {
+    slug: "device-captured",
+    prefLabel: "Device-Captured",
+    definition:
+      "Recorded by the receiving app at the moment of capture, with the device's own clock and position, but without a cryptographic seal proving the app or the content was untouched.",
+    conceptKind: "classification",
+    broaderSkeletonSlug: "classification",
+    closeMatch: [],
+    assuranceRank: 2,
+  },
+  {
+    slug: "attested-capture",
+    prefLabel: "Attested Capture",
+    definition:
+      "Captured live and signed by an app or camera whose integrity the platform vouches for, so any later edit or substitution is detectable — a sealed camera app, or content credentials applied in-camera.",
+    conceptKind: "classification",
+    broaderSkeletonSlug: "classification",
+    closeMatch: [],
+    assuranceRank: 3,
+  },
+];
+
 // The shared attestation record shape: one generic form for "a named
 // check ran against a subject system and produced a result." Security
 // reviews, privacy checks, accessibility audits, and any future gate
@@ -151,5 +207,6 @@ export const ATTESTATION_NODE: GovernanceNode = {
 
 export const GOVERNANCE_NODES: GovernanceNode[] = [
   ...DATA_CLASS_NODES,
+  ...PROVENANCE_NODES,
   ATTESTATION_NODE,
 ];

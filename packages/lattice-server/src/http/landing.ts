@@ -250,10 +250,13 @@ export function landingPage(host: string, totals: LandingTotals): string {
       are, honestly, not translatable.</li>
     <li>The registry's overlap report scores every pair of registered apps by shared URIs, fork links and
       near-identical meanings (<code>lattice_portfolio_report</code>).</li>
+    <li>For any two concepts, <code>lattice_compare</code> lays them side by side: renamed fields, and where
+      sensitivity, how evidence was captured, or the states a record moves through differ. It returns a
+      table you can put in front of the people negotiating.</li>
     <li>The integrating developer's AI writes the translation as ordinary code in the app, at build time.
       The lattice is never on the request path.</li>
   </ol>
-  <p><span class="built">Built:</span> manifests, shared URIs, fork changesets, the overlap report, and the
+  <p><span class="built">Built:</span> manifests, shared URIs, fork changesets, side-by-side comparison, the overlap report, and the
   instructions an AI follows to compare two manifests.
   <span class="notyet">Not built yet:</span> an automatic reconcile step that proposes the mapping for you, and
   generated translators from changesets — both planned for v0.2. Runtime translation between live apps is
@@ -399,7 +402,7 @@ export function llmsText(host: string, totals: LandingTotals): string {
 Before defining a data structure, search the catalog. Adopt an existing concept (>=0.85 similarity), fork it with an explicit changeset (0.65-0.85), and originate a new one only when nothing fits, after refining the search. Publishing is permanent and key-gated; self-registration issues a key immediately (lattice_register_app).
 
 ## Integrating two apps
-Each app keeps schemalattice.json (local names -> concept URIs). Shared URI = same meaning. Fork = the changeset is the mapping. Common ancestor = agreement at that level. No relation = not translatable. lattice_portfolio_report scores overlap between registered apps. The integrating AI writes the translation as code at build time; the lattice is never on the request path. Not built yet: automatic reconcile and generated translators (v0.2).
+Each app keeps schemalattice.json (local names -> concept URIs). Shared URI = same meaning. Fork = the changeset is the mapping; lattice_compare shows any two concepts side by side (renames, sensitivity, capture provenance, lifecycle states). Common ancestor = agreement at that level. No relation = not translatable. lattice_portfolio_report scores overlap between registered apps. The integrating AI writes the translation as code at build time; the lattice is never on the request path. Not built yet: automatic reconcile and generated translators (v0.2).
 
 ## What is recorded
 Search query text (unless ephemeral:true), best match and score, a random session id. Never code or schemas. Unmet queries appear aggregated in lattice_demand_report.

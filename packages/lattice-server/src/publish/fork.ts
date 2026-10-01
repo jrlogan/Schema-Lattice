@@ -7,6 +7,7 @@
 import type { Store } from "../storage/db.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
 import { PublishError } from "./errors.ts";
+import { compareConcepts } from "../query/compare.ts";
 import {
   checkChangeset,
   structureFieldNames,
@@ -97,6 +98,12 @@ export async function publishFork(
     sessionId: input.sessionId,
   });
 
+  // Changeset ops describe field structure only. Sensitivity, capture
+  // provenance, invariants and lifecycle changes are hashed into the child
+  // but invisible in its ops, so name them here; lattice_compare shows them.
+  const semantic = semanticChangesOutsideChangeset(parent, input.parentUri, record, published.uri);
+  if (semantic) check.warnings.push(semantic);
+
   deps.store.logEvent("fork", {
     uri: published.uri,
     parentUri: input.parentUri,
@@ -122,4 +129,33 @@ function contextUriFor(store: Store, contextSlug: string, parentScheme: string):
   const matches = store.contextsWithSlug(contextSlug);
   if (matches.length > 0) return matches[0].uri;
   return parentScheme;
+}
+
+const SEMANTIC_ATTRIBUTES = ["classification", "provenance", "immutableFrom"];
+
+function semanticChangesOutsideChangeset(
+  parent: ConceptRecord,
+  parentUri: string,
+  child: ConceptRecord,
+  childUri: string,
+): ChangesetWarning | null {
+  const cmp = compareConcepts(parentUri, parent, childUri, child);
+  const notes: string[] = [];
+  for (const row of cmp.fields) {
+    if (!row.a || !row.b) continue;
+    const changed = row.differences.filter((d) => SEMANTIC_ATTRIBUTES.includes(d));
+    if (changed.length) notes.push(`${row.b.name} (${changed.join(", ")})`);
+  }
+  const lc = cmp.lifecycle;
+  if (lc && (!lc.a || !lc.b)) notes.push(lc.b ? "adds a lifecycle" : "drops the lifecycle");
+  else if (lc && (lc.statesOnlyA.length || lc.statesOnlyB.length || lc.transitionsOnlyA.length || lc.transitionsOnlyB.length)) {
+    notes.push("changes the lifecycle");
+  }
+  if (notes.length === 0) return null;
+  return {
+    kind: "semantic-change-outside-changeset",
+    message:
+      `the fork also changes ${notes.join("; ")}, which changeset ops cannot express. ` +
+      "They are part of the fork's identity; call lattice_compare on the parent and the fork to see them side by side.",
+  };
 }

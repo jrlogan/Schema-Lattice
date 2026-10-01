@@ -14,8 +14,9 @@ import type { Store } from "../storage/db.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
 import { hashConcept, conceptUri, validateSlug } from "../hashing/hash.ts";
 import { assertAncestry, type AncestryContext } from "./ancestry.ts";
-import { assertFrictionSync, assertPriorDiscover } from "./friction.ts";
+import { assertFrictionSync, assertPriorDiscover, weakExternalMatchAdvisory } from "./friction.ts";
 import { assertValidClassifications } from "./classification.ts";
+import { assertValidStructureSemantics, type StructureAdvisory } from "./lifecycle.ts";
 import { PublishError } from "./errors.ts";
 import type { Embedder } from "../discover/embedder.ts";
 import type { VectorIndex } from "../discover/vectors.ts";
@@ -54,6 +55,8 @@ export interface PublishConceptOk {
   hash: string;
   rootAncestor: string;
   duplicateWarnings: DuplicateWarning[];
+  /** Non-blocking notes on lifecycle shape and external matches. */
+  advisories: StructureAdvisory[];
 }
 
 function firstLang(map: Record<string, string> | undefined): string {
@@ -104,6 +107,12 @@ export async function publishConcept(
   // (specs/data-classification.md). Absence is fine — advisory scheme.
   assertValidClassifications(deps.governance, input.record);
 
+  // Lifecycle, field invariants and capture provenance, when present, must
+  // name known states and classes (specs/lifecycle-and-provenance.md).
+  const advisories = assertValidStructureSemantics(deps.governance, input.record);
+  const weakMatch = weakExternalMatchAdvisory(input.record);
+  if (weakMatch) advisories.push(weakMatch);
+
   // Gate 3 — R3 shard target. TODO M3.
   // Gate 4 — changeset op validation. TODO with publish_fork.
 
@@ -117,7 +126,7 @@ export async function publishConcept(
 
   if (store.hasConcept(uri)) {
     // Idempotent: identical content re-published is a no-op.
-    return { ok: true, uri, hash, rootAncestor: ancestry.rootAncestor, duplicateWarnings: [] };
+    return { ok: true, uri, hash, rootAncestor: ancestry.rootAncestor, duplicateWarnings: [], advisories };
   }
 
   // Gate 6 — duplicate detection: warn, never block.
@@ -149,5 +158,5 @@ export async function publishConcept(
     duplicateWarningCount: duplicateWarnings.length,
   }, input.actor ?? null);
 
-  return { ok: true, uri, hash, rootAncestor: ancestry.rootAncestor, duplicateWarnings };
+  return { ok: true, uri, hash, rootAncestor: ancestry.rootAncestor, duplicateWarnings, advisories };
 }
