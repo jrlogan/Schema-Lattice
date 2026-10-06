@@ -15,6 +15,7 @@ import { isToolError } from "../tools/errors.ts";
 import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
 import { landingPage, llmsText } from "./landing.ts";
+import { conceptsForContexts, conceptsForMatches, renderPack, renderPackIndex, resolveContextSlug } from "./pack.ts";
 import { RateLimiter, clientKey, DEFAULT_LIMITS, type RateLimits, type Bucket } from "./ratelimit.ts";
 import { REPO_ROOT } from "../server/config.ts";
 import {
@@ -203,7 +204,7 @@ async function handle(
   const isOperator = principal.tier === "operator" && config.apiKey !== null;
   if (!isOperator) {
     const bucket: Bucket =
-      path === "/discover" || path === "/api/tools/lattice_discover"
+      path === "/discover" || path === "/api/tools/lattice_discover" || (path === "/pack" && url.searchParams.has("q"))
         ? "discover"
         : path === "/api/tools/lattice_feedback"
           ? "feedback"
@@ -272,6 +273,7 @@ async function handle(
       endpoints: {
         skill: "GET /skill (the workflow instructions for AI clients)",
         builderSkill: "GET /skill/builder (one-page brief for apps built on an existing backend)",
+        pack: "GET /pack, /pack/{context}[,{context}] or /pack?q=... (paste-ready vocabulary for hosted app builders without MCP)",
         client: "GET /cli/schemalattice.mjs (publish a platform's vocabulary from its code; vendor it)",
         resolveConcept: "GET /c/{context}/{slug}@{hash}",
         resolveContext: "GET /s/{context}@{hash}",
@@ -291,6 +293,38 @@ async function handle(
   if (path === "/llms.txt" && isRead) {
     const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
     sendText(res, 200, llmsText(host, { ...instance.totals(), apps: instance.registry.listApps().length }), "text/markdown; charset=utf-8");
+    return;
+  }
+
+  // --- builder packs: the catalog as paste-ready markdown ----------------
+  // For hosted app generators that read a prompt or a URL but cannot speak MCP.
+  if ((path === "/pack" || path.startsWith("/pack/")) && isRead) {
+    const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
+    const markdown = "text/markdown; charset=utf-8";
+    const selfUrl = `https://${host}${req.url ?? path}`;
+    const q = url.searchParams.get("q")?.trim();
+    if (path === "/pack" && q) {
+      // Ephemeral: a builder's description of its app is not demand data.
+      const result = await callTool(instance, "lattice_discover", {
+        description: q, limit: 8, ephemeral: true,
+      }, principal, callContext(req)) as { results?: Array<{ uri: string; similarity: number }> };
+      const matches = (result.results ?? []).filter((r) => r.similarity >= 0.55);
+      sendText(res, 200, renderPack(conceptsForMatches(instance, matches), { host, title: q, selfUrl, query: q }), markdown);
+      return;
+    }
+    if (path === "/pack" || path === "/pack/") {
+      sendText(res, 200, renderPackIndex(instance, host), markdown);
+      return;
+    }
+    const requested = path.slice("/pack/".length).split(",").map((s) => s.trim()).filter(Boolean);
+    const slugs = requested.map((s) => resolveContextSlug(instance, s));
+    const unknown = requested.filter((_, i) => slugs[i] === null);
+    if (unknown.length > 0) {
+      sendText(res, 404, `# No such domain: ${unknown.join(", ")}\n\nSee https://${host}/pack for the list.\n`, markdown);
+      return;
+    }
+    const titles = (slugs as string[]).map((s) => instance.listContexts().find((c) => c.slug === s && c.latest)?.title ?? s);
+    sendText(res, 200, renderPack(conceptsForContexts(instance, slugs as string[]), { host, title: titles.join(" + "), selfUrl }), markdown, "public, max-age=300");
     return;
   }
 

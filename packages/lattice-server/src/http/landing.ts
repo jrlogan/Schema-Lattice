@@ -183,7 +183,9 @@ export function landingPage(host: string, totals: LandingTotals): string {
     are building on someone else's backend). Every tool and its schema is at
     <a href="/api/tools">/api/tools</a>, callable over REST or MCP at
     <code>/mcp</code>. A plain-markdown version of this page is at
-    <a href="/llms.txt">/llms.txt</a>. Reads need no key.</p>
+    <a href="/llms.txt">/llms.txt</a>. Reads need no key. App generators that
+    cannot use MCP (Lovable, AI Studio, Bolt, v0) can read a paste-ready
+    vocabulary from <a href="/pack">/pack</a>.</p>
   </div>
 
   <figure aria-describedby="fig-caption">
@@ -394,6 +396,7 @@ export function llmsText(host: string, totals: LandingTotals): string {
 ## Use it
 - Instructions to follow: https://${host}/skill (building on an existing backend: https://${host}/skill/builder)
 - Tools with JSON schemas: https://${host}/api/tools — call with POST /api/tools/{name}, or over MCP at POST /mcp
+- Building with a hosted app generator (Lovable, AI Studio, Bolt, v0) that cannot use MCP: paste-ready vocabulary at https://${host}/pack (one domain: /pack/{context}; by description: /pack?q=...)
 - Search: GET https://${host}/discover?description=...&ephemeral=true (reads need no key)
 - Every context: POST https://${host}/api/tools/lattice_list_context with {}
 - Resolve a concept: GET the URI's path on this host, e.g. https://${host}${EXAMPLE_CONCEPT}

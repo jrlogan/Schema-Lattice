@@ -162,6 +162,35 @@ async function main() {
     builderRes.status === 200 && builderText.includes("# SchemaLattice builder brief"),
     `status=${builderRes.status}, ${builderText.length} bytes`,
   );
+  // --- builder packs for hosted app generators without MCP -----------
+  const packIndex = await fetch(base + "/pack");
+  const packIndexText = await packIndex.text();
+  check(
+    "pack-index-lists-domains",
+    packIndex.status === 200 && packIndexText.includes("/pack/schemalattice"),
+    `status=${packIndex.status}`,
+  );
+  const pack = await fetch(base + "/pack/schemalattice");
+  const packText = await pack.text();
+  check(
+    "pack-for-context-is-paste-ready",
+    pack.status === 200 &&
+      pack.headers.get("content-type")?.startsWith("text/markdown") === true &&
+      packText.includes("## Rules for the builder") &&
+      packText.includes("schemalattice.json") &&
+      /URI: https:\/\/schemalattice\.com\/c\/schemalattice\//.test(packText),
+    `status=${pack.status}, ${packText.length} bytes`,
+  );
+  const packMissing = await fetch(base + "/pack/no-such-domain");
+  check("pack-unknown-context-404", packMissing.status === 404, `status=${packMissing.status}`);
+  const packQuery = await fetch(base + "/pack?q=" + encodeURIComponent("a person who is a member of an organization"));
+  const packQueryText = await packQuery.text();
+  check(
+    "pack-by-description",
+    packQuery.status === 200 && packQueryText.includes("## Concepts") && packQueryText.includes("Match to your description"),
+    `status=${packQuery.status}`,
+  );
+
   const cliRes = await fetch(base + "/cli/schemalattice.mjs");
   const cliText = await cliRes.text();
   check(
