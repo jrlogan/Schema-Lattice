@@ -12,6 +12,11 @@ import { BASE_AUTHORITY } from "../hashing/hash.ts";
 
 const MAX_CONCEPTS = 40;
 
+/** Discover's fork band: at or above this, a concept is worth building on. */
+export const BUILD_ON = 0.65;
+/** Below this, a match is noise (discover's no-match floor). */
+export const NEARBY = 0.55;
+
 export interface PackConcept {
   uri: string;
   record: ConceptRecord;
@@ -87,6 +92,30 @@ export function conceptsForMatches(
   return out;
 }
 
+/**
+ * The root concepts nearest a description. Every concept in the catalog
+ * descends from one of these sixteen, so a type the catalog lacks can still
+ * name its kind (an Event, a Location, a Transaction) and stay comparable
+ * with whatever is published for it later. Wording similarity ranks the
+ * roots poorly (a grooming appointment lands nearer Credential than Event),
+ * so callers list them all in this order and let the builder choose by
+ * meaning.
+ */
+export async function nearestRoots(instance: LatticeInstance, description: string, n = 16): Promise<PackConcept[]> {
+  const roots = instance.ancestryCtx.skeletonUris;
+  const [vec] = await instance.embedder.embed([description]);
+  const out: PackConcept[] = [];
+  for (const hit of instance.vectors.knn(vec, instance.vectors.count())) {
+    if (!roots.has(hit.uri)) continue;
+    const record = instance.store.getConcept(hit.uri);
+    // Thing is the root of roots: true of everything, so it says nothing.
+    if (!record || en(record.prefLabel) === "Thing") continue;
+    out.push({ uri: hit.uri, record });
+    if (out.length === n) break;
+  }
+  return out;
+}
+
 function flatten(fields: Field[], prefix = ""): Array<Field & { path: string }> {
   const rows: Array<Field & { path: string }> = [];
   for (const f of fields) {
@@ -139,6 +168,16 @@ function conceptSection(c: PackConcept): string {
   return lines.join("\n");
 }
 
+function nearbyLine(c: PackConcept): string {
+  const def = en(c.record.definition as Record<string, string> | undefined);
+  const short = def.length > 160 ? def.slice(0, 159) + "…" : def;
+  return `- **${en(c.record.prefLabel)}** (${c.similarity?.toFixed(2)}) — ${short} ${c.uri}`;
+}
+
+function anchorLine(c: PackConcept): string {
+  return `- **${en(c.record.prefLabel)}** — ${en(c.record.definition as Record<string, string> | undefined)} \`${c.uri}\``;
+}
+
 export interface PackOptions {
   host: string;
   /** What the pack covers, for the heading. */
@@ -146,23 +185,59 @@ export interface PackOptions {
   /** The URL this pack was served from, so the generator can re-fetch it. */
   selfUrl: string;
   query?: string;
+  /** Query mode: related matches too weak to build on, listed without fields. */
+  nearby?: PackConcept[];
+  /** Query mode: root concepts to anchor types the catalog does not have. */
+  anchors?: PackConcept[];
+  /** Query mode: whether the search text went into the demand report. */
+  recorded?: boolean;
 }
 
 export function renderPack(concepts: PackConcept[], opts: PackOptions): string {
   const base = `https://${opts.host}`;
+  // The example type has a start time, so its honest root is Event.
+  const anchor = opts.anchors?.find((c) => en(c.record.prefLabel) === "Event");
   const manifest = {
     lattice: BASE_AUTHORITY,
-    concepts: Object.fromEntries(
-      concepts.slice(0, 3).map((c) => [localName(en(c.record.prefLabel)), { uri: c.uri, status: "adopted" }]),
-    ),
+    concepts: {
+      ...Object.fromEntries(
+        concepts.slice(0, 2).map((c) => [localName(en(c.record.prefLabel)), { uri: c.uri, status: "adopted" }]),
+      ),
+      // What a type the catalog lacks looks like: no URI yet, its kind, and
+      // its fields — enough to propose it for the catalog later.
+      YourNewType: {
+        status: "originated",
+        broader: anchor?.uri ?? `${BASE_AUTHORITY}/c/schemalattice/event@…`,
+        definition: "One sentence on what a single record is.",
+        fields: [{ name: "startsAt", type: "datetime", required: true }],
+      },
+    },
   };
   const intro = opts.query
-    ? `Concepts in the SchemaLattice catalog that match "${opts.query}". Matches below 0.85 are related, not identical: read each definition and use only the ones that mean what you are building.`
+    ? concepts.length > 0
+      ? `Concepts in the SchemaLattice catalog that match "${opts.query}". Scores below 0.85 mean related, not identical: read each definition and use only the ones that mean what you are building.`
+      : `**The catalog has nothing to build on for "${opts.query}" yet.** That is normal: most domains are not in it yet. Design your own types, and follow rule 3 so they can be added later.`
     : `Every current concept in the SchemaLattice catalog for this domain.`;
 
   const body = concepts.length > 0
     ? concepts.map(conceptSection).join("\n\n")
-    : `No concept in the catalog fits yet. Build what you need, and keep a schemalattice.json listing your own types with \`"status": "originated"\` so the vocabulary can be published later.`;
+    : `None. Do not stretch a loosely related concept to fit.`;
+
+  const nearby = opts.nearby?.length
+    ? `\n\n### Nearby, but probably not the same thing\n\nThese scored too low to build on. Use one only if its definition really describes your records; otherwise ignore it.\n\n${opts.nearby.map(nearbyLine).join("\n")}`
+    : "";
+
+  const anchors = opts.anchors?.length
+    ? `\n\n## Types the catalog doesn't have\n\nEvery concept descends from one of a few root kinds. For each new type you design, pick the root it is a kind of and record its URI as \`broader\` in schemalattice.json (rule 3). Choose by meaning: an appointment is an Event, a trail is a Location, a payment is a Transaction. Listed roughly by closeness to your description, which is only a hint:\n\n${opts.anchors.map(anchorLine).join("\n")}`
+    : opts.query
+      ? ""
+      : `\n\n## Types the catalog doesn't have\n\nFor records this domain does not cover, fetch ${base}/pack?q=a+short+description to see what else exists and which root kind to anchor them to.`;
+
+  const recording = opts.query === undefined
+    ? ""
+    : opts.recorded
+      ? `\n- This search was recorded (the description only, never your code) so the catalog's maintainers can see which domains builders need. Add \`&private=1\` to search without recording.`
+      : `\n- This search was not recorded.`;
 
   return `# Shared data vocabulary: ${opts.title}
 
@@ -174,26 +249,26 @@ ${intro} Apps that build on the same concepts can exchange data without a transl
 
 1. **Use these concepts for your data model.** Name the type or table after the concept, and keep the field names, types and enum values exactly as listed. Store units as listed (e.g. meters, minutes); convert only for display.
 2. **Extend, don't redefine.** You may add fields the app needs. Do not rename a listed field or reuse its name for a different meaning.
-3. **Leave a trace.** Put a \`schemalattice.json\` file at the project root mapping each type to its concept URI, and a comment \`// [lattice:TypeName]\` above each type or table definition. Example:
+3. **Leave a trace.** Put a \`schemalattice.json\` file at the project root mapping each type to its concept URI, and a comment \`// [lattice:TypeName]\` above each type or table definition. For a type of your own, give its root kind as \`broader\`, a one-sentence \`definition\` and its \`fields\`. Example:
 
 \`\`\`json
 ${JSON.stringify(manifest, null, 2)}
 \`\`\`
 
-   Use \`"status": "forked"\` with \`"forkedFrom": "<uri>"\` for a type you changed, and \`"originated"\` for a type of your own.
+   Use \`"status": "forked"\` with \`"forkedFrom": "<uri>"\` for a type you changed from a listed concept.
 4. **Respect sensitivity.** Fields marked confidential or restricted hold private data: keep them out of public pages, logs, analytics and shared links.
 5. **Don't call the catalog from the running app.** It is a build-time reference, not a backend. Concept URIs never change, so they are safe to store.
 
 ## Concepts
 
-${body}
+${body}${nearby}${anchors}
 
 ## Need more?
 
 - Other domains: ${base}/pack — lists every pack
 - Search by description: ${base}/pack?q=a+short+description+of+the+records
 - One concept as JSON: open its URI
-- For coding assistants that support MCP (Claude Code, Cursor): connect ${base}/mcp and follow ${base}/skill
+- For coding assistants that support MCP (Claude Code, Cursor): connect ${base}/mcp and follow ${base}/skill${recording}
 `;
 }
 
@@ -201,7 +276,7 @@ export function renderPackIndex(instance: LatticeInstance, host: string): string
   const base = `https://${host}`;
   const rows = instance
     .listContexts()
-    .filter((c) => c.latest && c.slug !== "governance")
+    .filter((c) => c.latest && c.conceptCount > 0 && c.slug !== "governance")
     .map((c) => `- [${c.title}](${base}/pack/${c.slug}) — ${c.conceptCount} concepts. ${c.definitionExcerpt}`);
   return `# SchemaLattice builder packs
 
@@ -209,7 +284,7 @@ export function renderPackIndex(instance: LatticeInstance, host: string): string
 
 - One domain: ${base}/pack/{context}
 - Several: ${base}/pack/{context},{context}
-- By description: ${base}/pack?q=a+short+description (searches are not recorded)
+- By description: ${base}/pack?q=a+short+description (the description is recorded so maintainers can see which domains builders need; add &private=1 to opt out)
 
 ## Domains
 

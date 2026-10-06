@@ -47,6 +47,12 @@ export interface DiscoverInput {
    * to share even in aggregate.
    */
   ephemeral?: boolean;
+  /**
+   * Which surface asked, when it was not an agent calling the tool — set by
+   * the server, never by the caller. "pack" marks a hosted app builder's
+   * search, so the demand report can tell those apart.
+   */
+  via?: "pack";
 }
 
 export interface DiscoverCandidate {
@@ -244,6 +250,7 @@ export async function discover(
   store.logEvent("discover", {
     sessionId,
     query: input.ephemeral ? null : input.description,
+    ...(input.via ? { via: input.via } : {}),
     resultCount: results.length,
     topUri: top?.uri ?? null,
     topSimilarity: top?.similarity ?? null,

@@ -96,6 +96,19 @@ Plain JSON. No dependency on JSON-LD processors.
   implies direct extraction from a single authoritative source).
   Each entry is either a bare URL string or an object with `url`
   and `note` fields.
+- **`concepts[name].uri`** may be absent for an `originated` type
+  that has not been published, which is the usual case for apps made
+  with hosted builders that cannot publish. Such an entry should then
+  carry what a later publish needs:
+  - **`broader`** — the URI of the root concept it is a kind of
+    (Event, Location, Transaction, …; see `/pack/schemalattice`).
+  - **`definition`** — one sentence on what a single record is.
+  - **`fields`** — the type's fields, in the structure field shape
+    (`name`, `type`, `required?`, `values?`, `unit?`).
+
+  These are the parts a builder can contribute back to the catalog
+  (`builder-contributions.md`). Nothing in `fieldMaps`,
+  `localLocation` or `notes` is ever contributed.
 
 ### Immutability rules
 

@@ -38,6 +38,8 @@ export interface DemandCluster {
   nearestExisting: { uri: string; prefLabel: string; similarity: number } | null;
   /** Distinct session ids that asked (null-session rows count as one). */
   sessions: number;
+  /** How many asks came from builder packs rather than agents, when any did. */
+  fromPacks?: number;
   lastAsked: string;
 }
 
@@ -90,12 +92,13 @@ export async function demandReport(
   // Collapse exact repeats before paying for embeddings.
   const byText = new Map<
     string,
-    { count: number; sessions: Set<string>; last: (typeof unmet)[number] }
+    { count: number; fromPacks: number; sessions: Set<string>; last: (typeof unmet)[number] }
   >();
   for (const e of unmet) {
     const key = e.query.trim().toLowerCase();
-    const entry = byText.get(key) ?? { count: 0, sessions: new Set<string>(), last: e };
+    const entry = byText.get(key) ?? { count: 0, fromPacks: 0, sessions: new Set<string>(), last: e };
     entry.count++;
+    if (e.via === "pack") entry.fromPacks++;
     entry.sessions.add(e.sessionId ?? "(anonymous)");
     if (e.ts >= entry.last.ts) entry.last = e;
     byText.set(key, entry);
@@ -141,9 +144,11 @@ export async function demandReport(
     let nearest: DemandCluster["nearestExisting"] = null;
     const sessions = new Set<string>();
     let count = 0;
+    let fromPacks = 0;
     let lastAsked = "";
     for (const m of c.members) {
       count += m.d.count;
+      fromPacks += m.d.fromPacks;
       for (const sid of m.d.sessions) sessions.add(sid);
       if (m.d.last.ts > lastAsked) lastAsked = m.d.last.ts;
       const best = currentBest(m.vec);
@@ -162,6 +167,7 @@ export async function demandReport(
       queries,
       nearestExisting: nearest,
       sessions: sessions.size,
+      ...(fromPacks > 0 ? { fromPacks } : {}),
       lastAsked,
     });
   }

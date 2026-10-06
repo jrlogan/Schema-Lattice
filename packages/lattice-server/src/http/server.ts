@@ -15,7 +15,9 @@ import { isToolError } from "../tools/errors.ts";
 import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
 import { landingPage, llmsText } from "./landing.ts";
-import { conceptsForContexts, conceptsForMatches, renderPack, renderPackIndex, resolveContextSlug } from "./pack.ts";
+import {
+  BUILD_ON, NEARBY, conceptsForContexts, conceptsForMatches, nearestRoots, renderPack, renderPackIndex, resolveContextSlug,
+} from "./pack.ts";
 import { RateLimiter, clientKey, DEFAULT_LIMITS, type RateLimits, type Bucket } from "./ratelimit.ts";
 import { REPO_ROOT } from "../server/config.ts";
 import {
@@ -304,12 +306,24 @@ async function handle(
     const selfUrl = `https://${host}${req.url ?? path}`;
     const q = url.searchParams.get("q")?.trim();
     if (path === "/pack" && q) {
-      // Ephemeral: a builder's description of its app is not demand data.
-      const result = await callTool(instance, "lattice_discover", {
-        description: q, limit: 8, ephemeral: true,
-      }, principal, callContext(req)) as { results?: Array<{ uri: string; similarity: number }> };
-      const matches = (result.results ?? []).filter((r) => r.similarity >= 0.55);
-      sendText(res, 200, renderPack(conceptsForMatches(instance, matches), { host, title: q, selfUrl, query: q }), markdown);
+      if (q.length > 300) {
+        sendText(res, 400, "# Description too long\n\nDescribe the records in 300 characters or fewer.\n", markdown);
+        return;
+      }
+      // Recorded by default: what builders ask for and the catalog lacks is
+      // the demand report's whole purpose, and a short domain description in
+      // a URL is not private. The page says so and offers &private=1.
+      const recorded = !["1", "true"].includes(url.searchParams.get("private") ?? "");
+      const result = await instance.discover({
+        description: q, limit: 8, ephemeral: !recorded, via: "pack",
+      });
+      const strong = result.results.filter((r) => r.similarity >= BUILD_ON);
+      const weak = result.results.filter((r) => r.similarity >= NEARBY && r.similarity < BUILD_ON);
+      sendText(res, 200, renderPack(conceptsForMatches(instance, strong), {
+        host, title: q, selfUrl, query: q, recorded,
+        nearby: conceptsForMatches(instance, weak),
+        anchors: await nearestRoots(instance, q),
+      }), markdown);
       return;
     }
     if (path === "/pack" || path === "/pack/") {

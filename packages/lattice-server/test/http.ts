@@ -190,6 +190,31 @@ async function main() {
     packQuery.status === 200 && packQueryText.includes("## Concepts") && packQueryText.includes("Match to your description"),
     `status=${packQuery.status}`,
   );
+  // Most of what builders ask for is not in the catalog yet. The page must
+  // say so plainly, never dress up a weak match as one to build on, and
+  // still give the builder a root kind to anchor its own types to.
+  const gapQuery = "dog grooming appointment with the groomer and the breed";
+  const gap = await (await fetch(base + "/pack?q=" + encodeURIComponent(gapQuery))).text();
+  check(
+    "pack-gap-is-honest",
+    gap.includes("nothing to build on") &&
+      !gap.includes("Match to your description") &&
+      gap.includes("## Types the catalog doesn't have") &&
+      /\/c\/schemalattice\/[a-z-]+@/.test(gap.split("## Types the catalog doesn't have")[1] ?? "") &&
+      gap.includes("This search was recorded"),
+    `${gap.length} bytes`,
+  );
+  const privateQuery = "a private ferret breeding ledger";
+  const priv = await (await fetch(base + "/pack?q=" + encodeURIComponent(privateQuery) + "&private=1")).text();
+  check("pack-private-not-recorded", priv.includes("This search was not recorded"), "notice present");
+  const packDemand = await post("/api/tools/lattice_demand_report", {});
+  const clusters = (packDemand.body.clusters ?? []) as Array<{ queries: string[]; fromPacks?: number }>;
+  const gapCluster = clusters.find((c) => c.queries.includes(gapQuery));
+  check(
+    "pack-searches-feed-demand",
+    gapCluster?.fromPacks === 1 && !clusters.some((c) => c.queries.includes(privateQuery)),
+    JSON.stringify(gapCluster ?? null),
+  );
 
   const cliRes = await fetch(base + "/cli/schemalattice.mjs");
   const cliText = await cliRes.text();

@@ -354,6 +354,10 @@ truth and is backed up with the database (daily disk snapshots).
    fork candidates in app reports; published forks counted as
    evidence.
 
+Builder contributions (`builder-contributions.md`, draft) add a
+`missing-concept` kind and bring `missing-field` forward, so builders
+who cannot publish can send back the types they designed.
+
 Each phase ships with smoke tests that play an attacker: many
 sessions from one prefix, many anonymous prefixes, new apps,
 and claims about results never shown. Each attack must fail to
