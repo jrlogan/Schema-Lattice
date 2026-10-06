@@ -323,7 +323,10 @@ the catalog. Spec: `specs/lifecycle-and-provenance.md`.
   FixMyStreet and its context names Open311, but nothing could say so
   formally. Open311 and C2PA have no CURIE prefixes on the approved list.
   Decide whether non-RDF standards get prefixes or a separate
-  `conformsTo`-style link.
+  `conformsTo`-style link. The trail data pilot
+  (`examples/trail-data-pilot.md`) hit the same gap with CT Trails 2021,
+  FTDS and OSM tagging, and proposes registered standard records with a
+  concept-level `conformsTo` and validated per-field `sameAs`.
 
 ## Popularity and standardness scoring (v0.2 direction)
 

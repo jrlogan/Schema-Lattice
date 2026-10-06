@@ -2,9 +2,8 @@
   "_comment": [
     "The hosted instance instead of the local one. Copy over .mcp.json to point",
     "Claude Code at the live catalog rather than your local var/ copy.",
-    "The key is in /etc/schemalattice/env on the box; it gates writes, and the",
-    "whole /mcp endpoint with them. Read-only clients can use the REST routes",
-    "unauthenticated instead."
+    "Read-only MCP clients can omit the headers block. Writes need an app key",
+    "from lattice_register_app or the operator key from /etc/schemalattice/env."
   ],
   "mcpServers": {
     "schemalattice": {

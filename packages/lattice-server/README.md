@@ -63,10 +63,9 @@ Canonical URIs stay `https://schemalattice.com/...` no matter which host
 serves them, so the resolution routes match on path alone — a URI minted
 on `localhost:7000` resolves unchanged against the public instance.
 
-Reads are public. Writes require `Authorization: Bearer <key>` when
-`LATTICE_API_KEY` is set; with it unset (local dev) writes are open and the
-startup banner says so. `/mcp` is gated as a whole whenever a key is set,
-because it exposes the write tools.
+Reads are public over REST and MCP. Writes require `Authorization: Bearer <key>`
+when `LATTICE_API_KEY` is set; with it unset (local dev) writes are open and the
+startup banner says so. MCP checks write permissions on each tool call.
 
 Two kinds of key. `LATTICE_API_KEY` is the **operator** key — one per
 instance, from the environment. Everything else is an **app** key, minted by

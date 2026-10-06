@@ -10,6 +10,7 @@
     "demo:http": "tsx examples/http-walkthrough.ts",
     "demo:new-haven": "tsx examples/new-haven-demo.ts",
     "demo:trail-team": "tsx examples/trail-team-bounty.ts",
+    "demo:trail-data": "tsx examples/trail-data.ts",
     "mcp": "tsx src/bin/mcp-stdio.ts",
     "seed": "tsx src/seed/run.ts",
     "serve": "tsx src/bin/serve.ts",

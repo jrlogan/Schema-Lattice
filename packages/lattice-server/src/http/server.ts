@@ -18,7 +18,7 @@ import { landingPage, llmsText } from "./landing.ts";
 import { RateLimiter, clientKey, DEFAULT_LIMITS, type RateLimits, type Bucket } from "./ratelimit.ts";
 import { REPO_ROOT } from "../server/config.ts";
 import {
-  OPERATOR, actorOf, anonymousBecause, credentialGuidance, checkCapability, looksLikeAppKey, matchesOperatorKey,
+  OPERATOR, actorOf, anonymousBecause, checkCapability, looksLikeAppKey, matchesOperatorKey,
   type Principal,
 } from "../server/principals.ts";
 import { readFileSync, existsSync } from "node:fs";
@@ -239,20 +239,9 @@ async function handle(
 
   // --- MCP over streamable HTTP -------------------------------------
   if (path === "/mcp") {
-    if (req.method === "POST" && principal.anonymous) {
-      // The MCP surface exposes write tools, so the whole endpoint is gated
-      // whenever a key is configured.
-      const { message, guidance } = credentialGuidance(principal.credential);
-      send(res, 401, {
-        error: {
-          code: "invalid-parameter",
-          message: `the MCP endpoint requires an API key: ${message}`,
-          details: { latticeCode: "ERR_NOT_AUTHENTICATED", guidance },
-        },
-      });
-      return;
-    }
-    await handleMcp(req, res, instance, principal, callContext(req));
+    // callTool checks each write against this request's principal. Allow
+    // anonymous MCP sessions to initialize and use the public read tools.
+    await handleMcp(req, res, instance, principal, callContext(req), isOperator ? null : limiter);
     return;
   }
 
@@ -493,6 +482,7 @@ async function handleMcp(
   instance: LatticeInstance,
   principal: Principal,
   ctx: CallContext,
+  limiter: RateLimiter | null,
 ): Promise<void> {
   const server = createMcpServer(instance, principal, ctx);
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
@@ -509,6 +499,27 @@ async function handleMcp(
       error: { code: "invalid-parameter", message: (err as Error).message },
     });
     return;
+  }
+  if (limiter && body && typeof body === "object" && !Array.isArray(body)) {
+    const request = body as { method?: unknown; params?: { name?: unknown } };
+    const name = request.method === "tools/call" ? request.params?.name : undefined;
+    const bucket: Bucket | null = name === "lattice_discover" ? "discover"
+      : name === "lattice_feedback" ? "feedback"
+      : name === "lattice_propose" ? "evidence" : null;
+    if (bucket) {
+      const key = principal.anonymous ? ctx.clientAddress ?? "unknown" : actorOf(principal);
+      const retryAfter = limiter.hit(key, bucket);
+      if (retryAfter !== null) {
+        send(res, 429, {
+          error: {
+            code: "rate-limited",
+            message: `too many ${bucket} requests — retry in ${retryAfter}s`,
+            details: { retryAfterSeconds: retryAfter },
+          },
+        });
+        return;
+      }
+    }
   }
   await transport.handleRequest(req, res, body);
 }

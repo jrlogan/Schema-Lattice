@@ -64,8 +64,8 @@ Migration off this box is `rsync` plus `npm ci`; nothing here is a commitment.
 ```
 
 The app binds `127.0.0.1:7000`; Caddy terminates TLS and proxies to it. Reads
-are public, the five write tools require `Authorization: Bearer $LATTICE_API_KEY`,
-and `/mcp` is gated as a whole because it exposes those write tools.
+are public over REST and MCP. Write tools require
+`Authorization: Bearer $LATTICE_API_KEY` on either transport.
 
 ## Operating it
 

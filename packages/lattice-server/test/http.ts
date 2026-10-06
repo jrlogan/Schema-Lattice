@@ -273,8 +273,13 @@ async function main() {
     /no API key was sent/.test(unauthed.body.error.message) && /lattice_register_app/.test(unauthed.body.error.details.guidance),
     unauthed.body.error?.message,
   );
-  const mcpEmpty = await rawPost("/mcp", { jsonrpc: "2.0", id: 1, method: "ping" }, "Bearer ");
-  check("mcp-empty-bearer-says-empty", mcpEmpty.status === 401 && /empty key/.test(mcpEmpty.body.error.message), mcpEmpty.body.error?.message);
+  const mcpEmpty = await fetch(`${base}/mcp`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json, text/event-stream", authorization: "Bearer " },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "lattice_publish_context", arguments: contextArgs } }),
+  });
+  const mcpEmptyText = await mcpEmpty.text();
+  check("mcp-empty-bearer-denies-write", mcpEmptyText.includes("empty key") && mcpEmptyText.includes("ERR_NOT_AUTHENTICATED"), `status=${mcpEmpty.status}`);
 
   const authed = await post("/api/tools/lattice_publish_context", contextArgs, API_KEY);
   check(
@@ -339,9 +344,30 @@ async function main() {
   const mcpUnauthed = await fetch(`${base}/mcp`, {
     method: "POST",
     headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} }),
+    body: JSON.stringify({
+      jsonrpc: "2.0", id: 1, method: "initialize",
+      params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "smoke", version: "0" } },
+    }),
   });
-  check("mcp-gated-by-key", mcpUnauthed.status === 401, `status=${mcpUnauthed.status}`);
+  const mcpUnauthedText = await mcpUnauthed.text();
+  check("mcp-anonymous-initialize", mcpUnauthed.ok && mcpUnauthedText.includes("schemalattice"), `status=${mcpUnauthed.status}`);
+
+  const anonymousMcpCall = async (name: string, args: unknown) => {
+    const response = await fetch(`${base}/mcp`, {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name, arguments: args } }),
+    });
+    return { status: response.status, text: await response.text() };
+  };
+  const mcpRead = await anonymousMcpCall("lattice_resolve", { uri: personUri });
+  check("mcp-anonymous-read", mcpRead.status === 200 && mcpRead.text.includes("Person"), `status=${mcpRead.status}`);
+  const mcpWrite = await anonymousMcpCall("lattice_publish_context", contextArgs);
+  check(
+    "mcp-anonymous-write-denied",
+    mcpWrite.text.includes("ERR_NOT_AUTHENTICATED") && mcpWrite.text.includes('"isError":true'),
+    `status=${mcpWrite.status}`,
+  );
 
   // --- abuse brakes --------------------------------------------------------
   let limited: { status: number; body: any } | null = null;
@@ -353,6 +379,12 @@ async function main() {
     "feedback-rate-limited",
     limited !== null && limited.body.error.code === "rate-limited",
     limited ? `429 after burst, retryAfter=${limited.body.error.details.retryAfterSeconds}s` : "never limited",
+  );
+  const mcpFeedbackLimited = await anonymousMcpCall("lattice_feedback", { message: "rate limit probe" });
+  check(
+    "mcp-feedback-shares-rate-limit",
+    mcpFeedbackLimited.status === 429 && mcpFeedbackLimited.text.includes("rate-limited"),
+    `status=${mcpFeedbackLimited.status}`,
   );
 
   // The operator's key bypasses the brake.
