@@ -268,7 +268,7 @@ ${body}${nearby}${anchors}
 - Other domains: ${base}/pack — lists every pack
 - Search by description: ${base}/pack?q=a+short+description+of+the+records
 - One concept as JSON: open its URI
-- When your app works, send the types you designed back: have the builder print schemalattice.json, then paste it at ${base}/contribute${opts.query ? `?from=${encodeURIComponent(opts.query)}` : ""}. Only names, root kinds, definitions and fields are sent, and nothing is published until independent builders agree.
+- When your app works, send the types you designed back. Have the builder print schemalattice.json and paste it here (only names, root kinds, definitions and fields are sent; nothing is published until independent builders agree): ${base}/contribute${opts.query ? `?from=${encodeURIComponent(opts.query)}` : ""}
 - For coding assistants that support MCP (Claude Code, Cursor): connect ${base}/mcp and follow ${base}/skill${recording}
 `;
 }
