@@ -119,7 +119,7 @@ async function main() {
   const tools = await get("/api/tools");
   check(
     "tool-listing",
-    tools.body.tools.length === 20 && tools.body.tools.some((t: any) => t.write === true),
+    tools.body.tools.length === 22 && tools.body.tools.some((t: any) => t.write === true),
     `${tools.body.tools.length} tools`,
   );
 
@@ -215,6 +215,16 @@ async function main() {
     gapCluster?.fromPacks === 1 && !clusters.some((c) => c.queries.includes(privateQuery)),
     JSON.stringify(gapCluster ?? null),
   );
+
+  const contribRes = await fetch(base + "/contribute?from=" + encodeURIComponent('dog "grooming" <b>'));
+  const contribHtml = await contribRes.text();
+  check(
+    "contribute-page-served-and-escaped",
+    contribRes.status === 200 && contribHtml.includes("lattice_contribute") &&
+      contribHtml.includes("&quot;grooming&quot; &lt;b>") && !contribHtml.includes('"grooming" <b>'),
+    `status=${contribRes.status}`,
+  );
+  check("gap-pack-links-contribute", gap.includes("/contribute?from="), "link present");
 
   const cliRes = await fetch(base + "/cli/schemalattice.mjs");
   const cliText = await cliRes.text();

@@ -650,7 +650,52 @@ the operator switches. Notes are truncated and marked untrusted.
 ### `lattice_evidence_admin`
 
 Operator only. `freeze` / `unfreeze` / `retract` a claim (by claim key
-or state key), `purge-source`, or `switch` `accept` / `apply` on or off.
+or state key), `purge-source`, `purge-contributions` (every builder
+contribution from one source), or `switch` `accept` / `apply` on or off.
+
+### `lattice_contribute`
+
+> Send back types you designed that the catalog does not have.
+
+See `specs/builder-contributions.md`. Mints nothing; contributions are
+grouped into concept candidates in `lattice_demand_report`.
+
+```typescript
+{
+  types: Array<{                  // ≤20 per submission, ≤16 KB in all
+    label: string;                // ≤60
+    broader: string;              // a root concept URI (Event, Location, …)
+    definition: string;           // one sentence, ≤300
+    fields: Array<{ name; type; required?; values?; unit?; itemType? }>;  // ≤40
+  }>;
+  sourceQuery?: string;           // the search that showed the gap, ≤300
+}
+→ { submissionId, withdrawToken, accepted: [{ label, id }],
+    alreadyInCatalog: [{ label, uri, prefLabel, similarity }], notice }
+```
+
+Not key-gated; `evidence` rate-limit bucket plus 50 types/day per
+source. Common type spellings (`timestamp`, `uuid`, `int`, `text`) are
+mapped to catalog types. A type within 0.85 of an existing concept is
+returned in `alreadyInCatalog` and not stored. The page at
+`/contribute` calls this tool after showing the person the payload.
+
+### `lattice_withdraw_contribution`
+
+`{ token }` → `{ removed }`. Removes a whole submission; tokens are
+single-use and stored hashed.
+
+### `candidates` on `lattice_demand_report`
+
+Clusters of contributed types under the same root. Public callers see
+a candidate once 2 independent sources contributed it, and only enum
+values 2+ sources share; the operator sees everything.
+
+```typescript
+{ id, label, labels, broader: { uri, prefLabel }, sources, contributions,
+  definitions, fields: [{ name, type, sources, required, values?, unit? }],
+  sourceQueries, nearestExisting, firstAt, lastAt }
+```
 
 ### Effect on `lattice_discover`
 

@@ -14,7 +14,7 @@
     "mcp": "tsx src/bin/mcp-stdio.ts",
     "seed": "tsx src/seed/run.ts",
     "serve": "tsx src/bin/serve.ts",
-    "smoke": "npm run smoke:ancestry && npm run smoke:friction && npm run smoke:discover && npm run smoke:classification && npm run smoke:lifecycle && npm run smoke:registry && npm run smoke:tools && npm run smoke:http && npm run smoke:evidence && npm run smoke:client-parity",
+    "smoke": "npm run smoke:ancestry && npm run smoke:friction && npm run smoke:discover && npm run smoke:classification && npm run smoke:lifecycle && npm run smoke:registry && npm run smoke:tools && npm run smoke:http && npm run smoke:evidence && npm run smoke:contributions && npm run smoke:client-parity",
     "smoke:ancestry": "tsx test/ancestry.ts",
     "smoke:classification": "tsx test/classification.ts",
     "smoke:discover": "tsx test/discover.ts",
@@ -24,7 +24,8 @@
     "smoke:registry": "tsx test/registry.ts",
     "smoke:tools": "tsx test/tools.ts",
     "smoke:client-parity": "tsx ../lattice-client/test/parity.ts",
-    "smoke:evidence": "tsx test/evidence.ts"
+    "smoke:evidence": "tsx test/evidence.ts",
+    "smoke:contributions": "tsx test/contributions.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",

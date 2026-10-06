@@ -328,6 +328,19 @@ the catalog. Spec: `specs/lifecycle-and-provenance.md`.
   FTDS and OSM tagging, and proposes registered standard records with a
   concept-level `conformsTo` and validated per-field `sameAs`.
 
+## Builder contributions may publish themselves (2026-10-06)
+
+Hosted app generators cannot publish, so the types they design come
+back through `/contribute` (`specs/builder-contributions.md`). The
+maintainer chose automated publishing over operator review wherever it
+can be made safe. This narrows evidence-ledger principle 1 ("anonymous
+input never mints a concept") for one case only: a candidate that 3+
+independent sources across 2+ wider networks agree on, after a 7-day
+quarantine, using only consensus fields and a medoid definition, into
+an existing context. It runs in shadow mode until the uncalibrated
+thresholds have been checked on real candidates, and the operator can
+delist a bad result.
+
 ## Popularity and standardness scoring (v0.2 direction)
 
 The catalog should **encourage but not require** convergence on

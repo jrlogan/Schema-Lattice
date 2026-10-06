@@ -49,6 +49,7 @@ import {
   type ConceptStats,
 } from "../query/stats.ts";
 import { demandReport, type DemandReport } from "../query/demand.ts";
+import { Contributions } from "../evidence/contributions.ts";
 
 export interface InstanceOptions {
   dataDir: string;
@@ -90,6 +91,7 @@ export class LatticeInstance {
   readonly vectors: VectorIndex;
   readonly registry: Registry;
   readonly evidence: EvidenceLedger;
+  readonly contributions: Contributions;
 
   private constructor(opts: InstanceOptions) {
     this.store = new Store({
@@ -108,6 +110,13 @@ export class LatticeInstance {
       vectors: this.vectors,
     });
     this.evidence = new EvidenceLedger(this.store, this.embedder);
+    this.contributions = new Contributions(
+      this.store,
+      this.embedder,
+      this.vectors,
+      this.ancestryCtx.skeletonUris,
+      new Set([this.governance.contextUri]),
+    );
   }
 
   static async create(opts: InstanceOptions): Promise<LatticeInstance> {

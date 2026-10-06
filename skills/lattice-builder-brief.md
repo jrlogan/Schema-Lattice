@@ -79,6 +79,10 @@ When discover finds nothing that fits, that is signal:
 - Non-ephemeral discover queries feed the public demand report
   (`lattice_demand_report`). Run one with a generic, non-private
   description of the gap.
+- If you cannot publish, send back the types you designed with
+  `lattice_contribute`: label, root kind (`broader`), a one-sentence
+  definition and fields. Never send records, customer data or field
+  descriptions. Nothing is published until independent builders agree.
 - Use `lattice_feedback` for anything else the maintainers should know,
   such as a wrong match, a confusing result or a missing domain.
 

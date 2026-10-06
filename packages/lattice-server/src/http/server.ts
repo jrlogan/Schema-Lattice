@@ -15,6 +15,7 @@ import { isToolError } from "../tools/errors.ts";
 import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
 import { landingPage, llmsText } from "./landing.ts";
+import { contributePage } from "./contribute.ts";
 import {
   BUILD_ON, NEARBY, conceptsForContexts, conceptsForMatches, nearestRoots, renderPack, renderPackIndex, resolveContextSlug,
 } from "./pack.ts";
@@ -210,7 +211,7 @@ async function handle(
         ? "discover"
         : path === "/api/tools/lattice_feedback"
           ? "feedback"
-          : path === "/api/tools/lattice_propose"
+          : path === "/api/tools/lattice_propose" || path === "/api/tools/lattice_contribute"
             ? "evidence"
             : "general";
     const key = principal.anonymous
@@ -275,6 +276,7 @@ async function handle(
       endpoints: {
         skill: "GET /skill (the workflow instructions for AI clients)",
         builderSkill: "GET /skill/builder (one-page brief for apps built on an existing backend)",
+        contribute: "GET /contribute (send back types the catalog lacks; or POST /api/tools/lattice_contribute)",
         pack: "GET /pack, /pack/{context}[,{context}] or /pack?q=... (paste-ready vocabulary for hosted app builders without MCP)",
         client: "GET /cli/schemalattice.mjs (publish a platform's vocabulary from its code; vendor it)",
         resolveConcept: "GET /c/{context}/{slug}@{hash}",
@@ -295,6 +297,11 @@ async function handle(
   if (path === "/llms.txt" && isRead) {
     const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
     sendText(res, 200, llmsText(host, { ...instance.totals(), apps: instance.registry.listApps().length }), "text/markdown; charset=utf-8");
+    return;
+  }
+
+  if (path === "/contribute" && isRead) {
+    sendText(res, 200, contributePage(url.searchParams.get("from") ?? ""), "text/html; charset=utf-8");
     return;
   }
 
@@ -553,7 +560,7 @@ async function handleMcp(
     const name = request.method === "tools/call" ? request.params?.name : undefined;
     const bucket: Bucket | null = name === "lattice_discover" ? "discover"
       : name === "lattice_feedback" ? "feedback"
-      : name === "lattice_propose" ? "evidence" : null;
+      : name === "lattice_propose" || name === "lattice_contribute" ? "evidence" : null;
     if (bucket) {
       const key = principal.anonymous ? ctx.clientAddress ?? "unknown" : actorOf(principal);
       const retryAfter = limiter.hit(key, bucket);
