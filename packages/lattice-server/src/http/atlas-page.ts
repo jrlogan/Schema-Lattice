@@ -320,7 +320,7 @@ export function atlasPage(host: string): string {
       if (b.context) {
         const name = titles.get(b.context) || b.context;
         return name + (b.firstOfContext ? " arrives with " : " grows by ") + plural(b.concepts, "concept") +
-          (extras.length ? ", and " + extras.join(" and ") + " are mapped onto it" : "") + ".";
+          (extras.length ? ", alongside " + extras.join(" and ") + " listed in the same step" : "") + ".";
       }
       const places = [...new Set(b.items.map((n) => n.d.jurisdiction))];
       return extras.join(" and ") + " listed (" + listOf(places, 3) + "), their fields mapped onto existing concepts.";
