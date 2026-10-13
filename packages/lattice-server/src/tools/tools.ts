@@ -480,7 +480,8 @@ export const TOOLS: ToolDef[] = [
       "either side graded direct (the same concept), translate (a fork, version or declared co-reference: " +
       "code guided by the changeset), manual (only similar: a person decides) or gap (no counterpart), with " +
       "field-level detail where the sides say which fields they fill, where personal data would cross, a " +
-      "0-100 score and plain-English challenges. Use it when planning an integration, and share the page " +
+      "0-100 fit (how cleanly the shared part connects; gaps don't lower it), the overlap (how much is " +
+      "shared) and plain-English challenges. Use it when planning an integration, and share the page " +
       "https://schemalattice.com/mesh?a=app:<slug>&b=app:<slug> with the person so they see the work involved. " +
       "Sides: \"app:<slug>\" (registered), \"source:<slug>\" (a public data source), or { manifest: <a " +
       "schemalattice.json object> } for apps that aren't registered; a pasted manifest is used for this " +

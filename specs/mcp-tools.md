@@ -715,7 +715,9 @@ Results are ordered by the adjusted score; `similarity` stays raw and
 { a: "app:<slug>" | "source:<slug>" | { manifest: object, name?: string },
   b: same }
 → { a, b: { kind, id, name, concepts },
-    score: number,                       // 0-100
+    fit: number,                         // 0-100: how cleanly the shared part connects
+    overlap: { connected, aConcepts, bConcepts, ofSmaller },   // how much there is to connect
+    score: number,                       // = fit
     counts: { direct, translate, manual, gap },
     challenges: string[],                // plain English, most important first
     pairs: Array<{ grade: "direct" | "translate" | "manual" | "gap",
