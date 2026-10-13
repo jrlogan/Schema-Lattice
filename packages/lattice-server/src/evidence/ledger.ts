@@ -204,6 +204,14 @@ export class EvidenceLedger {
 
   /** Operator, or an app the operator promoted: their claims take effect at once. */
   isCurator(source: string): boolean {
+    const cached = this.pass?.curator.get(source);
+    if (cached !== undefined) return cached;
+    const c = this.computeCurator(source);
+    this.pass?.curator.set(source, c);
+    return c;
+  }
+
+  private computeCurator(source: string): boolean {
     if (source === "operator") return true;
     if (!source.startsWith("app:")) return false;
     const row = this.db.prepare("SELECT tier FROM apps WHERE slug = ?").get(source.slice(4)) as { tier: string } | undefined;
@@ -249,7 +257,7 @@ export class EvidenceLedger {
     });
     tx();
     this.store.logEvent("evidence", { kind, claims: claims.length }, source);
-    this.rescore(now);
+    this.rescore(now, claims.map((c) => c.claimKey));
     return claims.map((c) => this.outcome(c.claimKey, c.direction));
   }
 
@@ -320,6 +328,14 @@ export class EvidenceLedger {
 
   /** Current weight of a source; app standing can change, so this is computed, not stored. */
   sourceWeight(source: string, now: Date): number {
+    const cached = this.pass?.weight.get(source);
+    if (cached !== undefined) return cached;
+    const w = this.computeWeight(source, now);
+    this.pass?.weight.set(source, w);
+    return w;
+  }
+
+  private computeWeight(source: string, now: Date): number {
     if (source === "operator") return 2;
     if (source.startsWith("app:")) {
       const slug = source.slice(4);
@@ -437,7 +453,7 @@ export class EvidenceLedger {
         );
     }
     this.store.logEvent("evidence", { kind: "match", claimKey, verdict }, source);
-    this.rescore(now);
+    this.rescore(now, [claimKey]);
 
     const rows = this.rowsFor(claimKey);
     const asserting = rows.filter((r) => r.polarity === (verdict === "wrong" ? 1 : -1));
@@ -496,9 +512,18 @@ export class EvidenceLedger {
 
   // --- scoring -------------------------------------------------------------
 
-  /** Re-derive claim_state and evidence_links from the ledger. Idempotent. */
-  rescore(now: Date = new Date()): void {
-    const keys = this.db.prepare("SELECT DISTINCT claim_key FROM evidence").all() as Array<{ claim_key: string }>;
+  /**
+   * Re-derive claim_state and evidence_links from the ledger. Idempotent.
+   * With `only`, re-score just those claim keys: a submission changes only its
+   * own keys, and re-scoring thousands of others on every call made each one
+   * slower than the last. The full pass (hourly, reports, operator actions)
+   * still runs, because promotion after the quarantine is time-based.
+   */
+  rescore(now: Date = new Date(), only?: string[]): void {
+    const keys = only
+      ? [...new Set(only)].map((claim_key) => ({ claim_key }))
+      : (this.db.prepare("SELECT DISTINCT claim_key FROM evidence").all() as Array<{ claim_key: string }>);
+    this.pass = { weight: new Map(), curator: new Map() };
     const tx = this.db.transaction(() => {
       for (const { claim_key } of keys) this.scoreKey(claim_key, now);
       // Links for keys that no longer have evidence (purged sources) go too.
@@ -506,8 +531,15 @@ export class EvidenceLedger {
         .prepare("DELETE FROM evidence_links WHERE state_key NOT IN (SELECT state_key FROM claim_state WHERE status = 'promoted')")
         .run();
     });
-    tx();
+    try {
+      tx();
+    } finally {
+      this.pass = null;
+    }
   }
+
+  /** Per-pass memo: a source's weight and curator standing don't change within one re-score. */
+  private pass: { weight: Map<string, number>; curator: Map<string, boolean> } | null = null;
 
   private scoreKey(claimKey: string, now: Date): void {
     const rows = this.rowsFor(claimKey);

@@ -899,9 +899,32 @@ export class Sources {
   private pairStillValid(claim: MappingClaim): boolean {
     const r = this.row(claim.source);
     if (!r || r.withdrawn_reason !== null) return false;
-    if (!(JSON.parse(r.fields) as SourceField[]).some((f) => f.name === claim.sourceField)) return false;
-    const concept = this.store.getConcept(claim.conceptUri);
-    return !!concept && conceptFieldPaths(concept).has(claim.conceptField);
+    if (!this.sourceFieldNames(r).has(claim.sourceField)) return false;
+    return this.conceptPaths(claim.conceptUri)?.has(claim.conceptField) ?? false;
+  }
+
+  // Re-scoring checks every pair, so the lookups it repeats are cached. Concepts
+  // are immutable, so their field paths never go stale; a source's field list is
+  // keyed by its last update.
+  private pathsCache = new Map<string, Set<string>>();
+  private fieldsCache = new Map<string, { at: string; names: Set<string> }>();
+
+  private conceptPaths(uri: string): Set<string> | null {
+    const hit = this.pathsCache.get(uri);
+    if (hit) return hit;
+    const record = this.store.getConcept(uri);
+    if (!record) return null; // not cached: the concept may be published later
+    const paths = new Set(conceptFieldPaths(record).keys());
+    this.pathsCache.set(uri, paths);
+    return paths;
+  }
+
+  private sourceFieldNames(r: SourceRow): Set<string> {
+    const hit = this.fieldsCache.get(r.slug);
+    if (hit && hit.at === r.updated_at) return hit.names;
+    const names = new Set((JSON.parse(r.fields) as SourceField[]).map((f) => f.name));
+    this.fieldsCache.set(r.slug, { at: r.updated_at, names });
+    return names;
   }
 
   private updateFields(slug: string, fields: SourceField[], now: Date): void {
