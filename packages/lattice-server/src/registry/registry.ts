@@ -24,6 +24,7 @@ import {
 } from "../publish/classification.ts";
 import { cosine } from "../discover/embedder.ts";
 import { PublishError } from "../publish/errors.ts";
+import { conceptFieldPaths } from "../sources/sources.ts";
 import {
   OPERATOR, TIERS, appPrincipal, actorOf, hashKey, mintKey,
   type Principal, type Tier,
@@ -40,6 +41,12 @@ export interface AppUsage {
   uri: string;
   status: UsageStatus;
   shortName?: string;
+  /**
+   * The concept's fields this app actually populates, from its manifest's field
+   * maps. Optional; when present, compatibility reports can say which fields two
+   * apps exchange directly and which one of them never fills.
+   */
+  fields?: string[];
 }
 
 export interface AppRegistration {
@@ -150,6 +157,7 @@ export class Registry {
       CREATE INDEX IF NOT EXISTS idx_attestations_app
         ON app_attestations(app_slug);
     `);
+    this.deps.store.addColumn("app_usages", "fields", "TEXT");
     // An app registration IS the principal: the registry already knew the owner
     // and the contact, it just had no way to prove a caller was them.
     this.deps.store.addColumn("apps", "key_hash", "TEXT");
@@ -197,6 +205,20 @@ export class Registry {
           `manifest references a concept the catalog does not have: ${u.uri}`,
           { guidance: "Publish the concept first (or fix the URI); the registry only accepts manifests that resolve." },
         );
+      }
+      if (u.fields !== undefined) {
+        if (!Array.isArray(u.fields) || u.fields.some((f) => typeof f !== "string")) {
+          throw new PublishError("ERR_USAGE_FIELDS_INVALID", `usage fields for ${u.uri} must be an array of field names`);
+        }
+        const known = conceptFieldPaths(this.deps.store.getConcept(u.uri)!);
+        const unknown = u.fields.filter((f) => !known.has(f));
+        if (unknown.length) {
+          throw new PublishError(
+            "ERR_USAGE_FIELDS_UNKNOWN",
+            `${u.uri} has no field(s) ${unknown.join(", ")}`,
+            { guidance: `Its fields are: ${[...known.keys()].join(", ")}` },
+          );
+        }
       }
     }
 
@@ -247,10 +269,10 @@ export class Registry {
           );
       }
       const ins = this.db.prepare(
-        `INSERT INTO app_usages (app_slug, concept_uri, status, short_name) VALUES (?, ?, ?, ?)`,
+        `INSERT INTO app_usages (app_slug, concept_uri, status, short_name, fields) VALUES (?, ?, ?, ?, ?)`,
       );
       for (const u of input.concepts) {
-        ins.run(input.slug, u.uri, u.status, u.shortName ?? null);
+        ins.run(input.slug, u.uri, u.status, u.shortName ?? null, u.fields ? JSON.stringify([...new Set(u.fields)]) : null);
       }
     });
     tx();
@@ -358,10 +380,11 @@ export class Registry {
   usagesOf(appSlug: string): AppUsage[] {
     return (this.db
       .prepare(
-        `SELECT concept_uri AS uri, status, short_name AS shortName
+        `SELECT concept_uri AS uri, status, short_name AS shortName, fields
            FROM app_usages WHERE app_slug = ? ORDER BY concept_uri`,
       )
-      .all(appSlug)) as AppUsage[];
+      .all(appSlug) as Array<AppUsage & { fields: string | null }>)
+      .map(({ fields, ...u }) => (fields ? { ...u, fields: JSON.parse(fields) as string[] } : u));
   }
 
   attestationsOf(appSlug: string): Array<AttestationInput & { recordedAt: string }> {

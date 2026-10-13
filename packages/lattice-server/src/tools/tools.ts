@@ -12,6 +12,7 @@ import type { LatticeInstance } from "../server/instance.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
 import { InvalidParameter, NotFound, toToolError, type ToolError } from "./errors.ts";
 import { compareConcepts } from "../query/compare.ts";
+import { meshReport, MeshError, type MeshSide } from "../query/mesh.ts";
 import {
   OPERATOR, ORIGINATE_BUDGET, TIERS, actorOf, budgetDenial, checkCapability,
   type Principal, type Tier,
@@ -468,6 +469,37 @@ export const TOOLS: ToolDef[] = [
         }
       }
       return compareConcepts(aUri, a!, bUri, b!);
+    },
+  },
+
+  {
+    name: "lattice_mesh_report",
+    write: false,
+    description:
+      "How well two apps, or an app and a public data source, will exchange data: every concept on " +
+      "either side graded direct (the same concept), translate (a fork, version or declared co-reference: " +
+      "code guided by the changeset), manual (only similar: a person decides) or gap (no counterpart), with " +
+      "field-level detail where the sides say which fields they fill, where personal data would cross, a " +
+      "0-100 score and plain-English challenges. Use it when planning an integration, and share the page " +
+      "https://schemalattice.com/mesh?a=app:<slug>&b=app:<slug> with the person so they see the work involved. " +
+      "Sides: \"app:<slug>\" (registered), \"source:<slug>\" (a public data source), or { manifest: <a " +
+      "schemalattice.json object> } for apps that aren't registered; a pasted manifest is used for this " +
+      "computation only and never stored.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        a: { description: '"app:<slug>", "source:<slug>", or { "manifest": {…} }' },
+        b: { description: '"app:<slug>", "source:<slug>", or { "manifest": {…} }' },
+      },
+      required: ["a", "b"],
+    },
+    handler: (instance, args) => {
+      try {
+        return meshReport(instance, meshSide(args.a, "a"), meshSide(args.b, "b"));
+      } catch (err) {
+        if (err instanceof MeshError) throw new InvalidParameter(err.message);
+        throw err;
+      }
     },
   },
 
@@ -1239,6 +1271,10 @@ export const TOOLS: ToolDef[] = [
               uri: { type: "string" },
               status: { type: "string", enum: ["adopted", "forked", "originated"] },
               shortName: { type: "string" },
+              fields: {
+                ...stringArray,
+                description: "Optional: the concept's fields this app populates (its field maps' targets). Makes compatibility reports field-level.",
+              },
             },
             required: ["uri", "status"],
           },
@@ -1269,6 +1305,7 @@ export const TOOLS: ToolDef[] = [
           uri: string;
           status: UsageStatus;
           shortName?: string;
+          fields?: string[];
         }>,
       });
       if (result.apiKey === undefined) return result;
@@ -1423,6 +1460,22 @@ export const TOOLS: ToolDef[] = [
 ];
 
 export const TOOLS_BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));
+
+/** "app:<slug>", "source:<slug>", or { manifest } into a mesh side. */
+function meshSide(value: unknown, key: string): MeshSide {
+  if (typeof value === "string") {
+    const m = value.trim().match(/^(app|source):([a-z0-9][a-z0-9-]{0,59})$/);
+    if (!m) throw new InvalidParameter(`"${key}" must be "app:<slug>", "source:<slug>" or { "manifest": {…} }`, { parameter: key });
+    return m[1] === "app" ? { app: m[2] } : { source: m[2] };
+  }
+  if (value && typeof value === "object" && "manifest" in value) {
+    const v = value as { manifest: unknown; name?: unknown };
+    if (!v.manifest || typeof v.manifest !== "object") throw new InvalidParameter(`"${key}.manifest" must be an object`);
+    if (JSON.stringify(v.manifest).length > 300_000) throw new InvalidParameter(`"${key}.manifest" is too large (300 KB at most)`);
+    return { manifest: v.manifest as Record<string, unknown>, ...(typeof v.name === "string" ? { name: v.name } : {}) };
+  }
+  throw new InvalidParameter(`"${key}" must be "app:<slug>", "source:<slug>" or { "manifest": {…} }`, { parameter: key });
+}
 
 /** Source refusals are the caller's to fix, so they read as invalid parameters. */
 async function sourcesCall<T>(fn: () => T | Promise<T>): Promise<T> {

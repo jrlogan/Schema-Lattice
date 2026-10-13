@@ -18,6 +18,7 @@ import { landingPage, llmsText } from "./landing.ts";
 import { contributePage } from "./contribute.ts";
 import { renderSourcePage, renderSourcesIndex } from "./sources-page.ts";
 import { atlasPage } from "./atlas-page.ts";
+import { meshPage } from "./mesh-page.ts";
 import { buildAtlas } from "../query/atlas.ts";
 import {
   BUILD_ON, NEARBY, conceptsForContexts, conceptsForMatches, nearestRoots, renderPack, renderPackIndex, resolveContextSlug,
@@ -291,6 +292,7 @@ async function handle(
         builderSkill: "GET /skill/builder (one-page brief for apps built on an existing backend)",
         contribute: "GET /contribute (send back types the catalog lacks; or POST /api/tools/lattice_contribute)",
         pack: "GET /pack, /pack/{context}[,{context}] or /pack?q=... (paste-ready vocabulary for hosted app builders without MCP)",
+        mesh: "GET /mesh?a=app:<slug>&b=app:<slug> (how well two apps or an app and a data source will exchange data; or POST /api/tools/lattice_mesh_report)",
         atlas: "GET /atlas (every concept placed by meaning, growth over time, unmet searches, public datasets; data at /atlas.json)",
         sources: "GET /sources, /sources?q=...&jurisdiction=US-CT/new-haven, /sources/{slug} (public datasets: endpoints, what each field means, join keys)",
         client: "GET /cli/schemalattice.mjs (publish a platform's vocabulary from its code; vendor it)",
@@ -368,6 +370,14 @@ async function handle(
   if (path === "/atlas" && isRead) {
     const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
     sendText(res, 200, atlasPage(host), "text/html; charset=utf-8", "public, max-age=300");
+    return;
+  }
+  if (path === "/mesh" && isRead) {
+    const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
+    sendText(res, 200, meshPage(host, {
+      apps: instance.registry.listApps().map((a) => ({ slug: a.slug, name: a.name })).sort((x, y) => x.name.localeCompare(y.name)),
+      sources: instance.sources.listAll().filter((s) => s.kind !== "standard").map((s) => ({ slug: s.slug, title: s.title })),
+    }), "text/html; charset=utf-8");
     return;
   }
   if (path === "/atlas.json" && isRead) {

@@ -709,6 +709,34 @@ evidence: { caution?: { reason, sources }, confirmed?: { sources }, note }
 Results are ordered by the adjusted score; `similarity` stays raw and
 `verdict` is always computed on raw scores.
 
+## `lattice_mesh_report`
+
+```typescript
+{ a: "app:<slug>" | "source:<slug>" | { manifest: object, name?: string },
+  b: same }
+→ { a, b: { kind, id, name, concepts },
+    score: number,                       // 0-100
+    counts: { direct, translate, manual, gap },
+    challenges: string[],                // plain English, most important first
+    pairs: Array<{ grade: "direct" | "translate" | "manual" | "gap",
+                   match: "same" | "lineage" | "coreference" | "similar" | null,
+                   a, b: { locals, uri, label } | null, similarity?, how,
+                   fields?: Array<{ a?, b?, conceptField,
+                                    status: "direct" | "convert" | "a-only" | "b-only",
+                                    why?, personal? }>,
+                   score }>,
+    notes, legend }
+```
+
+Both sides resolve to the current versions of their concepts. Pairs are
+matched strongest first: the same concept, then shared fork or version
+lineage, then a declared co-reference, then embedding similarity ≥ 0.72.
+Field rows come from `lattice_compare`, restricted to the fields each side
+fills: from registered usage `fields` (see `lattice_register_app`), from a
+source's mappings, or from a manifest's `fieldMaps`. A pasted manifest is
+used for the computation and never stored or logged. `GET /mesh` is the
+same report as a page.
+
 ## Public source tools (evidence phase 2)
 
 Full design: `public-sources.md`. A source is a public dataset or
@@ -847,3 +875,21 @@ unknown concept URIs are rejected (`ERR_UNKNOWN_CONCEPT`).
 > unclassified-field coverage gaps, sensitive profiles with no
 > recorded attestation). Findings are advisory — nothing is
 > auto-fixed, and rank-to-policy mapping stays with the organization.
+
+## API design advisor tools
+
+Implemented in the shared HTTP/MCP tool table; detailed contract and evidence limits
+are in [api-design-advisor.md](api-design-advisor.md).
+
+- `lattice_advise_api` (read): `app`, `purpose`, `consumers`, optional resource/field
+  bindings and candidate source slugs → deterministic proposal, field comparisons,
+  native OpenAPI 3.1 draft, unresolved conversions, evidence hash and proposal ID.
+- `lattice_accept_api_design` (write, owning app or operator): unchanged `request`,
+  `proposalId`, one `{conceptUri, source}` choice per resource, and `rationale` → an
+  attributable, idempotent design decision. `source:null` explicitly keeps the
+  native API. Stale proposals are refused. Call only after explicit review.
+- `lattice_api_design_history` (read): `app` → design decisions with actor,
+  timestamp, proposal/evidence hashes, choices and rationale.
+
+These tools do not deploy APIs, publish concepts, execute adapters or certify a
+standard. Recorded choices mean design intent, distinct from verified adoption.

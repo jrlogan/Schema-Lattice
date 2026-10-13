@@ -310,6 +310,17 @@ When you open a file in a project you haven't seen:
 
 ## Comparing two projects (Checkpoint 3B, reconcile preview)
 
+**Start with `lattice_mesh_report`.** Given two registered apps (`"app:<slug>"`),
+an app and a public data source (`"source:<slug>"`), or pasted manifests
+(`{ "manifest": <schemalattice.json> }`, never stored), it grades every
+connection direct / translate / manual / gap, compares fields where the
+sides say which they fill, flags personal data that would cross, and
+scores the pair out of 100 with plain-English challenges. When you are
+planning an integration with a person, offer them the page
+`https://schemalattice.com/mesh?a=app:<slug>&b=app:<slug>` so they see the
+work involved before any code is written. The steps below are how to go
+deeper on any one connection.
+
 If the user brings in a second project and wants them to interop:
 
 1. Load both projects' `schemalattice.json` files.
