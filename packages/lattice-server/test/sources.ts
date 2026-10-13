@@ -364,7 +364,9 @@ async function main() {
   check("atlas-excludes-governance", !atlas.concepts.some((c) => c.uri.includes("/c/governance/")));
   check("atlas-shows-sources", atlas.sources.some((s) => s.slug === "ct-parcels") && atlas.concepts.some((c) => c.uri === PARCEL && c.publicSources > 0));
   const atlasPageRes = await fetch(`${http.url}/atlas`);
-  check("atlas-page", atlasPageRes.status === 200 && (await atlasPageRes.text()).includes("/atlas.json"));
+  const atlasHtml = await atlasPageRes.text();
+  check("atlas-page", atlasPageRes.status === 200 && atlasHtml.includes("/atlas.json") && atlasHtml.includes('id="lens"'));
+  check("atlas-lists-apps", Array.isArray((atlas as unknown as { apps: unknown }).apps));
   const anonPropose = await fetch(`${http.url}/api/tools/lattice_propose_source`, {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ accessUrl: OTHER_STATE.replace("wxyz-9876", "wxyz-9876") }),

@@ -71,6 +71,7 @@ export function atlasPage(host: string): string {
   @media (max-width: 760px) { .swipe { display:block; } }
   /* Marks. Things arrive in place: they grow and fade in, lines draw themselves. */
   .n { transition:opacity .6s ease, transform .75s cubic-bezier(.2,.9,.3,1.25); transform-box:fill-box; transform-origin:center; }
+  .n.dim, .lbl.dim, .e.dim, .fork.dim, .ctx.dim { opacity:.13; }
   .n.off { opacity:0; transform:scale(.15); pointer-events:none; }
   .e { transition:opacity .5s ease; }
   .e.off { opacity:0; }
@@ -88,6 +89,7 @@ export function atlasPage(host: string): string {
   .c { fill:var(--node); stroke:var(--card); stroke-width:2; cursor:pointer; }
   .c.root { fill:var(--card); stroke:var(--fg); stroke-width:1.5; }
   .c.new { fill:var(--new); }
+  .c.bonly { fill:var(--card); stroke:var(--node); stroke-width:2; }
   .ring { fill:none; stroke:var(--new); stroke-width:2; pointer-events:none; }
   .d { fill:none; stroke:var(--ask); stroke-width:2; stroke-dasharray:3 3; cursor:pointer; }
   .s { fill:var(--src); stroke:var(--card); stroke-width:2; cursor:pointer; }
@@ -99,6 +101,21 @@ export function atlasPage(host: string): string {
   .ripple.src { stroke:var(--src); }
   .ripple.ask { stroke:var(--ask); }
   @keyframes ripple { from { transform:scale(1); opacity:.85; } to { transform:scale(3.4); opacity:0; } }
+  .lens { display:flex; flex-wrap:wrap; gap:.5rem 1rem; align-items:center; margin:.2rem 0 .5rem; font-size:.92rem; }
+  .lens label { display:inline-flex; gap:.4rem; align-items:center; min-width:0; }
+  .lens select, .lens input { font:inherit; padding:.2rem .4rem; border:1px solid var(--line); border-radius:6px;
+    background:var(--bg); color:var(--fg); max-width:min(18rem, 100%); }
+  .lens input { width:13rem; }
+  .lensinfo { border-left:3px solid var(--accent); padding:.35rem .8rem; margin:0 0 .6rem; background:var(--card);
+    border-radius:0 8px 8px 0; font-size:.92rem; }
+  .lensinfo .keys { display:flex; flex-wrap:wrap; gap:.2rem 1rem; color:var(--muted); font-size:.85rem; margin-top:.2rem; }
+  .lensinfo svg { vertical-align:-2px; margin-right:.25rem; }
+  .bars button.bar { all:unset; box-sizing:border-box; width:100%; cursor:pointer; display:grid;
+    grid-template-columns:minmax(0, 9rem) 1fr 2rem; gap:.5rem; align-items:center; font-size:.85rem; border-radius:4px; }
+  .bars button.bar:hover span:first-child { text-decoration:underline; }
+  .bars button.bar:focus-visible { outline:2px solid var(--accent); }
+  .linkish { all:unset; cursor:pointer; color:var(--accent); text-decoration:underline; }
+  .linkish:focus-visible { outline:2px solid var(--accent); border-radius:3px; }
   .tip { position:absolute; pointer-events:none; background:var(--bg); border:1px solid var(--line); border-radius:6px;
     padding:.35rem .55rem; font-size:.82rem; max-width:18rem; box-shadow:0 2px 8px rgba(0,0,0,.12); display:none; }
   .legend { display:flex; flex-wrap:wrap; gap:.4rem 1.1rem; font-size:.85rem; color:var(--muted); margin:.6rem 0 0; padding:0; list-style:none; }
@@ -137,7 +154,8 @@ export function atlasPage(host: string): string {
   together. Press play to watch it being built, one step at a time.
   <span style="color:var(--new);font-weight:600">Blue</span> is what arrived in the chapter shown,
   <span style="color:var(--src);font-weight:600">green</span> diamonds are public datasets mapped onto concepts, and
-  dashed <span style="color:var(--ask);font-weight:600">orange</span> rings are searches that found nothing yet.</p>
+  dashed <span style="color:var(--ask);font-weight:600">orange</span> rings are searches that found nothing yet. Focus on an app, a context or a place to see where it sits
+  among everything else, or compare two apps to see what they share.</p>
 
   <div class="controls">
     <div class="time">
@@ -149,6 +167,15 @@ export function atlasPage(host: string): string {
     <label><input type="checkbox" id="showSrc" checked> Public datasets</label>
     <label><input type="checkbox" id="showLbl"> All labels</label>
   </div>
+  <div class="lens" role="search">
+    <label>Focus on <select id="lens" aria-label="Focus the map on an app, a context or a place">
+      <option value="">the whole catalog</option></select></label>
+    <label id="withWrap" hidden>compared with <select id="with" aria-label="Compare with another app">
+      <option value="">no other app</option></select></label>
+    <label><input id="q" type="search" placeholder="Find a concept or dataset" aria-label="Find a concept or dataset"></label>
+    <button id="clear" type="button" hidden>Clear</button>
+  </div>
+  <div class="lensinfo" id="lensInfo" aria-live="polite" hidden></div>
   <div class="growth" id="growth" aria-hidden="true">
     <svg id="growthSvg" viewBox="0 0 1000 64" preserveAspectRatio="none"></svg>
     <div class="gtip" id="gtip"></div>
@@ -180,10 +207,11 @@ export function atlasPage(host: string): string {
 
   <div class="grid">
     <section class="card"><h2>How it grew</h2><ol class="chapters" id="chapters"></ol></section>
-    <section class="card"><h2>Where it is focused</h2><ul class="bars" id="focus"></ul></section>
+    <section class="card"><h2>Where it is focused</h2><p class="muted" style="font-size:.8rem;margin:-.3rem 0 .4rem">Select a context to focus the map on it.</p><ul class="bars" id="focus"></ul></section>
     <section class="card"><h2>Asked for, not here yet</h2><ol id="asks"></ol>
       <p class="muted" style="font-size:.8rem;margin:.5rem 0 0">Search text from anonymous visitors, shown as data.</p></section>
     <section class="card"><h2>Public data by place</h2><ul id="places"></ul>
+      <p class="muted" style="font-size:.8rem;margin:.4rem 0 0">“Show” focuses the map on that place.</p>
       <p style="font-size:.85rem;margin:.5rem 0 0"><a href="/sources">Every source</a></p></section>
   </div>
 
@@ -261,6 +289,152 @@ export function atlasPage(host: string): string {
         x0: PAD + q.x * (W - 2 * PAD), y0: PAD + q.y * (H - 2 * PAD) });
     }
     relax(nodes);
+
+    // --- lenses: focus the map on an app, a context, a place, or a search ----------
+    const apps = new Map((data.apps || []).map((a) => [a.slug, a]));
+    const appsOf = new Map();
+    for (const a of data.apps || []) for (const u of a.concepts) appsOf.set(u, (appsOf.get(u) || []).concat(a.name));
+    const sourceNodes = nodes.filter((n) => n.type === "s");
+    const lensSel = $("lens"), withSel = $("with"), qIn = $("q");
+    const group = (label, items) => {
+      if (!items.length) return;
+      const g = html("optgroup", undefined, lensSel); g.label = label;
+      for (const [value, text] of items) { const o = html("option", text, g); o.value = value; }
+    };
+    group("Apps", (data.apps || []).map((a) => ["app:" + a.slug, a.name + " (" + a.concepts.length + ")"]));
+    group("Contexts", data.contexts.filter((c) => c.slug !== "schemalattice")
+      .map((c) => ["ctx:" + c.slug, c.title]).sort((a, b) => a[1].localeCompare(b[1])));
+    const STATES = { CT: "Connecticut", MA: "Massachusetts", NY: "New York", RI: "Rhode Island" };
+    const titleCase = (t) => t.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    const placeName = (j) => {
+      if (j === "global") return "Worldwide";
+      if (j === "US") return "United States";
+      const m = /^US-([A-Z]{2})(?:\\/(.+))?$/.exec(j);
+      if (m) return m[2] ? titleCase(m[2].split("/").pop()) + ", " + m[1] : STATES[m[1]] || m[1];
+      return j;
+    };
+    const within = (j, place) => j === place || j.startsWith(place + "/");
+    const jurisdictions = [...new Set(data.sources.map((s) => s.jurisdiction))].sort();
+    group("Places", jurisdictions.map((j) => ["place:" + j, placeName(j)]));
+    for (const a of data.apps || []) { const o = html("option", a.name, withSel); o.value = a.slug; }
+    let focus = null;
+    function computeFocus() {
+      const v = lensSel.value, q = qIn.value.trim().toLowerCase();
+      if (!v && !q) return null;
+      let concepts = null, sources = null, demand = new Set();
+      const f = { kind: v.split(":")[0] || "search", a: null, b: null, q };
+      if (f.kind === "app") {
+        f.a = apps.get(v.slice(4)) || null;
+        f.b = withSel.value && withSel.value !== f.a?.slug ? apps.get(withSel.value) || null : null;
+        concepts = new Set((f.a?.concepts || []).concat(f.b?.concepts || []).filter((u) => byUri.has(u)));
+      } else if (f.kind === "ctx") {
+        f.ctx = v.slice(4);
+        concepts = new Set(nodes.filter((n) => n.type === "c" && n.d.context === f.ctx).map((n) => n.d.uri));
+      } else if (f.kind === "place") {
+        f.place = v.slice(6);
+        const here = data.sources.filter((s) => within(s.jurisdiction, f.place));
+        sources = new Set(here.map((s) => s.slug));
+        concepts = new Set(here.flatMap((s) => s.concepts.map((c) => c.conceptUri)).filter((u) => byUri.has(u)));
+      }
+      if (concepts && !sources) sources = new Set(sourceNodes.filter((n) => n.d.concepts.some((c) => concepts.has(c.conceptUri))).map((n) => n.d.slug));
+      if (q) {
+        const hit = (t) => String(t || "").toLowerCase().includes(q);
+        const qc = new Set(nodes.filter((n) => n.type === "c" && (hit(n.d.label) || hit(titles.get(n.d.context)))).map((n) => n.d.uri));
+        const qs = new Set(sourceNodes.filter((n) => hit(n.d.title) || hit(n.d.jurisdiction)).map((n) => n.d.slug));
+        concepts = concepts ? new Set([...concepts].filter((u) => qc.has(u))) : qc;
+        sources = sources ? new Set([...sources].filter((u) => qs.has(u))) : qs;
+        if (!v) demand = new Set(nodes.filter((n) => n.type === "d" && hit(n.d.text)));
+      }
+      f.concepts = concepts; f.sources = sources; f.demand = demand;
+      if (f.a && f.b) {
+        const inB = new Set(f.b.concepts);
+        f.shared = new Set(f.a.concepts.filter((u) => inB.has(u) && byUri.has(u)));
+        f.bOnly = new Set(f.b.concepts.filter((u) => !f.shared.has(u) && byUri.has(u)));
+      }
+      f.labels = concepts.size <= 70;
+      return f;
+    }
+    const inFocus = (n) => !focus || (n.type === "c" ? focus.concepts.has(n.d.uri) : n.type === "s" ? focus.sources.has(n.d.slug) : focus.demand.has(n));
+    const contextsOf = (uris) => new Set([...uris].map((u) => byUri.get(u)?.d.context).filter(Boolean));
+    function glyph(parent, kind) {
+      const g = el("svg", { width: 14, height: 14, "aria-hidden": "true" }, parent);
+      if (kind === "both") el("circle", { cx: 7, cy: 7, r: 5, fill: "var(--new)" }, g);
+      else if (kind === "a") el("circle", { cx: 7, cy: 7, r: 5, fill: "var(--node)" }, g);
+      else el("circle", { cx: 7, cy: 7, r: 4.5, fill: "var(--card)", stroke: "var(--node)", "stroke-width": 2 }, g);
+    }
+    function renderInfo() {
+      const box = $("lensInfo");
+      box.replaceChildren();
+      box.hidden = !focus;
+      $("clear").hidden = !focus;
+      $("withWrap").hidden = !(focus && focus.kind === "app" && focus.a);
+      if (!focus) return;
+      const p = html("div", undefined, box);
+      const nC = focus.concepts.size, nS = focus.sources.size;
+      const ctxCount = contextsOf(focus.concepts).size;
+      const datasets = plural(nS, "public dataset");
+      if (focus.kind === "app" && focus.a && focus.b) {
+        html("strong", focus.a.name, p); p.append(" and "); html("strong", focus.b.name, p);
+        p.append(" share " + plural(focus.shared.size, "concept") + ". ");
+        const a = html("a", "How well will they mesh?", p);
+        a.href = "/mesh?a=app:" + encodeURIComponent(focus.a.slug) + "&b=app:" + encodeURIComponent(focus.b.slug);
+        p.append(" (the mesh report also finds forks, co-references and similar concepts, not only the identical ones counted here).");
+        const keys = html("div", undefined, box, "keys");
+        const aOnly = [...focus.concepts].filter((u) => !focus.shared.has(u) && !focus.bOnly.has(u)).length;
+        for (const [k, text] of [["both", "In both (" + focus.shared.size + ")"], ["a", "Only " + focus.a.name + " (" + aOnly + ")"], ["b", "Only " + focus.b.name + " (" + focus.bOnly.size + ")"]]) {
+          const s = html("span", undefined, keys); glyph(s, k); s.append(text);
+        }
+      } else if (focus.kind === "app" && focus.a) {
+        html("strong", focus.a.name, p);
+        const k = html("span", undefined, html("div", undefined, box, "keys")); glyph(k, "both"); k.append("Used by " + focus.a.name + "; everything else is faded");
+        p.append(" uses " + plural(nC, "concept") + " across " + plural(ctxCount, "context") + "; " + datasets + (nS === 1 ? " maps" : " map") + " onto them.");
+        const mine = new Set(focus.a.concepts);
+        const others = (data.apps || []).filter((o) => o.slug !== focus.a.slug)
+          .map((o) => ({ o, n: o.concepts.filter((u) => mine.has(u)).length })).filter((x) => x.n).sort((x, y) => y.n - x.n);
+        const line = html("div", others.length ? "Shares concepts with " : "No other registered app uses the same concepts yet.", box, "keys");
+        others.slice(0, 8).forEach((x, i) => {
+          if (i) line.append(" · ");
+          const b = html("button", x.o.name + " (" + x.n + ")", line, "linkish");
+          b.type = "button";
+          b.addEventListener("click", () => { withSel.value = x.o.slug; refocus(); });
+        });
+        if (others.length) line.append(". Select one to compare.");
+      } else if (focus.kind === "ctx") {
+        html("strong", titles.get(focus.ctx) || focus.ctx, p);
+        const users = new Set([...focus.concepts].flatMap((u) => appsOf.get(u) || []));
+        p.append(": " + plural(nC, "concept") + ", used by " + (users.size ? listOf([...users].sort(), 4) : "no registered app yet") + "; " + datasets + (nS === 1 ? " maps" : " map") + " onto them.");
+      } else if (focus.kind === "place") {
+        html("strong", placeName(focus.place), p);
+        const nested = jurisdictions.some((j) => j !== focus.place && within(j, focus.place));
+        p.append((nested ? " (including places within it)" : "") + ": " + datasets + ", mapping onto " + plural(nC, "concept") + " in " + plural(ctxCount, "context") + ". ");
+        const a = html("a", "List them", p); a.href = "/sources?jurisdiction=" + encodeURIComponent(focus.place);
+      }
+      if (focus.kind === "ctx" || focus.kind === "place" || focus.kind === "search") {
+        const k = html("div", undefined, box, "keys");
+        const c = html("span", undefined, k); glyph(c, "both"); c.append(focus.kind === "place" ? "Concepts its datasets map onto" : "In focus");
+        const sd = html("span", undefined, k);
+        const g = el("svg", { width: 14, height: 14, "aria-hidden": "true" }, sd); el("path", { d: "M7 1 L13 7 L7 13 L1 7 Z", fill: "var(--src)" }, g);
+        sd.append("Datasets; everything else is faded");
+      }
+      if (focus.q) {
+        const m = html("div", plural(nC, "concept") + ", " + plural(nS, "dataset") + (focus.demand.size ? ", " + plural(focus.demand.size, "unmet search", "unmet searches") : "") + " match “", focus.kind === "search" ? p : box, focus.kind === "search" ? "" : "keys");
+        m.append(focus.q + "”" + (focus.kind === "search" ? "" : " within this focus") + ".");
+      }
+    }
+    function syncUrl() {
+      const u = new URL(location.href);
+      for (const [k, v] of [["focus", lensSel.value], ["with", focus && focus.b ? focus.b.slug : ""], ["q", qIn.value.trim()]]) {
+        if (v) u.searchParams.set(k, v); else u.searchParams.delete(k);
+      }
+      history.replaceState(null, "", u);
+    }
+    function refocus() {
+      focus = computeFocus();
+      renderInfo();
+      for (const n of nodes) if (n.row) n.row.hidden = !!focus && !inFocus(n);
+      apply(frame, { animate: false, ripple: false });
+      syncUrl();
+    }
 
     // --- the story: chapters where work paused, beats per context -------------
     const timed = nodes.filter((n) => n.type !== "d").sort((a, b) => a.t - b.t);
@@ -453,27 +627,39 @@ export function atlasPage(host: string): string {
         if (n.type === "d") on = on && showAsk.checked;
         if (n.type === "s") on = on && showSrc.checked;
         const wasOn = !n.el.classList.contains("off");
+        const dim = on && !inFocus(n);
         n.el.classList.toggle("off", !on);
+        n.el.classList.toggle("dim", dim);
         n.hit.classList.toggle("off", !on);
         for (const l of n.lines || []) if (!on) l.classList.remove("on");
         if (on && !wasOn && opts.ripple) arriving.push(n);
         if (n.type === "s" && n.beat <= f) nSources++;
         if (n.type !== "c") continue;
-        const isNew = on && !n.d.root && n.chapter === curChapter;
+        // Without a focus, blue is what is new in the chapter; with one, blue is the focus
+        // (or, comparing two apps, what they share).
+        const isNew = focus
+          ? on && !dim && (focus.shared ? focus.shared.has(n.d.uri) : true)
+          : on && !n.d.root && n.chapter === curChapter;
         n.el.classList.toggle("new", isNew);
-        n.ring.classList.toggle("off", !isNew);
-        n.lbl.classList.toggle("off", !on || !(showLbl.checked || n.r >= 7.5 || n === selected || (hotContext && n.d.context === hotContext && n.beat === f)));
-        for (const e of n.edges || []) e.line.classList.toggle("off", !on || e.other.beat > f);
+        n.el.classList.toggle("bonly", !!(on && focus && focus.bOnly && focus.bOnly.has(n.d.uri)));
+        n.ring.classList.toggle("off", !isNew || !!focus);
+        n.lbl.classList.toggle("off", !on || dim || !(showLbl.checked || n.r >= 7.5 || n === selected || (focus && focus.labels) || (!focus && hotContext && n.d.context === hotContext && n.beat === f)));
+        for (const e of n.edges || []) {
+          e.line.classList.toggle("off", !on || e.other.beat > f);
+          e.line.classList.toggle("dim", !!focus && !(inFocus(n) && inFocus(e.other)));
+        }
         if (on) {
           visibleCount.set(n.d.context, (visibleCount.get(n.d.context) || 0) + 1);
           if (!n.d.root) { nConcepts++; contexts.add(n.d.context); }
         }
       }
+      const focusCtx = focus ? contextsOf(focus.concepts) : null;
       for (const [slug, l] of ctxLabels) {
-        const hot = slug === hotContext;
+        const hot = !focus && slug === hotContext;
         const seen = visibleCount.get(slug) || 0;
         l.el.classList.toggle("off", !((l.free && seen >= 3) || (hot && seen > 0)));
         l.el.classList.toggle("hot", hot);
+        l.el.classList.toggle("dim", !!focusCtx && !focusCtx.has(slug));
       }
       head.setAttribute("x1", gx(f)); head.setAttribute("x2", gx(f));
       for (const b of document.querySelectorAll("#chapters button")) {
@@ -543,6 +729,12 @@ export function atlasPage(host: string): string {
     playBtn.addEventListener("click", play);
     slider.addEventListener("input", () => go(Number(slider.value)));
     for (const box of [showAsk, showSrc, showLbl]) box.addEventListener("change", () => apply(frame, { animate: false, ripple: false }));
+    lensSel.addEventListener("change", () => { if (!lensSel.value.startsWith("app:")) withSel.value = ""; refocus(); });
+    withSel.addEventListener("change", refocus);
+    let qTimer = null;
+    qIn.addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(refocus, 150); });
+    $("clear").addEventListener("click", () => { lensSel.value = ""; withSel.value = ""; qIn.value = ""; refocus(); });
+    const focusOn = (value) => { lensSel.value = value; withSel.value = ""; refocus(); lensSel.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" }); };
 
     // --- chapters card ---------------------------------------------------------------
     for (const ch of chapters) {
@@ -570,7 +762,8 @@ export function atlasPage(host: string): string {
       if (n.type === "c") {
         const c = n.d;
         return [c.label, (titles.get(c.context) || c.context) + (c.kind ? " · " + c.kind : "") + (c.root ? " · root" : ""),
-          "Added " + fmt(n.t) + " · " + c.forks + " forks · " + c.usages + " apps · " + c.publicSources + " datasets"];
+          "Added " + fmt(n.t) + " · " + c.forks + " forks · " + c.usages + " apps · " + c.publicSources + " datasets"]
+          .concat(appsOf.has(c.uri) ? ["Used by " + listOf(appsOf.get(c.uri), 4)] : []);
       }
       if (n.type === "s") return [n.d.title, (n.d.kind === "standard" ? "Published standard · " : "Public dataset · ") + n.d.jurisdiction, n.d.concepts.length + " concepts mapped"];
       return ["“" + n.d.text + "”", "Searched " + n.d.count + "×, nothing close enough yet", "Last asked " + fmt(Date.parse(n.d.lastAsked))];
@@ -608,11 +801,14 @@ export function atlasPage(host: string): string {
     // --- the other cards and the table ------------------------------------------------
     const max = Math.max(...data.contexts.map((c) => c.concepts));
     for (const c of data.contexts.filter((c) => c.slug !== "schemalattice").slice(0, 10)) {
-      const li = html("li", undefined, $("focus"), "bar");
-      html("span", c.title, li).title = c.title;
-      const track = html("span", undefined, li);
+      const bar = html("button", undefined, html("li", undefined, $("focus")), "bar");
+      bar.type = "button";
+      bar.setAttribute("aria-label", "Focus the map on " + c.title + ", " + plural(c.concepts, "concept"));
+      html("span", c.title, bar).title = c.title;
+      const track = html("span", undefined, bar);
       html("i", undefined, track).style.width = (100 * c.concepts / max) + "%";
-      html("b", String(c.concepts), li);
+      html("b", String(c.concepts), bar);
+      bar.addEventListener("click", () => focusOn("ctx:" + c.slug));
     }
     for (const q of data.demand.slice(0, 6)) {
       const li = html("li", "“" + q.text + "”", $("asks"));
@@ -623,12 +819,16 @@ export function atlasPage(host: string): string {
     for (const s of data.sources) if (s.kind !== "standard") places.set(s.jurisdiction, (places.get(s.jurisdiction) || 0) + 1);
     for (const [j, n] of [...places].sort()) {
       const li = html("li", undefined, $("places"));
-      const a = html("a", j, li); a.href = "/sources?jurisdiction=" + encodeURIComponent(j);
-      html("span", " · " + plural(n, "dataset"), li, "muted");
+      const a = html("a", placeName(j), li); a.href = "/sources?jurisdiction=" + encodeURIComponent(j);
+      html("span", " · " + plural(n, "dataset") + " · ", li, "muted");
+      const b = html("button", "Show", li, "linkish"); b.type = "button";
+      b.setAttribute("aria-label", "Show " + j + " on the map");
+      b.addEventListener("click", () => focusOn("place:" + j));
     }
     if (!places.size) html("li", "No public datasets yet.", $("places"), "muted");
     for (const n of nodes.filter((n) => n.type === "c").sort((a, b) => b.t - a.t)) {
       const tr = html("tr", undefined, $("rows"));
+      n.row = tr;
       const a = html("a", n.d.label, html("td", undefined, tr)); a.href = path(n.d.uri);
       html("td", titles.get(n.d.context) || n.d.context, tr);
       html("td", fmt(n.t), tr);
@@ -636,6 +836,16 @@ export function atlasPage(host: string): string {
       html("td", String(n.d.usages), tr);
       html("td", String(n.d.publicSources), tr);
     }
+
+    // A shared link opens on its focus: /atlas?focus=app:<slug>&with=<slug>&q=<text>.
+    const params = new URLSearchParams(location.search);
+    const wanted = params.get("focus") || "";
+    if ([...lensSel.options].some((o) => o.value === wanted)) lensSel.value = wanted;
+    if (params.get("with") && apps.has(params.get("with"))) withSel.value = params.get("with");
+    qIn.value = (params.get("q") || "").slice(0, 80);
+    focus = computeFocus();
+    renderInfo();
+    for (const n of nodes) if (n.row) n.row.hidden = !!focus && !inFocus(n);
 
     // Open on today, fully built; play tells the story from the start.
     apply(FINAL, { animate: false, ripple: false });

@@ -321,7 +321,10 @@ plain-English challenges. Tell the person both: a high fit with a small
 overlap means a small, easy integration, not a bad match. When you are
 planning an integration with a person, offer them the page
 `https://schemalattice.com/mesh?a=app:<slug>&b=app:<slug>` so they see the
-work involved before any code is written. The steps below are how to go
+work involved before any code is written. To show where an app sits in
+the whole catalog, link `https://schemalattice.com/atlas?focus=app:<slug>`
+(add `&with=<other-slug>` to compare two apps, or use `focus=ctx:<context>`,
+`focus=place:<jurisdiction>`, or `q=<text>`). The steps below are how to go
 deeper on any one connection.
 
 If the user brings in a second project and wants them to interop:
