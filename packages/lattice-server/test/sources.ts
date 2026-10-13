@@ -281,6 +281,19 @@ async function main() {
   instance.store.db.prepare("DELETE FROM evidence WHERE claim_key LIKE 'source|cap-test-%'").run();
   instance.store.db.prepare("DELETE FROM claim_state WHERE claim_key LIKE 'source|cap-test-%'").run();
 
+  // --- standards are conformed to, not joined -----------------------------------------
+  await S.propose({
+    accessUrl: "https://example.org/spec/parcel-standard", platform: "manual", kind: "standard", slug: "parcel-standard",
+    title: "Parcel Standard", publisher: "Standards Body", jurisdiction: "global",
+    recordDescription: "A published field specification for parcel records.", fields: [{ name: "parcel.pin", type: "ID" }],
+  }, "operator", at(9));
+  S.map({ source: "parcel-standard", conceptUri: PARCEL, fields: [{ from: "parcel.pin", to: "pin" }] }, "operator", at(9));
+  await S.propose({ accessUrl: `${PARCELS}/query`, conformsTo: ["parcel-standard"] }, "operator", at(9));
+  const std = S.resolve("parcel-standard")!;
+  check("standard-lists-conformers", std.conformedBy?.some((c) => c.slug === "ct-parcels") === true && std.related.length === 0);
+  check("standard-not-a-join", !S.resolve("ct-parcels")!.related.some((r) => r.slug === "parcel-standard"));
+  check("conforms-to-typo-refused", (await rejects(() => S.propose({ accessUrl: `${PARCELS}/query`, conformsTo: ["parcel-standrad"] }, "operator", at(9)))) !== null);
+
   // --- relationships ---------------------------------------------------------------
   const related = S.resolve("ct-parcels")!.related;
   const toSales = related.find((r) => r.slug === "real-estate-sales");
@@ -301,7 +314,7 @@ async function main() {
   check("city-search-includes-state", nh.results.some((r) => r.slug === "ct-parcels" && r.coverage === "broader") && nh.results.some((r) => r.slug === zones.slug && r.coverage === "exact"));
   check("city-search-excludes-other-state", !nh.results.some((r) => r.jurisdiction === "US-NY"));
   const byConcept = await S.find({ conceptUri: PARCEL });
-  check("search-by-concept", byConcept.results.length === 4, byConcept.results.map((r) => r.slug).join(","));
+  check("search-by-concept", byConcept.results.length === 5 && byConcept.results.some((r) => r.kind === "standard"), byConcept.results.map((r) => r.slug).join(","));
 
   // --- disputes ------------------------------------------------------------------------
   for (const src of ["net:d1", "net:d2", "net:d3", "net:d4"]) {

@@ -89,6 +89,16 @@ export function renderSourcePage(s: Resolved, host: string): string {
     }
   }
 
+  if ("conformedBy" in s && s.conformedBy) {
+    out.push("## Datasets that follow it", "");
+    out.push(
+      s.conformedBy.length
+        ? s.conformedBy.map((c) => `- [${line(c.title)}](https://${host}/sources/${c.slug}) (${c.jurisdiction})`).join("\n")
+        : "None listed yet. A dataset declares it with `conformsTo` when it is proposed.",
+      "",
+    );
+  }
+
   if (s.overlays.length) {
     out.push("## Map layers it overlays", "");
     out.push(

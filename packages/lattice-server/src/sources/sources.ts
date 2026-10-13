@@ -593,6 +593,7 @@ export class Sources {
       fields,
       unmappedFields: fields.filter((f) => !("means" in f)).length,
       ...this.relatedSplit(slug, allPairs),
+      ...(r.kind === "standard" ? { conformedBy: this.conformers(slug) } : {}),
       notice: UNTRUSTED_NOTICE,
     };
   }
@@ -639,6 +640,14 @@ export class Sources {
     });
   }
 
+  /** Listed datasets that declare they follow this standard. */
+  private conformers(slug: string) {
+    const listed = this.listedSlugs();
+    return (this.db.prepare("SELECT slug, title, jurisdiction, conforms_to FROM sources WHERE withdrawn_reason IS NULL").all() as Array<{ slug: string; title: string; jurisdiction: string; conforms_to: string }>)
+      .filter((r) => listed.has(r.slug) && (JSON.parse(r.conforms_to) as string[]).includes(slug))
+      .map(({ slug: s, title, jurisdiction }) => ({ slug: s, title, jurisdiction }));
+  }
+
   /**
    * Field joins are listed source by source. Overlay-only relations are listed
    * once, compactly: every map layer overlays every other in the same area, and
@@ -675,9 +684,11 @@ export class Sources {
     }
 
     const out = [];
+    // A standard is conformed to, not joined against: it relates through conformsTo.
+    if (me.kind === "standard") return [];
     for (const other of others) {
       const r = this.row(other);
-      if (!r || r.withdrawn_reason !== null) continue;
+      if (!r || r.withdrawn_reason !== null || r.kind === "standard") continue;
       const theirs = pairs.filter((p) => p.source === other);
       const joins: SourceJoin[] = [];
       const concepts = new Set(mine.map((p) => p.conceptUri).filter((c) => theirs.some((t) => t.conceptUri === c)));

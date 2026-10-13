@@ -1,13 +1,20 @@
 // Seed sources and mappings onto concepts that already exist; mints nothing.
 //
-//   LATTICE_API_KEY=… npx tsx examples/public-sources/seed-sources.ts --target https://schemalattice.com
+//   LATTICE_API_KEY=… npx tsx examples/public-sources/seed-sources.ts --target https://schemalattice.com [--seed civic|standards]
 //
-// Re-running is safe: known sources are refreshed, mappings re-asserted.
+// Re-running is safe: known sources are refreshed, mappings re-asserted. Seed
+// standards before civic: civic sources declare conformsTo standards.
 
-import { MAPPINGS, SOURCES } from "./new-haven-civic-seed.ts";
+const arg = (name: string) => {
+  const i = process.argv.indexOf(`--${name}`);
+  return i >= 0 ? process.argv[i + 1] : null;
+};
+const SEEDS = { civic: "./new-haven-civic-seed.ts", standards: "./standards-seed.ts" } as const;
+const seedName = (arg("seed") ?? "civic") as keyof typeof SEEDS;
+if (!(seedName in SEEDS)) throw new Error(`--seed must be one of ${Object.keys(SEEDS).join(", ")}`);
+const { MAPPINGS, SOURCES } = await import(SEEDS[seedName]);
 
-const argTarget = process.argv.indexOf("--target");
-const TARGET = argTarget >= 0 ? process.argv[argTarget + 1] : null;
+const TARGET = arg("target");
 const KEY = process.env.LATTICE_API_KEY;
 if (!TARGET || !KEY) throw new Error("usage: LATTICE_API_KEY=… seed-sources.ts --target <instance url>");
 
@@ -21,7 +28,7 @@ async function call(name: string, args: Record<string, unknown>) {
 }
 
 let failed = 0;
-for (const s of SOURCES) {
+for (const s of SOURCES as Array<Record<string, unknown> & { slug: string }>) {
   const r = await call("lattice_propose_source", { ...s });
   if (r.error) {
     failed++;
@@ -31,7 +38,7 @@ for (const s of SOURCES) {
   }
 }
 let pairs = 0;
-for (const m of MAPPINGS) {
+for (const m of MAPPINGS as Array<{ source: string; conceptUri: string; role: string; fields: unknown[] }>) {
   const r = await call("lattice_map_source", { source: m.source, conceptUri: m.conceptUri, role: m.role, fields: m.fields });
   if (r.error) {
     failed++;

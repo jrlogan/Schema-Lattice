@@ -53,6 +53,7 @@ export const SOURCES: SourceSeed[] = [
     updateFrequency: "live",
     fields: [{"name": "service_name", "type": "string"}, {"name": "organization", "type": "string"}, {"name": "service_code", "type": "integer"}, {"name": "description", "type": "string"}, {"name": "metadata", "type": "boolean"}, {"name": "type", "type": "string"}, {"name": "keywords", "type": "string"}, {"name": "group", "type": "string"}],
     note: "Open311 GeoReport v2; requests.json at the same base lists requests, with service_request_id equal to the SeeClickFix issue id.",
+    conformsTo: ["open311-georeport-v2"],
   },
   {
     slug: "new-haven-legistar-matters",

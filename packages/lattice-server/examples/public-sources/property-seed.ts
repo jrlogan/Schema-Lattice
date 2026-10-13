@@ -364,6 +364,8 @@ export interface SourceSeed {
   landingPage?: string;
   license?: string;
   updateFrequency?: string;
+  kind?: "dataset" | "standard";
+  conformsTo?: string[];
   platform?: "manual";
   fields?: Array<{ name: string; type: string; label?: string; description?: string }>;
   note?: string;

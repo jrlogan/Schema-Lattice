@@ -1,0 +1,3776 @@
+[
+ {
+  "slug": "gtfs-schedule",
+  "kind": "standard",
+  "platform": "manual",
+  "accessUrl": "https://raw.githubusercontent.com/google/transit/master/gtfs/spec/en/reference.md",
+  "title": "General Transit Feed Specification (GTFS) Schedule",
+  "publisher": "MobilityData / GTFS community (google/transit repository)",
+  "jurisdiction": "global",
+  "recordDescription": "Static transit schedules and geography: agencies, stops, routes, trips, stop times, service calendars, shapes, frequencies, transfers and feed metadata.",
+  "landingPage": "https://gtfs.org/schedule/reference/",
+  "license": "Apache-2.0 (google/transit repository license)",
+  "updateFrequency": "version Reference revised April 27, 2026 (google/transit master @ 3c9e7b904b)",
+  "fields": [
+   {
+    "name": "agency.agency_id",
+    "type": "Unique ID",
+    "description": "(Conditionally Required) Identifies a transit brand which is often synonymous with a transit agency. Note that in some cases, such as when a single agency operates multiple separate services, agencies and brands are distinct. This document uses the term \"agency\" in place of \"brand\"."
+   },
+   {
+    "name": "agency.agency_name",
+    "type": "Text",
+    "description": "(Required) Full name of the transit agency."
+   },
+   {
+    "name": "agency.agency_url",
+    "type": "URL",
+    "description": "(Required) URL of the transit agency."
+   },
+   {
+    "name": "agency.agency_timezone",
+    "type": "Timezone",
+    "description": "(Required) Timezone where the transit agency is located. If multiple agencies are specified in the dataset, each must have the same agency_timezone."
+   },
+   {
+    "name": "agency.agency_lang",
+    "type": "Language code",
+    "description": "(Optional) Primary language used by this transit agency. Should be provided to help GTFS consumers choose capitalization rules and other language-specific settings for the dataset."
+   },
+   {
+    "name": "agency.agency_phone",
+    "type": "Phone number",
+    "description": "(Optional) A voice telephone number for the specified agency. This field is a string value that presents the telephone number as typical for the agency's service area. It may contain punctuation marks to group the digits of the number."
+   },
+   {
+    "name": "agency.agency_fare_url",
+    "type": "URL",
+    "description": "(Optional) URL of a web page where a rider can purchase tickets or other fare instruments for that agency, or a web page containing information about that agency's fares."
+   },
+   {
+    "name": "agency.agency_email",
+    "type": "Email",
+    "description": "(Optional) Email address actively monitored by the agency\u2019s customer service department. This email address should be a direct contact point where transit riders can reach a customer service representative at the agency."
+   },
+   {
+    "name": "agency.cemv_support",
+    "type": "Enum",
+    "description": "(Optional) Indicates if riders can access a transit service (i.e., trip) associated with this agency by using a contactless EMV (Europay, Mastercard, and Visa) card or mobile device as fare media at a fare validator (such as in pay-as-you-go or open-loop systems)."
+   },
+   {
+    "name": "stops.stop_id",
+    "type": "Unique ID",
+    "description": "(Required) Identifies a location: stop/platform, station, entrance/exit, generic node or boarding area (see location_type). ID must be unique across all stops.stop_id, locations.geojson id, and location_groups.location_group_id values. Multiple routes may use the same stop_id."
+   },
+   {
+    "name": "stops.stop_code",
+    "type": "Text",
+    "description": "(Optional) Short text or a number that identifies the location for riders. These codes are often used in phone-based transit information systems or printed on signage to make it easier for riders to get information for a particular location."
+   },
+   {
+    "name": "stops.stop_name",
+    "type": "Text",
+    "description": "(Conditionally Required) Name of the location. The stop_name should match the agency's rider-facing name for the location as printed on a timetable, published online, or represented on signage. For translations into other languages, use translations.txt."
+   },
+   {
+    "name": "stops.tts_stop_name",
+    "type": "Text",
+    "description": "(Optional) Readable version of the stop_name. See \"Text-to-speech field\" in the Term Definitions for more."
+   },
+   {
+    "name": "stops.stop_desc",
+    "type": "Text",
+    "description": "(Optional) Description of the location that provides useful, quality information. Should not be a duplicate of stop_name."
+   },
+   {
+    "name": "stops.stop_lat",
+    "type": "Latitude",
+    "description": "(Conditionally Required) Latitude of the location. For stops/platforms (location_type=0) and boarding area (location_type=4), the coordinates must be the ones of the bus pole \u2014 if exists \u2014 and otherwise of where the travelers are boarding the vehicle (on the sidewalk or the platform, and not on\u2026"
+   },
+   {
+    "name": "stops.stop_lon",
+    "type": "Longitude",
+    "description": "(Conditionally Required) Longitude of the location. For stops/platforms (location_type=0) and boarding area (location_type=4), the coordinates must be the ones of the bus pole \u2014 if exists \u2014 and otherwise of where the travelers are boarding the vehicle (on the sidewalk or the platform, and not on\u2026"
+   },
+   {
+    "name": "stops.zone_id",
+    "type": "ID",
+    "description": "(Optional) Identifies the fare zone for a stop. If this record represents a station or station entrance, the zone_id is ignored."
+   },
+   {
+    "name": "stops.stop_url",
+    "type": "URL",
+    "description": "(Optional) URL of a web page about the location. This should be different from the agency.agency_url and the routes.route_url field values."
+   },
+   {
+    "name": "stops.location_type",
+    "type": "Enum",
+    "description": "(Optional) Location type. Valid options are: 0 (or empty) - Stop (or Platform). A location where passengers board or disembark from a transit vehicle. Is called a platform when defined within a parent_station. 1 - Station. A physical structure or area that contains one or more platform."
+   },
+   {
+    "name": "stops.parent_station",
+    "type": "Foreign ID referencing `stops.stop_id`",
+    "description": "(Conditionally Required) Defines hierarchy between the different locations defined in stops.txt. It contains the ID of the parent location, as followed: - Stop/platform (location_type=0): the parent_station field contains the ID of a station. - Station (location_type=1): this field must be empty."
+   },
+   {
+    "name": "stops.stop_timezone",
+    "type": "Timezone",
+    "description": "(Optional) Timezone of the location. If the location has a parent station, it inherits the parent station\u2019s timezone instead of applying its own. Stations and parentless stops with empty stop_timezone inherit the timezone specified by agency.agency_timezone."
+   },
+   {
+    "name": "stops.wheelchair_boarding",
+    "type": "Enum",
+    "description": "(Optional) Indicates whether wheelchair boardings are possible from the location. Valid options are: For parentless stops: 0 or empty - No accessibility information for the stop. 1 - Some vehicles at this stop can be boarded by a rider in a wheelchair."
+   },
+   {
+    "name": "stops.level_id",
+    "type": "Foreign ID referencing `levels.level_id`",
+    "description": "(Optional) Level of the location. The same level may be used by multiple unlinked stations."
+   },
+   {
+    "name": "stops.platform_code",
+    "type": "Text",
+    "description": "(Optional) Platform identifier for a platform stop (a stop belonging to a station). This should be just the platform identifier (eg. \"G\" or \"3\"). Words like \u201cplatform\u201d or \"track\" (or the feed\u2019s language-specific equivalent) should not be included."
+   },
+   {
+    "name": "stops.stop_access",
+    "type": "Enum",
+    "description": "(Conditionally Forbidden) Indicates how the stop is accessed for a particular station. Valid options are: 0 - The stop/platform cannot be directly accessed from the street network. It must be accessed from a station entrance if there is one defined for the station, otherwise the station itself."
+   },
+   {
+    "name": "routes.route_id",
+    "type": "Unique ID",
+    "description": "(Required) Identifies a route."
+   },
+   {
+    "name": "routes.agency_id",
+    "type": "Foreign ID",
+    "description": "References `agency.agency_id`. (Conditionally Required) Agency for the specified route. Conditionally Required: - Required if multiple agencies are defined in agency.txt. - Recommended otherwise."
+   },
+   {
+    "name": "routes.route_short_name",
+    "type": "Text",
+    "description": "(Conditionally Required) Short name of a route. Often a short, abstract identifier (e.g., \"32\", \"100X\", \"Green\") that riders use to identify a route. Both route_short_name and route_long_name may be defined. Conditionally Required: - Required if routes.route_long_name is empty."
+   },
+   {
+    "name": "routes.route_long_name",
+    "type": "Text",
+    "description": "(Conditionally Required) Full name of a route. This name is generally more descriptive than the route_short_name and often includes the route's destination or stop. Both route_short_name and route_long_name may be defined. Conditionally Required: - Required if routes.route_short_name is empty."
+   },
+   {
+    "name": "routes.route_desc",
+    "type": "Text",
+    "description": "(Optional) Description of a route that provides useful, quality information. Should not be a duplicate of route_short_name or route_long_name. _Example: \"A\" trains operate between Inwood-207 St, Manhattan and Far Rockaway-Mott Avenue, Queens at all times."
+   },
+   {
+    "name": "routes.route_type",
+    "type": "Enum",
+    "description": "(Required) Indicates the type of transportation used on a route. Valid options are: 0 - Tram, Streetcar, Light rail. Any light rail or street level system within a metropolitan area. 1 - Subway, Metro. Any underground rail system within a metropolitan area. 2 - Rail."
+   },
+   {
+    "name": "routes.route_url",
+    "type": "URL",
+    "description": "(Optional) URL of a web page about the particular route. Should be different from the agency.agency_url value."
+   },
+   {
+    "name": "routes.route_color",
+    "type": "Color",
+    "description": "(Optional) Route color designation that matches public facing material. Defaults to white (FFFFFF) when omitted or left empty. The color difference between route_color and route_text_color should provide sufficient contrast when viewed on a black and white screen."
+   },
+   {
+    "name": "routes.route_text_color",
+    "type": "Color",
+    "description": "(Optional) Legible color to use for text drawn against a background of route_color. Defaults to black (000000) when omitted or left empty. The color difference between route_color and route_text_color should provide sufficient contrast when viewed on a black and white screen."
+   },
+   {
+    "name": "routes.route_sort_order",
+    "type": "Non-negative integer",
+    "description": "(Optional) Orders the routes in a way which is ideal for presentation to customers. Routes with smaller route_sort_order values should be displayed first."
+   },
+   {
+    "name": "routes.continuous_pickup",
+    "type": "Enum",
+    "description": "(Conditionally Forbidden) Indicates that the rider can board the transit vehicle at any point along the vehicle\u2019s travel path as described by shapes.txt, on every trip of the route. Valid options are: 0 - Continuous stopping pickup. 1 or empty - No continuous stopping pickup."
+   },
+   {
+    "name": "routes.continuous_drop_off",
+    "type": "Enum",
+    "description": "(Conditionally Forbidden) Indicates that the rider can alight from the transit vehicle at any point along the vehicle\u2019s travel path as described by shapes.txt, on every trip of the route. Valid options are: 0 - Continuous stopping drop off. 1 or empty - No continuous stopping drop off."
+   },
+   {
+    "name": "trips.route_id",
+    "type": "Foreign ID referencing `routes.route_id`",
+    "description": "(Required) Identifies a route."
+   },
+   {
+    "name": "trips.service_id",
+    "type": "Foreign ID",
+    "description": "References `calendar.service_id` or `calendar_dates.service_id`. (Required) Identifies a set of dates when service is available for one or more routes."
+   },
+   {
+    "name": "trips.trip_id",
+    "type": "Unique ID",
+    "description": "(Required) Identifies a trip."
+   },
+   {
+    "name": "trips.trip_headsign",
+    "type": "Text",
+    "description": "(Optional) Text that appears on signage identifying the trip's destination to riders. This field is recommended for all services with headsign text displayed on the vehicle which may be used to distinguish amongst trips in a route."
+   },
+   {
+    "name": "trips.trip_short_name",
+    "type": "Text",
+    "description": "(Optional) Public facing text used to identify the trip to riders, for instance, to identify train numbers for commuter rail trips. If riders do not commonly rely on trip names, trip_short_name should be empty."
+   },
+   {
+    "name": "trips.direction_id",
+    "type": "Enum",
+    "description": "(Optional) Indicates the direction of travel for a trip. This field should not be used in routing; it provides a way to separate trips by direction when publishing time tables. Valid options are: 0 - Travel in one direction (e.g. outbound travel). 1 - Travel in the opposite direction (e.g."
+   },
+   {
+    "name": "trips.block_id",
+    "type": "ID",
+    "description": "(Optional) Identifies the block to which the trip belongs. A block consists of a single trip or many sequential trips made using the same vehicle, defined by shared service days and block_id. A block_id may have trips with different service days, making distinct blocks. See the example below."
+   },
+   {
+    "name": "trips.shape_id",
+    "type": "Foreign ID referencing `shapes.shape_id`",
+    "description": "(Conditionally Required) Identifies a geospatial shape describing the vehicle travel path for a trip. Conditionally Required: - Required if the trip has a continuous pickup or drop-off behavior defined either in routes.txt or in stop_times.txt. - Optional otherwise."
+   },
+   {
+    "name": "trips.wheelchair_accessible",
+    "type": "Enum",
+    "description": "(Optional) Indicates wheelchair accessibility. Valid options are: 0 or empty - No accessibility information for the trip. 1 - Vehicle being used on this particular trip can accommodate at least one rider in a wheelchair. 2 - No riders in wheelchairs can be accommodated on this trip."
+   },
+   {
+    "name": "trips.bikes_allowed",
+    "type": "Enum",
+    "description": "(Optional) Indicates whether bikes are allowed. Valid options are: 0 or empty - No bike information for the trip. 1 - Vehicle being used on this particular trip can accommodate at least one bicycle. 2 - No bicycles are allowed on this trip."
+   },
+   {
+    "name": "trips.cars_allowed",
+    "type": "Enum",
+    "description": "(Optional) Indicates whether cars are allowed. Valid options are: 0 or empty - No car information for the trip. 1 - Vehicle being used on this particular trip can accommodate at least one car. 2 - No cars are allowed on this trip."
+   },
+   {
+    "name": "trips.safe_duration_factor",
+    "type": "Float",
+    "description": "(Optional) Multiplier applied to travel time estimates calculated for on-demand trips. See \"Calculating on-demand trip time estimates with safe duration fields\" section below for guidance on how to use this and the safe_duration_offset fields."
+   },
+   {
+    "name": "trips.safe_duration_offset",
+    "type": "Float",
+    "description": "(Optional) Fixed offset value in seconds applied to travel time estimates calculated for on-demand trips. See \"Calculating on-demand trip time estimates with safe duration fields\" section below for guidance on how to use this and the safe_duration_factor fields."
+   },
+   {
+    "name": "stop_times.trip_id",
+    "type": "Foreign ID referencing `trips.trip_id`",
+    "description": "(Required) Identifies a trip."
+   },
+   {
+    "name": "stop_times.arrival_time",
+    "type": "Time",
+    "description": "(Conditionally Required) Arrival time at the stop (defined by stop_times.stop_id) for a specific trip (defined by stop_times.trip_id) in the time zone specified by agency.agency_timezone, not stops.stop_timezone."
+   },
+   {
+    "name": "stop_times.departure_time",
+    "type": "Time",
+    "description": "(Conditionally Required) Departure time from the stop (defined by stop_times.stop_id) for a specific trip (defined by stop_times.trip_id) in the time zone specified by agency.agency_timezone, not stops.stop_timezone."
+   },
+   {
+    "name": "stop_times.stop_id",
+    "type": "Foreign ID referencing `stops.stop_id`",
+    "description": "(Conditionally Required) Identifies the serviced stop. All stops serviced during a trip must have a record in stop_times.txt. Referenced locations must be stops/platforms, i.e. their stops.location_type value must be 0 or empty."
+   },
+   {
+    "name": "stop_times.location_group_id",
+    "type": "Foreign ID",
+    "description": "References `location_groups.location_group_id`. (Conditionally Forbidden) Identifies the serviced location group that indicates groups of stops where riders may request pickup or drop off. All location groups serviced during a trip must have a record in stop_times.txt. Multiple trips and routes may service the same location group."
+   },
+   {
+    "name": "stop_times.location_id",
+    "type": "Foreign ID",
+    "description": "References `id` from `locations.geojson`. (Conditionally Forbidden) Identifies the GeoJSON location that corresponds to serviced zone where riders may request pickup or drop off. All GeoJSON locations serviced during a trip must have a record in stop_times.txt. Multiple trips and routes may service the same GeoJSON location."
+   },
+   {
+    "name": "stop_times.stop_sequence",
+    "type": "Non-negative integer",
+    "description": "(Required) Order of stops, location groups, or GeoJSON locations for a particular trip. The values must increase along the trip but do not need to be consecutive."
+   },
+   {
+    "name": "stop_times.stop_headsign",
+    "type": "Text",
+    "description": "(Optional) Text that appears on signage identifying the trip's destination to riders. This field overrides the default trips.trip_headsign when the headsign changes between stops. If the headsign is displayed for an entire trip, trips.trip_headsign should be used instead."
+   },
+   {
+    "name": "stop_times.start_pickup_drop_off_window",
+    "type": "Time",
+    "description": "(Conditionally Required) Time that on-demand service becomes available in a GeoJSON location, location group, or stop. Conditionally Required: - Required if stop_times.location_group_id or stop_times.location_id is defined. - Required if end_pickup_drop_off_window is defined."
+   },
+   {
+    "name": "stop_times.end_pickup_drop_off_window",
+    "type": "Time",
+    "description": "(Conditionally Required) Time that on-demand service ends in a GeoJSON location, location group, or stop. Conditionally Required: - Required if stop_times.location_group_id or stop_times.location_id is defined. - Required if start_pickup_drop_off_window is defined."
+   },
+   {
+    "name": "stop_times.pickup_type",
+    "type": "Enum",
+    "description": "(Conditionally Forbidden) Indicates pickup method. Valid options are: 0 or empty - Regularly scheduled pickup. 1 - No pickup available. 2 - Must phone agency to arrange pickup. 3 - Must coordinate with driver to arrange pickup."
+   },
+   {
+    "name": "stop_times.drop_off_type",
+    "type": "Enum",
+    "description": "(Conditionally Forbidden) Indicates drop off method. Valid options are: 0 or empty - Regularly scheduled drop off. 1 - No drop off available. 2 - Must phone agency to arrange drop off. 3 - Must coordinate with driver to arrange drop off."
+   },
+   {
+    "name": "stop_times.continuous_pickup",
+    "type": "Enum",
+    "description": "(Conditionally Forbidden) Indicates that the rider can board the transit vehicle at any point along the vehicle\u2019s travel path as described by shapes.txt, from this stop_time to the next stop_time in the trip\u2019s stop_sequence. Valid options are: 0 - Continuous stopping pickup."
+   },
+   {
+    "name": "stop_times.continuous_drop_off",
+    "type": "Enum",
+    "description": "(Conditionally Forbidden) Indicates that the rider can alight from the transit vehicle at any point along the vehicle\u2019s travel path as described by shapes.txt, from this stop_time to the next stop_time in the trip\u2019s stop_sequence. Valid options are: 0 - Continuous stopping drop off."
+   },
+   {
+    "name": "stop_times.shape_dist_traveled",
+    "type": "Non-negative float",
+    "description": "(Optional) Actual distance traveled along the associated shape, from the first stop to the stop specified in this record. This field specifies how much of the shape to draw between any two stops during a trip. Must be in the same units used in shapes.txt."
+   },
+   {
+    "name": "stop_times.timepoint",
+    "type": "Enum",
+    "description": "(Optional) Indicates if arrival and departure times for a stop are strictly adhered to by the vehicle or if they are instead approximate and/or interpolated times. This field allows a GTFS producer to provide interpolated stop-times, while indicating that the times are approximate."
+   },
+   {
+    "name": "stop_times.pickup_booking_rule_id",
+    "type": "Foreign ID",
+    "description": "References `booking_rules.booking_rule_id`. (Optional) Identifies the boarding booking rule at this stop time. Recommended when pickup_type=2."
+   },
+   {
+    "name": "stop_times.drop_off_booking_rule_id",
+    "type": "Foreign ID",
+    "description": "References `booking_rules.booking_rule_id`. (Optional) Identifies the alighting booking rule at this stop time. Recommended when drop_off_type=2."
+   },
+   {
+    "name": "calendar.service_id",
+    "type": "Unique ID",
+    "description": "(Required) Identifies a set of dates when service is available for one or more routes."
+   },
+   {
+    "name": "calendar.monday",
+    "type": "Enum",
+    "description": "(Required) Indicates whether the service operates on all Mondays in the date range specified by the start_date and end_date fields. Note that exceptions for particular dates may be listed in calendar_dates.txt. Valid options are: 1 - Service is available for all Mondays in the date range."
+   },
+   {
+    "name": "calendar.tuesday",
+    "type": "Enum",
+    "description": "(Required) Functions in the same way as monday except applies to Tuesdays"
+   },
+   {
+    "name": "calendar.wednesday",
+    "type": "Enum",
+    "description": "(Required) Functions in the same way as monday except applies to Wednesdays"
+   },
+   {
+    "name": "calendar.thursday",
+    "type": "Enum",
+    "description": "(Required) Functions in the same way as monday except applies to Thursdays"
+   },
+   {
+    "name": "calendar.friday",
+    "type": "Enum",
+    "description": "(Required) Functions in the same way as monday except applies to Fridays"
+   },
+   {
+    "name": "calendar.saturday",
+    "type": "Enum",
+    "description": "(Required) Functions in the same way as monday except applies to Saturdays."
+   },
+   {
+    "name": "calendar.sunday",
+    "type": "Enum",
+    "description": "(Required) Functions in the same way as monday except applies to Sundays."
+   },
+   {
+    "name": "calendar.start_date",
+    "type": "Date",
+    "description": "(Required) Start service day for the service interval."
+   },
+   {
+    "name": "calendar.end_date",
+    "type": "Date",
+    "description": "(Required) End service day for the service interval. This service day is included in the interval."
+   },
+   {
+    "name": "calendar_dates.service_id",
+    "type": "Foreign ID",
+    "description": "References `calendar.service_id` or ID. (Required) Identifies a set of dates when a service exception occurs for one or more routes. Each (service_id, date) pair may only appear once in calendar_dates.txt if using calendar.txt and calendar_dates.txt in conjunction."
+   },
+   {
+    "name": "calendar_dates.date",
+    "type": "Date",
+    "description": "(Required) Date when service exception occurs."
+   },
+   {
+    "name": "calendar_dates.exception_type",
+    "type": "Enum",
+    "description": "(Required) Indicates whether service is available on the date specified in the date field. Valid options are: 1 - Service has been added for the specified date. 2 - Service has been removed for the specified date."
+   },
+   {
+    "name": "shapes.shape_id",
+    "type": "ID",
+    "description": "(Required) Identifies a shape."
+   },
+   {
+    "name": "shapes.shape_pt_lat",
+    "type": "Latitude",
+    "description": "(Required) Latitude of a shape point. Each record in shapes.txt represents a shape point used to define the shape."
+   },
+   {
+    "name": "shapes.shape_pt_lon",
+    "type": "Longitude",
+    "description": "(Required) Longitude of a shape point."
+   },
+   {
+    "name": "shapes.shape_pt_sequence",
+    "type": "Non-negative integer",
+    "description": "(Required) Sequence in which the shape points connect to form the shape. Values must increase along the trip but do not need to be consecutive. *Example: If the shape \"A_shp\" has three points in its definition, the shapes.txt file might contain these records to define the shape:*\u2026"
+   },
+   {
+    "name": "shapes.shape_dist_traveled",
+    "type": "Non-negative float",
+    "description": "(Optional) Actual distance traveled along the shape from the first shape point to the point specified in this record. Used by trip planners to show the correct portion of the shape on a map."
+   },
+   {
+    "name": "frequencies.trip_id",
+    "type": "Foreign ID referencing `trips.trip_id`",
+    "description": "(Required) Identifies a trip to which the specified headway of service applies."
+   },
+   {
+    "name": "frequencies.start_time",
+    "type": "Time",
+    "description": "(Required) Time at which the first vehicle departs from the first stop of the trip with the specified headway."
+   },
+   {
+    "name": "frequencies.end_time",
+    "type": "Time",
+    "description": "(Required) Time at which service changes to a different headway (or ceases) at the first stop in the trip."
+   },
+   {
+    "name": "frequencies.headway_secs",
+    "type": "Positive integer",
+    "description": "(Required) Time, in seconds, between departures from the same stop (headway) for the trip, during the time interval specified by start_time and end_time. Multiple headways may be defined for the same trip, but must not overlap. New headways may start at the exact time the previous headway ends."
+   },
+   {
+    "name": "frequencies.exact_times",
+    "type": "Enum",
+    "description": "(Optional) Indicates the type of service for a trip. See the file description for more information. Valid options are: 0 or empty - Frequency-based trips. 1 - Schedule-based trips with the exact same headway throughout the day."
+   },
+   {
+    "name": "transfers.from_stop_id",
+    "type": "Foreign ID referencing `stops.stop_id`",
+    "description": "(Conditionally Required) Identifies a stop (location_type=0) or a station (location_type=1) where a connection between routes begins. If this field refers to a station, the transfer rule applies to all its child stops. It must refer to a stop (location_type=0) if transfer_type is 4 or 5."
+   },
+   {
+    "name": "transfers.to_stop_id",
+    "type": "Foreign ID referencing `stops.stop_id`",
+    "description": "(Conditionally Required) Identifies a stop (location_type=0) or a station (location_type=1) where a connection between routes ends. If this field refers to a station, the transfer rule applies to all child stops. It must refer to a stop (location_type=0) if transfer_type is 4 or 5."
+   },
+   {
+    "name": "transfers.from_route_id",
+    "type": "Foreign ID referencing `routes.route_id`",
+    "description": "(Optional) Identifies a route where a connection begins. If from_route_id is defined, the transfer will apply to the arriving trip on the route for the given from_stop_id."
+   },
+   {
+    "name": "transfers.to_route_id",
+    "type": "Foreign ID referencing `routes.route_id`",
+    "description": "(Optional) Identifies a route where a connection ends. If to_route_id is defined, the transfer will apply to the departing trip on the route for the given to_stop_id. If both to_trip_id and to_route_id are defined, the trip_id must belong to the route_id, and to_trip_id will take precedence."
+   },
+   {
+    "name": "transfers.from_trip_id",
+    "type": "Foreign ID referencing `trips.trip_id`",
+    "description": "(Conditionally Required) Identifies a trip where a connection between routes begins. If from_trip_id is defined, the transfer will apply to the arriving trip for the given from_stop_id."
+   },
+   {
+    "name": "transfers.to_trip_id",
+    "type": "Foreign ID referencing `trips.trip_id`",
+    "description": "(Conditionally Required) Identifies a trip where a connection between routes ends. If to_trip_id is defined, the transfer will apply to the departing trip for the given to_stop_id."
+   },
+   {
+    "name": "transfers.transfer_type",
+    "type": "Enum",
+    "description": "(Required) Indicates the type of connection for the specified (from_stop_id, to_stop_id) pair. Valid options are: 0 or empty - Recommended transfer point between routes. 1 - Timed transfer point between two routes."
+   },
+   {
+    "name": "transfers.min_transfer_time",
+    "type": "Non-negative integer",
+    "description": "(Conditionally Required) Amount of time, in seconds, that must be available to permit a transfer between routes at the specified stops. The min_transfer_time should be sufficient to permit a typical rider to move between the two stops, including buffer time to allow for schedule variance on each\u2026"
+   },
+   {
+    "name": "feed_info.feed_publisher_name",
+    "type": "Text",
+    "description": "(Required) Full name of the organization that publishes the dataset. This may be the same as one of the agency.agency_name values."
+   },
+   {
+    "name": "feed_info.feed_publisher_url",
+    "type": "URL",
+    "description": "(Required) URL of the dataset publishing organization's website. This may be the same as one of the agency.agency_url values."
+   },
+   {
+    "name": "feed_info.feed_lang",
+    "type": "Language code",
+    "description": "(Required) Default language used for the text in this dataset. This setting helps GTFS consumers choose capitalization rules and other language-specific settings for the dataset. The file translations.txt can be used if the text needs to be translated into languages other than the default one."
+   },
+   {
+    "name": "feed_info.default_lang",
+    "type": "Language code",
+    "description": "(Optional) Defines the language that should be used when the data consumer doesn\u2019t know the language of the rider. It will often be en (English)."
+   },
+   {
+    "name": "feed_info.feed_start_date",
+    "type": "Date",
+    "description": "(Recommended) The dataset provides complete and reliable schedule information for service in the period from the beginning of the feed_start_date day to the end of the feed_end_date day. Both days may be left empty if unavailable."
+   },
+   {
+    "name": "feed_info.feed_end_date",
+    "type": "Date",
+    "description": "(Recommended) (see above)"
+   },
+   {
+    "name": "feed_info.feed_version",
+    "type": "Text",
+    "description": "(Recommended) String that indicates the current version of their GTFS dataset. GTFS-consuming applications can display this value to help dataset publishers determine whether the latest dataset has been incorporated."
+   },
+   {
+    "name": "feed_info.feed_contact_email",
+    "type": "Email",
+    "description": "(Optional) Email address for communication regarding the GTFS dataset and data publishing practices. feed_contact_email is a technical contact for GTFS-consuming applications. Provide customer service contact information through agency.txt."
+   },
+   {
+    "name": "feed_info.feed_contact_url",
+    "type": "URL",
+    "description": "(Optional) URL for contact information, a web-form, support desk, or other tools for communication regarding the GTFS dataset and data publishing practices. feed_contact_url is a technical contact for GTFS-consuming applications. Provide customer service contact information through agency.txt."
+   }
+  ]
+ },
+ {
+  "slug": "gtfs-realtime",
+  "kind": "standard",
+  "platform": "manual",
+  "accessUrl": "https://raw.githubusercontent.com/google/transit/master/gtfs-realtime/proto/gtfs-realtime.proto",
+  "title": "GTFS Realtime",
+  "publisher": "MobilityData / GTFS community (google/transit repository)",
+  "jurisdiction": "global",
+  "recordDescription": "Real-time transit updates as protocol buffer messages: trip updates/predictions, vehicle positions and service alerts tied to a GTFS Schedule feed.",
+  "landingPage": "https://gtfs.org/realtime/reference/",
+  "license": "Apache-2.0 (stated in the .proto file header)",
+  "updateFrequency": "version gtfs-realtime.proto, feed spec version 2.0 (google/transit master @ 3c9e7b904b)",
+  "fields": [
+   {
+    "name": "FeedHeader.gtfs_realtime_version",
+    "type": "string",
+    "description": "(required) Version of the feed specification. The current version is 2.0. Valid versions are \"2.0\", \"1.0\"."
+   },
+   {
+    "name": "FeedHeader.incrementality",
+    "type": "Incrementality",
+    "description": "(optional) Determines whether the current fetch is incremental. Currently, DIFFERENTIAL mode is unsupported and behavior is unspecified for feeds that use this mode."
+   },
+   {
+    "name": "FeedHeader.timestamp",
+    "type": "uint64",
+    "description": "(optional) This timestamp identifies the moment when the content of this feed has been created (in server time). In POSIX time (i.e., number of seconds since January 1st 1970 00:00:00 UTC)."
+   },
+   {
+    "name": "FeedHeader.feed_version",
+    "type": "string",
+    "description": "(optional) String that matches the feed_info.feed_version from the GTFS feed that the real time data is based on. Consumers can use this to identify which GTFS feed is currently active or when a new one is available to download."
+   },
+   {
+    "name": "FeedEntity.id",
+    "type": "string",
+    "description": "(required) The ids are used only to provide incrementality support. The id should be unique within a FeedMessage. Consequent FeedMessages may contain FeedEntities with the same id."
+   },
+   {
+    "name": "FeedEntity.is_deleted",
+    "type": "bool",
+    "description": "(optional) Whether this entity is to be deleted. Relevant only for incremental fetches."
+   },
+   {
+    "name": "FeedEntity.trip_update",
+    "type": "TripUpdate",
+    "description": "(optional) Data about the entity itself. Exactly one of the following fields must be present (unless the entity is being deleted)."
+   },
+   {
+    "name": "FeedEntity.vehicle",
+    "type": "VehiclePosition",
+    "description": "(optional) Data about the entity itself. Exactly one of the following fields must be present (unless the entity is being deleted)."
+   },
+   {
+    "name": "FeedEntity.alert",
+    "type": "Alert",
+    "description": "(optional) Data about the entity itself. Exactly one of the following fields must be present (unless the entity is being deleted)."
+   },
+   {
+    "name": "FeedEntity.shape",
+    "type": "Shape",
+    "description": "(optional) NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future."
+   },
+   {
+    "name": "FeedEntity.stop",
+    "type": "Stop",
+    "description": "(optional) NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future."
+   },
+   {
+    "name": "FeedEntity.trip_modifications",
+    "type": "TripModifications",
+    "description": "(optional) NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future."
+   },
+   {
+    "name": "TripUpdate.trip",
+    "type": "TripDescriptor",
+    "description": "(required) The Trip that this message applies to. There can be at most one TripUpdate entity for each actual trip instance. If there is none, that means there is no prediction information available. It does *not* mean that the trip is progressing according to schedule."
+   },
+   {
+    "name": "TripUpdate.vehicle",
+    "type": "VehicleDescriptor",
+    "description": "(optional) Additional information on the vehicle that is serving this trip."
+   },
+   {
+    "name": "TripUpdate.StopTimeEvent.delay",
+    "type": "int32",
+    "description": "(optional) Delay (in seconds) can be positive (meaning that the vehicle is late) or negative (meaning that the vehicle is ahead of schedule). Delay of 0 means that the vehicle is exactly on time."
+   },
+   {
+    "name": "TripUpdate.StopTimeEvent.time",
+    "type": "int64",
+    "description": "(optional) Event as absolute time. In Unix time (i.e., number of seconds since January 1st 1970 00:00:00 UTC)."
+   },
+   {
+    "name": "TripUpdate.StopTimeEvent.uncertainty",
+    "type": "int32",
+    "description": "(optional) If uncertainty is omitted, it is interpreted as unknown. If the prediction is unknown or too uncertain, the delay (or time) field should be empty. In such case, the uncertainty field is ignored. To specify a completely certain prediction, set its uncertainty to 0."
+   },
+   {
+    "name": "TripUpdate.StopTimeEvent.scheduled_time",
+    "type": "int64",
+    "description": "(optional) Scheduled time for a NEW, REPLACEMENT, or DUPLICATED trip. In Unix time (i.e., number of seconds since January 1st 1970 00:00:00 UTC). Optional if TripUpdate.schedule_relationship is NEW, REPLACEMENT or DUPLICATED, forbidden otherwise."
+   },
+   {
+    "name": "TripUpdate.StopTimeUpdate.stop_sequence",
+    "type": "uint32",
+    "description": "(optional) Must be the same as in stop_times.txt in the corresponding GTFS feed."
+   },
+   {
+    "name": "TripUpdate.StopTimeUpdate.stop_id",
+    "type": "string",
+    "description": "(optional) Must be the same as in stops.txt in the corresponding GTFS feed."
+   },
+   {
+    "name": "TripUpdate.StopTimeUpdate.arrival",
+    "type": "StopTimeEvent",
+    "description": "(optional) Timing information for a single predicted event (either arrival or departure). Timing consists of delay and/or estimated time, and uncertainty. - delay should be used when the prediction is given relative to some existing schedule in GTFS."
+   },
+   {
+    "name": "TripUpdate.StopTimeUpdate.departure",
+    "type": "StopTimeEvent",
+    "description": "(optional) Timing information for a single predicted event (either arrival or departure). Timing consists of delay and/or estimated time, and uncertainty. - delay should be used when the prediction is given relative to some existing schedule in GTFS."
+   },
+   {
+    "name": "TripUpdate.StopTimeUpdate.departure_occupancy_status",
+    "type": "VehiclePosition.OccupancyStatus",
+    "description": "(optional) Expected occupancy after departure from the given stop. Should be provided only for future stops. In order to provide departure_occupancy_status without either arrival or departure StopTimeEvents, ScheduleRelationship should be set to NO_DATA."
+   },
+   {
+    "name": "TripUpdate.StopTimeUpdate.schedule_relationship",
+    "type": "ScheduleRelationship",
+    "description": "(optional) The relation between the StopTimeEvents and the static schedule."
+   },
+   {
+    "name": "TripUpdate.StopTimeUpdate.stop_time_properties",
+    "type": "StopTimeProperties",
+    "description": "(optional) Realtime updates for certain properties defined within GTFS stop_times.txt NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future."
+   },
+   {
+    "name": "TripUpdate.stop_time_update",
+    "type": "repeated StopTimeUpdate",
+    "description": "(repeated) Updates to StopTimes for the trip (both future, i.e., predictions, and in some cases, past ones, i.e., those that already happened). The updates must be sorted by stop_sequence, and apply for all the following stops of the trip up to the next specified one."
+   },
+   {
+    "name": "TripUpdate.timestamp",
+    "type": "uint64",
+    "description": "(optional) The most recent moment at which the vehicle's real-time progress was measured to estimate StopTimes in the future. When StopTimes in the past are provided, arrival/departure times may be earlier than this value."
+   },
+   {
+    "name": "TripUpdate.delay",
+    "type": "int32",
+    "description": "(optional) The current schedule deviation for the trip. Delay should only be specified when the prediction is given relative to some existing schedule in GTFS. Delay (in seconds) can be positive (meaning that the vehicle is late) or negative (meaning that the vehicle is ahead of schedule)."
+   },
+   {
+    "name": "TripUpdate.trip_properties",
+    "type": "TripProperties",
+    "description": "(optional) Defines updated properties of the trip, such as a new shape_id when there is a detour. Or defines the trip_id, start_date, and start_time of a DUPLICATED trip. NOTE: This message is still experimental, and subject to change. It may be formally adopted in the future."
+   },
+   {
+    "name": "VehiclePosition.trip",
+    "type": "TripDescriptor",
+    "description": "(optional) The Trip that this vehicle is serving. Can be empty or partial if the vehicle can not be identified with a given trip instance."
+   },
+   {
+    "name": "VehiclePosition.vehicle",
+    "type": "VehicleDescriptor",
+    "description": "(optional) Additional information on the vehicle that is serving this trip."
+   },
+   {
+    "name": "VehiclePosition.position",
+    "type": "Position",
+    "description": "(optional) Current position of this vehicle."
+   },
+   {
+    "name": "VehiclePosition.current_stop_sequence",
+    "type": "uint32",
+    "description": "(optional) The stop sequence index of the current stop. The meaning of current_stop_sequence (i.e., the stop that it refers to) is determined by current_status. If current_status is missing IN_TRANSIT_TO is assumed."
+   },
+   {
+    "name": "VehiclePosition.stop_id",
+    "type": "string",
+    "description": "(optional) Identifies the current stop. The value must be the same as in stops.txt in the corresponding GTFS feed."
+   },
+   {
+    "name": "VehiclePosition.current_status",
+    "type": "VehicleStopStatus",
+    "description": "(optional) The exact status of the vehicle with respect to the current stop. Ignored if current_stop_sequence is missing."
+   },
+   {
+    "name": "VehiclePosition.timestamp",
+    "type": "uint64",
+    "description": "(optional) Moment at which the vehicle's position was measured. In POSIX time (i.e., number of seconds since January 1st 1970 00:00:00 UTC)."
+   },
+   {
+    "name": "VehiclePosition.congestion_level",
+    "type": "CongestionLevel",
+    "description": "(optional) Congestion level that is affecting this vehicle."
+   },
+   {
+    "name": "VehiclePosition.occupancy_status",
+    "type": "OccupancyStatus",
+    "description": "(optional) If multi_carriage_status is populated with per-carriage OccupancyStatus, then this field should describe the entire vehicle with all carriages accepting passengers considered."
+   },
+   {
+    "name": "VehiclePosition.occupancy_percentage",
+    "type": "uint32",
+    "description": "(optional) A percentage value indicating the degree of passenger occupancy in the vehicle. The values are represented as an integer without decimals. 0 means 0% and 100 means 100%."
+   },
+   {
+    "name": "VehiclePosition.multi_carriage_details",
+    "type": "repeated CarriageDetails",
+    "description": "(repeated) Details of the multiple carriages of this given vehicle. The first occurrence represents the first carriage of the vehicle, given the current direction of travel. The number of occurrences of the multi_carriage_details field represents the number of carriages of the vehicle."
+   },
+   {
+    "name": "Alert.active_period",
+    "type": "repeated TimeRange",
+    "description": "(repeated [deprecated]) Time when the alert should be shown to the user. If missing, the alert will be shown as long as it appears in the feed. If multiple ranges are given, the alert will be shown during all of them. Should not be used - for backwards-compatibility only."
+   },
+   {
+    "name": "Alert.communication_period",
+    "type": "repeated TimeRange",
+    "description": "(repeated) Time when the alert should be shown to the user strictly for informative reasons. If missing, the consuming application can decide when it's appropriate to be shown. If multiple ranges are given, the alert will be shown during all of them."
+   },
+   {
+    "name": "Alert.impact_period",
+    "type": "repeated TimeRange",
+    "description": "(repeated) Time when the services are affected by the alert. If communication_period is specified, every time interval in impact_period must be fully contained within at least one time interval of communication_period."
+   },
+   {
+    "name": "Alert.informed_entity",
+    "type": "repeated EntitySelector",
+    "description": "(repeated) Entities whose users we should notify of this alert."
+   },
+   {
+    "name": "Alert.cause",
+    "type": "Cause",
+    "description": "(optional) Cause of this alert. If cause_detail is included, then Cause must also be included."
+   },
+   {
+    "name": "Alert.effect",
+    "type": "Effect",
+    "description": "(optional) What is the effect of this problem on the affected entity. If effect_detail is included, then Effect must also be included."
+   },
+   {
+    "name": "Alert.url",
+    "type": "TranslatedString",
+    "description": "(optional) The URL which provides additional information about the alert."
+   },
+   {
+    "name": "Alert.header_text",
+    "type": "TranslatedString",
+    "description": "(optional) Alert header. Contains a short summary of the alert text as plain-text."
+   },
+   {
+    "name": "Alert.description_text",
+    "type": "TranslatedString",
+    "description": "(optional) Full description for the alert as plain-text. The information in the description should add to the information of the header."
+   },
+   {
+    "name": "Alert.tts_header_text",
+    "type": "TranslatedString",
+    "description": "(optional) Text for alert header to be used in text-to-speech implementations. This field is the text-to-speech version of header_text."
+   },
+   {
+    "name": "Alert.tts_description_text",
+    "type": "TranslatedString",
+    "description": "(optional) Text for full description for the alert to be used in text-to-speech implementations. This field is the text-to-speech version of description_text."
+   },
+   {
+    "name": "Alert.severity_level",
+    "type": "SeverityLevel",
+    "description": "(optional) Severity of this alert."
+   },
+   {
+    "name": "Alert.image",
+    "type": "TranslatedImage",
+    "description": "(optional) TranslatedImage to be displayed along the alert text. Used to explain visually the alert effect of a detour, station closure, etc. The image must enhance the understanding of the alert. Any essential information communicated within the image must also be contained in the alert text."
+   },
+   {
+    "name": "Alert.image_alternative_text",
+    "type": "TranslatedString",
+    "description": "(optional) Text describing the appearance of the linked image in the image field (e.g., in case the image can't be displayed or the user can't see the image for accessibility reasons). See the HTML spec for alt image text - https://html.spec.whatwg.org/#alt."
+   },
+   {
+    "name": "Alert.cause_detail",
+    "type": "TranslatedString",
+    "description": "(optional) Description of the cause of the alert that allows for agency-specific language; more specific than the Cause. If cause_detail is included, then Cause must also be included. NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future."
+   },
+   {
+    "name": "Alert.effect_detail",
+    "type": "TranslatedString",
+    "description": "(optional) Description of the effect of the alert that allows for agency-specific language; more specific than the Effect. If effect_detail is included, then Effect must also be included. NOTE: This field is still experimental, and subject to change. It may be formally adopted in the future."
+   },
+   {
+    "name": "Position.latitude",
+    "type": "float",
+    "description": "(required) Degrees North, in the WGS-84 coordinate system."
+   },
+   {
+    "name": "Position.longitude",
+    "type": "float",
+    "description": "(required) Degrees East, in the WGS-84 coordinate system."
+   },
+   {
+    "name": "Position.bearing",
+    "type": "float",
+    "description": "(optional) Bearing, in degrees, clockwise from North, i.e., 0 is North and 90 is East. This can be the compass bearing, or the direction towards the next stop or intermediate location."
+   },
+   {
+    "name": "Position.odometer",
+    "type": "double",
+    "description": "(optional) Odometer value, in meters."
+   },
+   {
+    "name": "Position.speed",
+    "type": "float",
+    "description": "(optional) Momentary speed measured by the vehicle, in meters per second."
+   },
+   {
+    "name": "TripDescriptor.trip_id",
+    "type": "string",
+    "description": "(optional) The trip_id from the GTFS feed that this selector refers to. For non frequency-based trips, this field is enough to uniquely identify the trip. For frequency-based trip, start_time and start_date might also be necessary."
+   },
+   {
+    "name": "TripDescriptor.route_id",
+    "type": "string",
+    "description": "(optional) The route_id from the GTFS that this selector refers to."
+   },
+   {
+    "name": "TripDescriptor.direction_id",
+    "type": "uint32",
+    "description": "(optional) The direction_id from the GTFS feed trips.txt file, indicating the direction of travel for trips this selector refers to."
+   },
+   {
+    "name": "TripDescriptor.start_time",
+    "type": "string",
+    "description": "(optional) The initially scheduled start time of this trip instance. When the trip_id corresponds to a non-frequency-based trip, this field should either be omitted or be equal to the value in the GTFS feed."
+   },
+   {
+    "name": "TripDescriptor.start_date",
+    "type": "string",
+    "description": "(optional) The scheduled start date of this trip instance. Must be provided to disambiguate trips that are so late as to collide with a scheduled trip on a next day."
+   },
+   {
+    "name": "TripDescriptor.schedule_relationship",
+    "type": "ScheduleRelationship",
+    "description": "(optional) The relation between this trip and the static schedule. If a trip is done in accordance with temporary schedule, not reflected in GTFS, then it shouldn't be marked as SCHEDULED, but likely as ADDED."
+   },
+   {
+    "name": "TripDescriptor.modified_trip",
+    "type": "ModifiedTripSelector",
+    "description": "(optional) Linkage to any modifications done to this trip (shape changes, removal or addition of stops). If this field is provided, the trip_id, route_id, direction_id, start_time, start_date fields of the TripDescriptor MUST be left empty, to avoid confusion by consumers that aren't looking for\u2026"
+   },
+   {
+    "name": "VehicleDescriptor.id",
+    "type": "string",
+    "description": "(optional) Internal system identification of the vehicle. Should be unique per vehicle, and can be used for tracking the vehicle as it proceeds through the system."
+   },
+   {
+    "name": "VehicleDescriptor.label",
+    "type": "string",
+    "description": "(optional) User visible label, i.e., something that must be shown to the passenger to help identify the correct vehicle."
+   },
+   {
+    "name": "VehicleDescriptor.license_plate",
+    "type": "string",
+    "description": "(optional) The license plate of the vehicle."
+   },
+   {
+    "name": "VehicleDescriptor.wheelchair_accessible",
+    "type": "WheelchairAccessible",
+    "description": "(optional)"
+   }
+  ]
+ },
+ {
+  "slug": "gbfs",
+  "kind": "standard",
+  "platform": "manual",
+  "accessUrl": "https://raw.githubusercontent.com/MobilityData/gbfs/v3.0/gbfs.md",
+  "title": "General Bikeshare Feed Specification (GBFS)",
+  "publisher": "MobilityData",
+  "jurisdiction": "global",
+  "recordDescription": "Real-time shared-mobility (bike, scooter, car share) system information: system metadata, vehicle types, stations and their status, free-floating vehicles, and pricing plans.",
+  "landingPage": "https://gbfs.org/specification/reference/",
+  "license": "Specification text: Creative Commons Attribution 3.0 (stated in gbfs.md 'License' section)",
+  "updateFrequency": "version v3.0 (latest non-prerelease release, tag v3.0 @ 457cb71121; master is at v3.1-RC3)",
+  "fields": [
+   {
+    "name": "system_information.system_id",
+    "type": "ID",
+    "description": "(Required: Yes) This is a globally unique identifier for the vehicle share system. Each distinct system or geographic area in which vehicles are operated MUST have its own unique system_id."
+   },
+   {
+    "name": "system_information.languages",
+    "type": "Array<Language>",
+    "description": "(Required: Yes) List of languages used in translated strings."
+   },
+   {
+    "name": "system_information.name",
+    "type": "Array<Localized String>",
+    "description": "(Required: Yes) Name of the system to be displayed to customers."
+   },
+   {
+    "name": "system_information.opening_hours",
+    "type": "String",
+    "description": "(Required: Yes) Hours and dates of operation for the system in OSM opening_hours format. *(added in v3.0)*"
+   },
+   {
+    "name": "system_information.short_name",
+    "type": "Array<Localized String>",
+    "description": "(Required: OPTIONAL) Abbreviation for a system."
+   },
+   {
+    "name": "system_information.operator",
+    "type": "Array<Localized String>",
+    "description": "(Required: OPTIONAL) Name of the system operator."
+   },
+   {
+    "name": "system_information.url",
+    "type": "URL",
+    "description": "(Required: OPTIONAL) The URL of the vehicle share system."
+   },
+   {
+    "name": "system_information.purchase_url",
+    "type": "URL",
+    "description": "(Required: OPTIONAL) URL where a customer can purchase a membership."
+   },
+   {
+    "name": "system_information.start_date",
+    "type": "Date",
+    "description": "(Required: OPTIONAL) Date that the system began operations."
+   },
+   {
+    "name": "system_information.termination_date",
+    "type": "Date",
+    "description": "(Required: OPTIONAL) Date after which this data source will no longer be available to consuming applications. This OPTIONAL field SHOULD be used to notify 3rd party data consumers when a service is planning a permanent (non-seasonal) shutdown."
+   },
+   {
+    "name": "system_information.phone_number",
+    "type": "Phone Number",
+    "description": "(Required: OPTIONAL) This OPTIONAL field SHOULD contain a single voice telephone number for the specified system\u2019s customer service department. MUST be in E.164 format as defined in Field Types."
+   },
+   {
+    "name": "system_information.email",
+    "type": "Email",
+    "description": "(Required: OPTIONAL) This OPTIONAL field SHOULD contain a single contact email address actively monitored by the operator\u2019s customer service department. This email address SHOULD be a direct contact point where riders can reach a customer service representative."
+   },
+   {
+    "name": "system_information.feed_contact_email",
+    "type": "Email",
+    "description": "(Required: Yes *(as of v3.0)*) This field MUST contain a single contact email for feed consumers to report issues with the feed. This email address SHOULD point to a stable email address, that does not correspond to an individual but rather the team or company that manages GBFS feeds."
+   },
+   {
+    "name": "system_information.manifest_url",
+    "type": "URL",
+    "description": "(Required: Conditionally REQUIRED) REQUIRED if the producer publishes datasets for more than one system geography, for example Berlin and Paris. A fully qualified URL pointing to the manifest.json file for the publisher."
+   },
+   {
+    "name": "system_information.timezone",
+    "type": "Timezone",
+    "description": "(Required: Yes) The time zone where the system is located."
+   },
+   {
+    "name": "system_information.license_id",
+    "type": "String",
+    "description": "(Required: Conditionally REQUIRED) REQUIRED if the dataset is provided under a standard license. An identifier for a standard license from the SPDX License List. Provide license_id rather than license_url if the license is included in the SPDX License List."
+   },
+   {
+    "name": "system_information.license_url",
+    "type": "URL",
+    "description": "(Required: Conditionally REQUIRED *(as of v3.0)*) REQUIRED if the dataset is provided under a customized license. A fully qualified URL of a page that defines the license terms for the GBFS data for this system. Do not specify a license_url if license_id is specified."
+   },
+   {
+    "name": "system_information.attribution_organization_name",
+    "type": "Array<Localized String>",
+    "description": "(Required: OPTIONAL) If the feed license requires attribution, name of the organization to which attribution should be provided."
+   },
+   {
+    "name": "system_information.attribution_url",
+    "type": "URL",
+    "description": "(Required: OPTIONAL) URL of the organization to which attribution should be provided."
+   },
+   {
+    "name": "system_information.brand_assets",
+    "type": "Object",
+    "description": "(Required: OPTIONAL) Object containing branding information about the system."
+   },
+   {
+    "name": "system_information.terms_url",
+    "type": "Array<Localized String>",
+    "description": "(Required: OPTIONAL) A fully qualified URL pointing to the terms of service (also often called \"terms of use\" or \"terms and conditions\") for the service."
+   },
+   {
+    "name": "system_information.terms_last_updated",
+    "type": "Date",
+    "description": "(Required: REQUIRED) The date that the terms of service provided at terms_url were last updated."
+   },
+   {
+    "name": "system_information.privacy_url",
+    "type": "Array<Localized String>",
+    "description": "(Required: OPTIONAL) A fully qualified URL pointing to the privacy policy for the service."
+   },
+   {
+    "name": "system_information.privacy_last_updated",
+    "type": "Date",
+    "description": "(Required: REQUIRED) The date that the privacy policy provided at privacy_url was last updated."
+   },
+   {
+    "name": "system_information.rental_apps",
+    "type": "Object",
+    "description": "(Required: OPTIONAL) Contains rental app information in the android and ios JSON objects."
+   },
+   {
+    "name": "vehicle_types.vehicle_type_id",
+    "type": "ID",
+    "description": "(Required: Yes) Unique identifier of a vehicle type. See Field Types above for ID field requirements."
+   },
+   {
+    "name": "vehicle_types.form_factor",
+    "type": "Enum",
+    "description": "(Required: Yes) The vehicle's general form factor. Current valid values are: bicycle cargo_bicycle *(added in v2.3)* car moped scooter_standing *(standing kick scooter, added in v2.3)* scooter_seated *(this is a kick scooter with a seat, not to be confused with moped, added in v2.3)* other"
+   },
+   {
+    "name": "vehicle_types.rider_capacity",
+    "type": "Non-negative integer",
+    "description": "(Required: OPTIONAL) The number of riders (driver included) the vehicle can legally accommodate."
+   },
+   {
+    "name": "vehicle_types.cargo_volume_capacity",
+    "type": "Non-negative integer",
+    "description": "(Required: OPTIONAL) Cargo volume available in the vehicle, expressed in liters. For cars, it corresponds to the space between the boot floor, including the storage under the hatch, to the rear shelf in the trunk."
+   },
+   {
+    "name": "vehicle_types.cargo_load_capacity",
+    "type": "Non-negative integer",
+    "description": "(Required: OPTIONAL) The capacity of the vehicle cargo space (excluding passengers), expressed in kilograms."
+   },
+   {
+    "name": "vehicle_types.propulsion_type",
+    "type": "Enum",
+    "description": "(Required: Yes) The primary propulsion type of the vehicle. Current valid values are: human _(Pedal or foot propulsion)_ electric_assist _(Provides electric motor assist only in combination with human propulsion - no throttle mode)_ electric _(Powered by battery-powered electric motor with\u2026"
+   },
+   {
+    "name": "vehicle_types.eco_labels",
+    "type": "Array<Object>",
+    "description": "(Required: OPTIONAL) Vehicle air quality certificate. Official anti-pollution certificate, based on the information on the vehicle's registration certificate, attesting to its level of pollutant emissions based on a defined standard. In Europe, for example, it is the European emission standard."
+   },
+   {
+    "name": "vehicle_types.max_range_meters",
+    "type": "Non-negative float",
+    "description": "(Required: Conditionally REQUIRED) If the vehicle has a motor (as indicated by having a value other than human in the propulsion_type field), this field is REQUIRED."
+   },
+   {
+    "name": "vehicle_types.name",
+    "type": "Array<Localized String>",
+    "description": "(Required: OPTIONAL) The public name of this vehicle type."
+   },
+   {
+    "name": "vehicle_types.vehicle_accessories",
+    "type": "Array<String>",
+    "description": "(Required: OPTIONAL) Description of accessories available in the vehicle. These accessories are part of the vehicle and are not supposed to change frequently."
+   },
+   {
+    "name": "vehicle_types.g_CO2_km",
+    "type": "Non-negative integer",
+    "description": "(Required: OPTIONAL) Maximum quantity of CO2, in grams, emitted per kilometer, according to the WLTP."
+   },
+   {
+    "name": "vehicle_types.vehicle_image",
+    "type": "URL",
+    "description": "(Required: OPTIONAL) URL to an image that would assist the user in identifying the vehicle (for example, an image of the vehicle or a logo). Allowed formats: JPEG, PNG."
+   },
+   {
+    "name": "vehicle_types.make",
+    "type": "Array<Localized String>",
+    "description": "(Required: OPTIONAL) The name of the vehicle manufacturer. Example: CUBE Bikes Renault"
+   },
+   {
+    "name": "vehicle_types.model",
+    "type": "Array<Localized String>",
+    "description": "(Required: OPTIONAL) The name of the vehicle model. Example Giulia MX50"
+   },
+   {
+    "name": "vehicle_types.color",
+    "type": "String",
+    "description": "(Required: OPTIONAL) The color of the vehicle. All words must be in lower case, without special characters, quotation marks, hyphens, underscores, commas, or dots. Spaces are allowed in case of a compound name. Example green dark blue"
+   },
+   {
+    "name": "vehicle_types.description",
+    "type": "Array<Localized String>",
+    "description": "(Required: OPTIONAL) Customer-readable description of the vehicle type outlining special features or how-tos."
+   },
+   {
+    "name": "vehicle_types.wheel_count",
+    "type": "Non-negative Integer",
+    "description": "(Required: OPTIONAL) Number of wheels this vehicle type has."
+   },
+   {
+    "name": "vehicle_types.max_permitted_speed",
+    "type": "Non-negative Integer",
+    "description": "(Required: OPTIONAL) The maximum speed in kilometers per hour this vehicle is permitted to reach in accordance with local permit and regulations."
+   },
+   {
+    "name": "vehicle_types.rated_power",
+    "type": "Non-negative Integer",
+    "description": "(Required: OPTIONAL) The rated power of the motor for this vehicle type in watts."
+   },
+   {
+    "name": "vehicle_types.default_reserve_time",
+    "type": "Non-negative Integer",
+    "description": "(Required: OPTIONAL) Maximum time in minutes that a vehicle can be reserved before a rental begins. When a vehicle is reserved by a user, the vehicle remains locked until the rental begins. During this time the vehicle is unavailable and cannot be reserved or rented by other users."
+   },
+   {
+    "name": "vehicle_types.return_constraint",
+    "type": "Enum",
+    "description": "(Required: OPTIONAL) The conditions for returning the vehicle at the end of the rental. Current valid values are: free_floating _(The vehicle can be returned anywhere permitted within the service area."
+   },
+   {
+    "name": "vehicle_types.vehicle_assets",
+    "type": "Object",
+    "description": "(Required: OPTIONAL) Object containing the branding information for this vehicle type."
+   },
+   {
+    "name": "vehicle_types.default_pricing_plan_id",
+    "type": "ID",
+    "description": "(Required: Conditionally REQUIRED) REQUIRED if system_pricing_plans.json is defined. A plan_id, as defined in system_pricing_plans.json, that identifies a default pricing plan for this vehicle to be used by trip planning applications for purposes of calculating the cost of a single trip using this\u2026"
+   },
+   {
+    "name": "vehicle_types.pricing_plan_ids",
+    "type": "Array<ID>",
+    "description": "(Required: OPTIONAL) An array of pricing_plan_ids, as defined in system_pricing_plans.json, that are applied to this vehicle type. This array SHOULD be published when there are multiple pricing plans defined in system_pricing_plans.json that apply to a single vehicle type."
+   },
+   {
+    "name": "station_information.station_id",
+    "type": "ID",
+    "description": "(Required: Yes) Identifier of a station."
+   },
+   {
+    "name": "station_information.name",
+    "type": "Array<Localized String>",
+    "description": "(Required: Yes) The public name of the station for display in maps, digital signage, and other text applications. Names SHOULD reflect the station location through the use of a cross street or local landmark."
+   },
+   {
+    "name": "station_information.short_name",
+    "type": "Array<Localized String>",
+    "description": "(Required: OPTIONAL) Short name or other type of identifier."
+   },
+   {
+    "name": "station_information.lat",
+    "type": "Latitude",
+    "description": "(Required: Yes) Latitude of the station in decimal degrees. This field SHOULD have a precision of 6 decimal places (0.000001). See Coordinate Precision."
+   },
+   {
+    "name": "station_information.lon",
+    "type": "Longitude",
+    "description": "(Required: Yes) Longitude of the station in decimal degrees. This field SHOULD have a precision of 6 decimal places (0.000001). See Coordinate Precision."
+   },
+   {
+    "name": "station_information.address",
+    "type": "String",
+    "description": "(Required: OPTIONAL) Address (street number and name) where station is located. This MUST be a valid address, not a free-form text description. Example: 1234 Main Street"
+   },
+   {
+    "name": "station_information.cross_street",
+    "type": "String",
+    "description": "(Required: OPTIONAL) Cross street or landmark where the station is located."
+   },
+   {
+    "name": "station_information.region_id",
+    "type": "ID",
+    "description": "(Required: OPTIONAL) Identifier of the region where station is located. See system_regions.json."
+   },
+   {
+    "name": "station_information.post_code",
+    "type": "String",
+    "description": "(Required: OPTIONAL) Postal code where station is located."
+   },
+   {
+    "name": "station_information.station_opening_hours",
+    "type": "String",
+    "description": "(Required: OPTIONAL) Hours of operation for the station in OSM opening_hours format. If station_opening_hours is defined it overrides any opening_hours defined in system_information.json for the station for which it is defined."
+   },
+   {
+    "name": "station_information.rental_methods",
+    "type": "Array<String>",
+    "description": "(Required: OPTIONAL) Payment methods accepted at this station. Current valid values are: key (operator issued vehicle key / fob / card) creditcard paypass applepay androidpay transitcard accountnumber phone"
+   },
+   {
+    "name": "station_information.is_virtual_station",
+    "type": "Boolean",
+    "description": "(Required: OPTIONAL) Is this station a location with or without smart dock technology? true - The station is a location without smart docking infrastructure. the station may be defined by a point (lat/lon) and/or station_area (below)."
+   },
+   {
+    "name": "station_information.station_area",
+    "type": "GeoJSON MultiPolygon",
+    "description": "(Required: OPTIONAL) A GeoJSON MultiPolygon that describes the area of a virtual station. If station_area is supplied, then the record describes a virtual station."
+   },
+   {
+    "name": "station_information.parking_type",
+    "type": "Enum",
+    "description": "(Required: OPTIONAL) Type of parking station. Current valid values are: parking_lot _(Off-street parking lot)_ street_parking _(Curbside parking)_ underground_parking _(Parking that is below street level, station may be non-communicating)_ sidewalk_parking _(Park vehicle on sidewalk, out of the\u2026"
+   },
+   {
+    "name": "station_information.parking_hoop",
+    "type": "Boolean",
+    "description": "(Required: OPTIONAL) Are parking hoops present at this station? true - Parking hoops are present at this station. false - Parking hoops are not present at this station. Parking hoops are lockable devices that are used to secure a parking space to prevent parking of unauthorized vehicles."
+   },
+   {
+    "name": "station_information.contact_phone",
+    "type": "Phone number",
+    "description": "(Required: OPTIONAL) Contact phone of the station."
+   },
+   {
+    "name": "station_information.capacity",
+    "type": "Non-negative integer",
+    "description": "(Required: OPTIONAL) Number of total docking points installed at this station, both available and unavailable, regardless of what vehicle types are allowed at each dock."
+   },
+   {
+    "name": "station_information.vehicle_types_capacity",
+    "type": "Array<Object>",
+    "description": "(Required: OPTIONAL) These objects are used to model the parking capacity of virtual stations (defined using the is_virtual_station field) for each vehicle type that can be returned to this station."
+   },
+   {
+    "name": "station_information.vehicle_docks_capacity",
+    "type": "Array<Object>",
+    "description": "(Required: OPTIONAL) These objects are used to model the total docking capacity of a station, both available and unavailable, for each type of vehicle that may dock at this station. The total number of docks from each of these objects SHOULD add up to match the value specified in the capacity field."
+   },
+   {
+    "name": "station_information.is_valet_station",
+    "type": "Boolean",
+    "description": "(Required: OPTIONAL) Are valet services provided at this station? true - Valet services are provided at this station. false - Valet services are not provided at this station. If this field is empty, it is assumed that valet services are not provided at this station."
+   },
+   {
+    "name": "station_information.is_charging_station",
+    "type": "Boolean",
+    "description": "(Required: OPTIONAL) Does the station support charging of electric vehicles? true - Electric vehicle charging is available at this station. false - Electric vehicle charging is not available at this station."
+   },
+   {
+    "name": "station_information.rental_uris",
+    "type": "Object",
+    "description": "(Required: OPTIONAL) Contains rental URIs for Android, iOS, and web in the android, ios, and web fields. See examples of how to use these fields and supported analytics."
+   },
+   {
+    "name": "station_status.station_id",
+    "type": "ID",
+    "description": "(Required: Yes) Identifier of a station. See station_information.json."
+   },
+   {
+    "name": "station_status.num_vehicles_available",
+    "type": "Non-negative integer",
+    "description": "(Required: Yes) Number of functional vehicles physically at the station that may be offered for rental. To know if the vehicles are available for rental, see is_renting. If is_renting = true this is the number of vehicles that are currently available for rent."
+   },
+   {
+    "name": "station_status.vehicle_types_available",
+    "type": "Array<Object>",
+    "description": "(Required: Conditionally REQUIRED) REQUIRED if the vehicle_types.json file has been defined. This field's value is an array of objects. Each of these objects is used to model the total number of each defined vehicle type available at a station."
+   },
+   {
+    "name": "station_status.num_vehicles_disabled",
+    "type": "Non-negative integer",
+    "description": "(Required: OPTIONAL) Number of disabled vehicles of any type at the station. Vendors who do not want to publicize the number of disabled vehicles or docks in their system can opt to omit station capacity (in station_information.json, num_vehicles_disabled, and num_docks_disabled *(as of v2.0)*."
+   },
+   {
+    "name": "station_status.num_docks_available",
+    "type": "Non-negative integer",
+    "description": "(Required: Conditionally REQUIRED *(as of v2.0)*) REQUIRED except for stations that have unlimited docking capacity (e.g. virtual stations) *(as of v2.0)*. Number of functional docks physically at the station that are able to accept vehicles for return."
+   },
+   {
+    "name": "station_status.vehicle_docks_available",
+    "type": "Array<Object>",
+    "description": "(Required: Conditionally REQUIRED) This field is REQUIRED in feeds where the vehicle_types.json is defined and where certain docks are only able to accept certain vehicle types. If every dock at the station is able to accept any vehicle type, then this field is not REQUIRED."
+   },
+   {
+    "name": "station_status.num_docks_disabled",
+    "type": "Non-negative integer",
+    "description": "(Required: OPTIONAL) Number of disabled dock points at the station."
+   },
+   {
+    "name": "station_status.is_installed",
+    "type": "Boolean",
+    "description": "(Required: Yes) Is the station currently on the street? true - Station is installed on the street. false - Station is not installed on the street. Boolean SHOULD be set to true when equipment is present on the street."
+   },
+   {
+    "name": "station_status.is_renting",
+    "type": "Boolean",
+    "description": "(Required: Yes) Is the station currently renting vehicles? true - Station is renting vehicles. Even if the station is empty, if it would otherwise allow rentals, this value MUST be true. false - Station is not renting vehicles."
+   },
+   {
+    "name": "station_status.is_returning",
+    "type": "Boolean",
+    "description": "(Required: Yes) Is the station accepting vehicle returns? true - Station is accepting vehicle returns. Even if the station is full, if it would otherwise allow vehicle returns, this value MUST be true. false - Station is not accepting vehicle returns."
+   },
+   {
+    "name": "station_status.last_reported",
+    "type": "Timestamp",
+    "description": "(Required: Yes) The last time this station reported its status to the operator's backend."
+   },
+   {
+    "name": "vehicle_status.vehicle_id",
+    "type": "ID",
+    "description": "(Required: Yes) Identifier of a vehicle. The vehicle_id identifier MUST be rotated to a random string after each trip to protect user privacy *(as of v2.0)*. Use of persistent vehicle IDs poses a threat to user privacy. The vehicle_id identifier SHOULD only be rotated once per trip."
+   },
+   {
+    "name": "vehicle_status.lat",
+    "type": "Latitude",
+    "description": "(Required: Conditionally REQUIRED *(as of v2.1)*) Latitude of the vehicle in decimal degrees. *(as of v2.1)* REQUIRED if station_id is not provided for this vehicle (free floating). This field SHOULD have a precision of 6 decimal places (0.000001). See Coordinate Precision."
+   },
+   {
+    "name": "vehicle_status.lon",
+    "type": "Longitude",
+    "description": "(Required: Conditionally REQUIRED *(as of v2.1)*) Longitude of the vehicle in decimal degrees. *(as of v2.1)* REQUIRED if station_id is not provided for this vehicle (free floating). This field SHOULD have a precision of 6 decimal places (0.000001). See Coordinate Precision."
+   },
+   {
+    "name": "vehicle_status.is_reserved",
+    "type": "Boolean",
+    "description": "(Required: Yes) Is the vehicle currently reserved? true - Vehicle is currently reserved. false - Vehicle is not currently reserved."
+   },
+   {
+    "name": "vehicle_status.is_disabled",
+    "type": "Boolean",
+    "description": "(Required: Yes) Is the vehicle currently disabled? true - Vehicle is currently disabled. false - Vehicle is not currently disabled. This field is used to indicate vehicles that are in the field but not available for rental due to a mechanical issue or low battery etc."
+   },
+   {
+    "name": "vehicle_status.rental_uris",
+    "type": "Object",
+    "description": "(Required: OPTIONAL) JSON object that contains rental URIs for Android, iOS, and web in the android, ios, and web fields. See examples of how to use these fields and supported analytics."
+   },
+   {
+    "name": "vehicle_status.vehicle_type_id",
+    "type": "ID",
+    "description": "(Required: Conditionally REQUIRED) The vehicle_type_id of this vehicle, as described in vehicle_types.json. REQUIRED if the vehicle_types.json file is defined."
+   },
+   {
+    "name": "vehicle_status.last_reported",
+    "type": "Timestamp",
+    "description": "(Required: OPTIONAL) The last time this vehicle reported its status to the operator's backend."
+   },
+   {
+    "name": "vehicle_status.current_range_meters",
+    "type": "Non-negative float",
+    "description": "(Required: Conditionally REQUIRED) REQUIRED if the corresponding vehicle_type definition for this vehicle has a motor. This value represents the furthest distance in meters that the vehicle can travel with the vehicle's current charge or fuel (without recharging or refueling)."
+   },
+   {
+    "name": "vehicle_status.current_fuel_percent",
+    "type": "Non-negative float",
+    "description": "(Required: OPTIONAL) This value represents the current percentage, expressed from 0 to 1, of fuel or battery power remaining in the vehicle."
+   },
+   {
+    "name": "vehicle_status.station_id",
+    "type": "ID",
+    "description": "(Required: Conditionally REQUIRED) REQUIRED if the vehicle is currently at a station and the vehicle_types.json file has been defined. Identifier referencing the station_id field in station_information.json."
+   },
+   {
+    "name": "vehicle_status.home_station_id",
+    "type": "ID",
+    "description": "(Required: OPTIONAL) The station_id of the station this vehicle must be returned to as defined in station_information.json."
+   },
+   {
+    "name": "vehicle_status.pricing_plan_id",
+    "type": "ID",
+    "description": "(Required: OPTIONAL) The plan_id of the pricing plan this vehicle is eligible for as described in system_pricing_plans.json. If this field is defined it supersedes default_pricing_plan_id in vehicle_types.json."
+   },
+   {
+    "name": "vehicle_status.vehicle_equipment",
+    "type": "Array<String>",
+    "description": "(Required: OPTIONAL) List of vehicle equipment provided by the operator in addition to the accessories already provided in the vehicle (field vehicle_accessories of vehicle_types.json) but subject to more frequent updates."
+   },
+   {
+    "name": "vehicle_status.available_until",
+    "type": "Datetime",
+    "description": "(Required: OPTIONAL) The date and time when any rental of the vehicle must be completed. The vehicle must be returned and made available for the next user by this time. If this field is empty, it indicates that the vehicle is available indefinitely."
+   },
+   {
+    "name": "system_pricing_plans.plan_id",
+    "type": "ID",
+    "description": "(Required: Yes) Identifier for a pricing plan in the system."
+   },
+   {
+    "name": "system_pricing_plans.url",
+    "type": "URL",
+    "description": "(Required: OPTIONAL) URL where the customer can learn more about this pricing plan."
+   },
+   {
+    "name": "system_pricing_plans.name",
+    "type": "Array<Localized String>",
+    "description": "(Required: Yes) Name of this pricing plan."
+   },
+   {
+    "name": "system_pricing_plans.currency",
+    "type": "String",
+    "description": "(Required: Yes) Currency used to pay the fare. This pricing is in ISO 4217 code: http://en.wikipedia.org/wiki/ISO_4217 (for example, CAD for Canadian dollars, EUR for euros, or JPY for Japanese yen.)"
+   },
+   {
+    "name": "system_pricing_plans.price",
+    "type": "Non-Negative Float",
+    "description": "(Required: Yes) Fare price, in the unit specified by currency. *(added in v2.2)* In case of non-rate price, this field is the total price. In case of rate price, this field is the base price that is charged only once per trip (typically the price for unlocking) in addition to per_km_pricing and/or\u2026"
+   },
+   {
+    "name": "system_pricing_plans.is_taxable",
+    "type": "Boolean",
+    "description": "(Required: Yes) Will additional tax be added to the base price? true - Yes. false - No. false MAY be used to indicate that tax is not charged or that tax is included in the base price."
+   },
+   {
+    "name": "system_pricing_plans.description",
+    "type": "Array<Localized String>",
+    "description": "(Required: Yes) Customer-readable description of the pricing plan. This SHOULD include the duration, price, conditions, etc. that the publisher would like users to see."
+   },
+   {
+    "name": "system_pricing_plans.per_km_pricing",
+    "type": "Array<Object>",
+    "description": "(Required: OPTIONAL) Array of segments when the price is a function of distance traveled, displayed in kilometers. Total cost is the addition of price and all segments in per_km_pricing and per_min_pricing. If this array is not provided, there are no variable costs based on distance."
+   },
+   {
+    "name": "system_pricing_plans.per_min_pricing",
+    "type": "Array<Object>",
+    "description": "(Required: OPTIONAL) Array of segments when the price is a function of time traveled, displayed in minutes. Total cost is the addition of price and all segments in per_km_pricing and per_min_pricing. If this array is not provided, there are no variable costs based on time."
+   },
+   {
+    "name": "system_pricing_plans.surge_pricing",
+    "type": "Boolean",
+    "description": "(Required: OPTIONAL) Is there currently an increase in price in response to increased demand in this pricing plan? If this field is empty, it means there is no surge pricing in effect. true - Surge pricing is in effect. false - Surge pricing is not in effect."
+   }
+  ]
+ },
+ {
+  "slug": "open311-georeport-v2",
+  "kind": "standard",
+  "platform": "manual",
+  "accessUrl": "https://wiki.open311.org/GeoReport_v2/",
+  "title": "Open311 GeoReport v2",
+  "publisher": "Open311 community (open311.org)",
+  "jurisdiction": "global",
+  "recordDescription": "Non-emergency civic service request (311) API: the list of service types a jurisdiction accepts and the service requests filed against them, with status and location.",
+  "landingPage": "https://www.open311.org/",
+  "license": "Not stated on the specification page",
+  "updateFrequency": "version v2 (spec page says it is 'frozen and finalized')",
+  "fields": [
+   {
+    "name": "services.service_code",
+    "type": "unspecified",
+    "description": "The unique identifier for the service request type"
+   },
+   {
+    "name": "services.service_name",
+    "type": "unspecified",
+    "description": "The human readable name of the service request type"
+   },
+   {
+    "name": "services.description",
+    "type": "unspecified",
+    "description": "A brief description of the service request type."
+   },
+   {
+    "name": "services.metadata",
+    "type": "unspecified",
+    "description": "Determines whether there are additional form fields for this service type. true : This service request type requires additional metadata so the client will need to make a call to the Service Definition method."
+   },
+   {
+    "name": "services.type",
+    "type": "unspecified",
+    "description": "realtime : The service request ID will be returned immediately after the service request is submitted. batch : A token will be returned immediately after the service request is submitted. This token can then be later used to return the service request ID."
+   },
+   {
+    "name": "services.keywords",
+    "type": "unspecified",
+    "description": "A comma separated list of tags or keywords to help users identify the request type. This can provide synonyms of the service_name and group."
+   },
+   {
+    "name": "services.group",
+    "type": "unspecified",
+    "description": "A category to group this service type within. This provides a way to group several service request types under one category such as \u201csanitation\u201d"
+   },
+   {
+    "name": "requests.service_request_id",
+    "type": "unspecified",
+    "description": "The unique ID of the service request created."
+   },
+   {
+    "name": "requests.status",
+    "type": "unspecified",
+    "description": "The current status of the service request. open : it has been reported. closed : it has been resolved. Notes: Options: open , closed"
+   },
+   {
+    "name": "requests.status_notes",
+    "type": "unspecified",
+    "description": "Explanation of why status was changed to current state or more details on current status than conveyed with status alone. Notes: May not be returned"
+   },
+   {
+    "name": "requests.service_name",
+    "type": "unspecified",
+    "description": "The human readable name of the service request type"
+   },
+   {
+    "name": "requests.service_code",
+    "type": "unspecified",
+    "description": "The unique identifier for the service request type"
+   },
+   {
+    "name": "requests.description",
+    "type": "unspecified",
+    "description": "A full description of the request or report submitted. Notes: This may contain line breaks, but not html or code. Otherwise, this is free form text limited to 4,000 characters."
+   },
+   {
+    "name": "requests.agency_responsible",
+    "type": "unspecified",
+    "description": "The agency responsible for fulfilling or otherwise addressing the service request. Notes: May not be returned"
+   },
+   {
+    "name": "requests.service_notice",
+    "type": "unspecified",
+    "description": "Information about the action expected to fulfill the request or otherwise address the information reported. Notes: May not be returned"
+   },
+   {
+    "name": "requests.requested_datetime",
+    "type": "unspecified",
+    "description": "The date and time when the service request was made. Notes: Returned in w3 format, eg 2010-01-01T00:00:00Z"
+   },
+   {
+    "name": "requests.updated_datetime",
+    "type": "unspecified",
+    "description": "The date and time when the service request was last modified. For requests with status=closed, this will be the date the request was closed. Notes: Returned in w3 format, eg 2010-01-01T00:00:00Z"
+   },
+   {
+    "name": "requests.expected_datetime",
+    "type": "unspecified",
+    "description": "The date and time when the service request can be expected to be fulfilled. This may be based on a service-specific service level agreement. Notes: May not be returned"
+   },
+   {
+    "name": "requests.address",
+    "type": "unspecified",
+    "description": "Human readable address or description of location. Notes: This should be provided from most specific to most general geographic unit, eg address number or cross streets, street name, neighborhood/district, city/town/village, county, postal code."
+   },
+   {
+    "name": "requests.address_id",
+    "type": "unspecified",
+    "description": "The internal address ID used by a jurisdictions master address repository or other addressing system."
+   },
+   {
+    "name": "requests.zipcode",
+    "type": "unspecified",
+    "description": "The postal code for the location of the service request."
+   },
+   {
+    "name": "requests.lat",
+    "type": "unspecified",
+    "description": "latitude using the (WGS84) projection."
+   },
+   {
+    "name": "requests.long",
+    "type": "unspecified",
+    "description": "longitude using the (WGS84) projection."
+   },
+   {
+    "name": "requests.media_url",
+    "type": "unspecified",
+    "description": "A URL to media associated with the request, eg an image. Notes: A convention for parsing media from this URL has yet to be established, so currently it will be done on a case by case basis much like Twitter.com does."
+   }
+  ]
+ },
+ {
+  "slug": "ogc-sensorthings-1-1",
+  "kind": "standard",
+  "platform": "manual",
+  "accessUrl": "https://docs.ogc.org/is/18-088/18-088.html",
+  "title": "OGC SensorThings API Part 1: Sensing",
+  "publisher": "Open Geospatial Consortium (OGC)",
+  "jurisdiction": "global",
+  "recordDescription": "Data model and API for IoT sensing: Things, their Locations and histories, Datastreams of Observations made by Sensors of ObservedProperties on FeaturesOfInterest.",
+  "landingPage": "https://www.ogc.org/standards/sensorthings",
+  "license": "OGC License Agreement (royalty-free, Copyright \u00a9 2021 Open Geospatial Consortium), as stated in the document",
+  "updateFrequency": "version 1.1 (OGC 18-088, publication date 2021-08-04)",
+  "fields": [
+   {
+    "name": "Thing.id",
+    "type": "Any",
+    "description": "(One (mandatory)) id is the system-generated identifier of an entity. id is unique among the entities of the same entity type in a SensorThings service. Encoded in JSON as @iot.id (per Table 2 common control information and the spec's JSON examples)."
+   },
+   {
+    "name": "Thing.name",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) A property provides a label for Thing entity, commonly a descriptive name."
+   },
+   {
+    "name": "Thing.description",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) This is a short description of the corresponding Thing entity."
+   },
+   {
+    "name": "Thing.properties",
+    "type": "JSON Object",
+    "description": "(Zero-to-one) A JSON Object containing user-annotated properties as key-value pairs."
+   },
+   {
+    "name": "Location.id",
+    "type": "Any",
+    "description": "(One (mandatory)) id is the system-generated identifier of an entity. id is unique among the entities of the same entity type in a SensorThings service. Encoded in JSON as @iot.id (per Table 2 common control information and the spec's JSON examples)."
+   },
+   {
+    "name": "Location.name",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) A property provides a label for Location entity, commonly a descriptive name."
+   },
+   {
+    "name": "Location.description",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) The description about the Location."
+   },
+   {
+    "name": "Location.encodingType",
+    "type": "ValueCode",
+    "description": "(One (mandatory)) The encoding type of the Location property. Its value is one of the ValueCode enumeration (see Table 7 )."
+   },
+   {
+    "name": "Location.location",
+    "type": "Any",
+    "description": "I.e. , the type is depending on the value of the encodingType. (One (mandatory)) The location type is defined by encodingType."
+   },
+   {
+    "name": "Location.properties",
+    "type": "JSON Object",
+    "description": "(Zero-to-one) A JSON Object containing user-annotated properties as key-value pairs."
+   },
+   {
+    "name": "HistoricalLocation.id",
+    "type": "Any",
+    "description": "(One (mandatory)) id is the system-generated identifier of an entity. id is unique among the entities of the same entity type in a SensorThings service. Encoded in JSON as @iot.id (per Table 2 common control information and the spec's JSON examples)."
+   },
+   {
+    "name": "HistoricalLocation.time",
+    "type": "TM_Instant (ISO-8601 Time String)",
+    "description": "(One (mandatory)) The time when the Thing is known at the Location."
+   },
+   {
+    "name": "HistoricalLocation.Thing",
+    "type": "navigation property -> Thing",
+    "description": "(Relation: Many optional to one mandatory) A HistoricalLocation has one-and-only-one Thing. One Thing MAY have zero-to-many HistoricalLocations."
+   },
+   {
+    "name": "Datastream.id",
+    "type": "Any",
+    "description": "(One (mandatory)) id is the system-generated identifier of an entity. id is unique among the entities of the same entity type in a SensorThings service. Encoded in JSON as @iot.id (per Table 2 common control information and the spec's JSON examples)."
+   },
+   {
+    "name": "Datastream.name",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) A property provides a label for Datastream entity, commonly a descriptive name."
+   },
+   {
+    "name": "Datastream.description",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) The description of the Datastream entity."
+   },
+   {
+    "name": "Datastream.unitOfMeasurement",
+    "type": "JSON Object",
+    "description": "(One (mandatory) Note: When a Datastream does not have a unit of measurement (e.g., a OM_TruthObservation type), the corresponding unitOfMeasurement properties SHALL have null values.) A JSON Object containing three key-value pairs."
+   },
+   {
+    "name": "Datastream.observationType",
+    "type": "ValueCode see Table 12 .",
+    "description": "(One (mandatory)) The type of Observation (with unique result type), which is used by the service to encode observations."
+   },
+   {
+    "name": "Datastream.properties",
+    "type": "JSON Object",
+    "description": "(Zero-to-one) A JSON Object containing user-annotated properties as key-value pairs."
+   },
+   {
+    "name": "Datastream.observedArea",
+    "type": "GM_Envelope (GeoJSON Polygon)",
+    "description": "(Zero-to-one (optional)) The spatial bounding box of the spatial extent of all FeaturesOfInterest that belong to the Observations associated with this Datastream."
+   },
+   {
+    "name": "Datastream.phenomenonTime",
+    "type": "TM_Period (ISO 8601 Time Interval)",
+    "description": "(Zero-to-one (optional)) The temporal interval of the phenomenon times of all observations belonging to this Datastream."
+   },
+   {
+    "name": "Datastream.resultTime",
+    "type": "TM_Period (ISO 8601 Time Interval)",
+    "description": "(Zero-to-one (optional)) The temporal interval of the result times of all observations belonging to this Datastream."
+   },
+   {
+    "name": "Datastream.Thing",
+    "type": "navigation property -> Thing",
+    "description": "(Relation: Many optional to one mandatory) A Thing has zero-to-many Datastreams. A Datastream entity SHALL only link to a Thing as a collection of Observations."
+   },
+   {
+    "name": "Datastream.Sensor",
+    "type": "navigation property -> Sensor",
+    "description": "(Relation: Many optional to one mandatory) The Observations in a Datastream are performed by one-and-only-one Sensor. One Sensor MAY produce zero-to-many Observations in different Datastreams."
+   },
+   {
+    "name": "Datastream.ObservedProperty",
+    "type": "navigation property -> ObservedProperty",
+    "description": "(Relation: Many optional to one mandatory) The Observations of a Datastream SHALL observe the same ObservedProperty. The Observations of different Datastreams MAY observe the same ObservedProperty."
+   },
+   {
+    "name": "Sensor.id",
+    "type": "Any",
+    "description": "(One (mandatory)) id is the system-generated identifier of an entity. id is unique among the entities of the same entity type in a SensorThings service. Encoded in JSON as @iot.id (per Table 2 common control information and the spec's JSON examples)."
+   },
+   {
+    "name": "Sensor.name",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) A property provides a label for Sensor entity, commonly a descriptive name."
+   },
+   {
+    "name": "Sensor.description",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) The description of the Sensor entity."
+   },
+   {
+    "name": "Sensor.encodingType",
+    "type": "ValueCode",
+    "description": "(One (mandatory)) The encoding type of the metadata property. Its value is one of the ValueCode enumeration (see Table 15 for the available ValueCode)."
+   },
+   {
+    "name": "Sensor.metadata",
+    "type": "Any",
+    "description": "Depending on the value of the encodingType. (One (mandatory)) The detailed description of the Sensor or system. The metadata type is defined by encodingType."
+   },
+   {
+    "name": "Sensor.properties",
+    "type": "JSON Object",
+    "description": "(Zero-to-one) A JSON Object containing user-annotated properties as key-value pairs."
+   },
+   {
+    "name": "ObservedProperty.id",
+    "type": "Any",
+    "description": "(One (mandatory)) id is the system-generated identifier of an entity. id is unique among the entities of the same entity type in a SensorThings service. Encoded in JSON as @iot.id (per Table 2 common control information and the spec's JSON examples)."
+   },
+   {
+    "name": "ObservedProperty.name",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) A property provides a label for ObservedProperty entity, commonly a descriptive name."
+   },
+   {
+    "name": "ObservedProperty.definition",
+    "type": "URI",
+    "description": "(One (mandatory)) The URI of the ObservedProperty. Dereferencing this URI SHOULD result in a representation of the definition of the ObservedProperty."
+   },
+   {
+    "name": "ObservedProperty.description",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) A description about the ObservedProperty."
+   },
+   {
+    "name": "ObservedProperty.properties",
+    "type": "JSON Object",
+    "description": "(Zero-to-one) A JSON Object containing user-annotated properties as key-value pairs."
+   },
+   {
+    "name": "Observation.id",
+    "type": "Any",
+    "description": "(One (mandatory)) id is the system-generated identifier of an entity. id is unique among the entities of the same entity type in a SensorThings service. Encoded in JSON as @iot.id (per Table 2 common control information and the spec's JSON examples)."
+   },
+   {
+    "name": "Observation.phenomenonTime",
+    "type": "TM_Object",
+    "description": "ISO 8601 Time string or Time Interval string (e.g., 2010-12-23T10:20:00.00-07:00 or 2010-12-23T10:20:00.00-07:00/2010-12-23T12:20:00.00-07:00 ). (One (mandatory)) The time instant or period of when the Observation happens. Note: Many resource-constrained sensing devices do not have a clock. As a result, a client may omit phenonmenonTime when POST new Observations, even though phenonmenonTime is a "
+   },
+   {
+    "name": "Observation.result",
+    "type": "Any",
+    "description": "Depends on the observationType defined in the associated Datastream. (One (mandatory)) The estimated value of an ObservedProperty from the Observation."
+   },
+   {
+    "name": "Observation.resultTime",
+    "type": "TM_Instant (ISO 8601 Time string)",
+    "description": "(One (mandatory)) The time of the Observation\u2019s result was generated. Note: Many resource-constrained sensing devices do not have a clock. As a result, a client may omit resultTime when POST new Observations, even though resultTime is a mandatory property."
+   },
+   {
+    "name": "Observation.resultQuality",
+    "type": "DQ_Element",
+    "description": "(Zero-to-many) Describes the quality of the result."
+   },
+   {
+    "name": "Observation.validTime",
+    "type": "TM_Period",
+    "description": "ISO 8601 Time Interval string. (Zero-to-one) The time period during which the result may be used."
+   },
+   {
+    "name": "Observation.parameters",
+    "type": "JSON Object",
+    "description": "(Zero-to-One) Key-value pairs showing the environmental conditions during measurement."
+   },
+   {
+    "name": "Observation.Datastream",
+    "type": "navigation property -> Datastream",
+    "description": "(Relation: Many optional to one mandatory) A Datastream can have zero-to-many Observations. One Observation SHALL occur in one-and-only-one Datastream."
+   },
+   {
+    "name": "Observation.FeatureOfInterest",
+    "type": "navigation property -> FeatureOfInterest",
+    "description": "(Relation: Many optional to one mandatory) An Observation observes on one-and-only-one FeatureOfInterest. One FeatureOfInterest could be observed by zero-to-many Observations."
+   },
+   {
+    "name": "FeatureOfInterest.id",
+    "type": "Any",
+    "description": "(One (mandatory)) id is the system-generated identifier of an entity. id is unique among the entities of the same entity type in a SensorThings service. Encoded in JSON as @iot.id (per Table 2 common control information and the spec's JSON examples)."
+   },
+   {
+    "name": "FeatureOfInterest.name",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) A property provides a label for FeatureOfInterest entity, commonly a descriptive name."
+   },
+   {
+    "name": "FeatureOfInterest.description",
+    "type": "CharacterString",
+    "description": "(One (mandatory)) The description about the FeatureOfInterest."
+   },
+   {
+    "name": "FeatureOfInterest.encodingType",
+    "type": "ValueCode",
+    "description": "(One (mandatory)) The encoding type of the feature property. Its value is one of the ValueCode enumeration (see Table 7 for the available ValueCode)."
+   },
+   {
+    "name": "FeatureOfInterest.feature",
+    "type": "Any",
+    "description": "(One (mandatory)) The detailed description of the feature. The data type is defined by encodingType."
+   },
+   {
+    "name": "FeatureOfInterest.properties",
+    "type": "JSON Object",
+    "description": "(Zero-to-one) A JSON Object containing user-annotated properties as key-value pairs."
+   }
+  ]
+ },
+ {
+  "slug": "mmucc-6",
+  "kind": "standard",
+  "platform": "manual",
+  "accessUrl": "https://crashstats.nhtsa.dot.gov/Api/Public/ViewPublication/813525",
+  "title": "MMUCC Guideline: Model Minimum Uniform Crash Criteria, 6th Edition",
+  "publisher": "National Highway Traffic Safety Administration (NHTSA), U.S. DOT",
+  "jurisdiction": "US",
+  "recordDescription": "Recommended minimum set of data elements, with definitions and attribute values, that States should collect on police-reported motor vehicle traffic crashes at the crash, vehicle, driver, person and non-motorist levels.",
+  "landingPage": "https://www.nhtsa.gov/mmucc",
+  "license": "U.S. Government publication; distribution statement: 'Document is available to the public from the DOT, National Highway",
+  "updateFrequency": "version 6th Edition, DOT HS 813 525, February 2025 (Revised)",
+  "fields": [
+   {
+    "name": "S1 State Unique Crash ID",
+    "type": "Attribute values",
+    "description": "No selection rule stated. The unique crash report identifier (also referred to as the State case number) maintained in the statewide crash data repository."
+   },
+   {
+    "name": "S2 Agency (Police Jurisdiction)",
+    "type": "Attribute values",
+    "description": "No selection rule stated. Law enforcement agency reporting the crash."
+   },
+   {
+    "name": "S3 Police-Reported",
+    "type": "Attribute values",
+    "description": "No selection rule stated. Indicates whether this is a crash report completed and signed by a law enforcement officer or representative appointed by the law enforcement agency (e.g., a non-sworn officer)."
+   },
+   {
+    "name": "S4 State Reportable Crash",
+    "type": "Attribute values",
+    "description": "No selection rule stated. Indicates whether a crash meets the State\u2019s threshold for a reportable crash and is required to be reported by State law."
+   },
+   {
+    "name": "C1 Crash Date",
+    "type": "Specify",
+    "description": "The date when the crash occurred or if unknown, the date the crash was reported."
+   },
+   {
+    "name": "C2 Crash Time",
+    "type": "Specify or select Unknown",
+    "description": "The time at which the crash occurred."
+   },
+   {
+    "name": "C3 Date of Roadway Clearance",
+    "type": "Specify",
+    "description": "The date of first recordable awareness to when all traffic lanes became available for normal traffic flow."
+   },
+   {
+    "name": "C4 Time of Roadway Clearance",
+    "type": "Select one or specify time",
+    "description": "The time of first recordable awareness to when all traffic lanes became available for normal traffic flow."
+   },
+   {
+    "name": "C5 County or Equivalent",
+    "type": "Specify one or select Unknown",
+    "description": "The county or equivalent entity in which the crash physically occurred."
+   },
+   {
+    "name": "C6 Global Position (Latitude, Longitude)",
+    "type": "Specify or select Unknown",
+    "description": "The latitude and longitude where the FIRST HARMFUL EVENT of the crash occurred."
+   },
+   {
+    "name": "C7 First Harmful Event",
+    "type": "Select one",
+    "description": "The first injury- or damage-producing event of the crash."
+   },
+   {
+    "name": "C8 Location of First Harmful Event Relative to the Trafficway",
+    "type": "Select one",
+    "description": "The location of the FIRST HARMFUL EVENT as it relates to its position within or outside the trafficway."
+   },
+   {
+    "name": "C9 Manner of Collision of the First Harmful Event",
+    "type": "Select one",
+    "description": "Identifies the orientation of two Motor Vehicles In-Transport when they are involved in the FIRST HARMFUL EVENT of a collision crash. If the FIRST HARMFUL EVENT is not a collision between two motor vehicles in-transport, it is classified as such."
+   },
+   {
+    "name": "C10 Atmospheric Conditions",
+    "type": "Multi-select",
+    "description": "The prevailing atmospheric conditions that existed at the time of the crash."
+   },
+   {
+    "name": "C11 Light Condition",
+    "type": "Select one",
+    "description": "The type or level of light that existed at the time of the motor vehicle traffic crash."
+   },
+   {
+    "name": "C12 Relation to Junction",
+    "type": "Subfields (2)",
+    "description": "The location of the FIRST HARMFUL EVENT with respect to presence in a junction or proximity to components typically in junction or interchange areas. Subfields: Within Interchange Area (select one); Specific Location (select one)."
+   },
+   {
+    "name": "C13 Type of Intersection",
+    "type": "Select one",
+    "description": "Allows separation of various intersection types when the location of the FIRST HARMFUL EVENT is in an intersection or related to the use of an intersection."
+   },
+   {
+    "name": "C14 School-Bus-Related",
+    "type": "Select one",
+    "description": "Indicates whether a school bus or motor vehicle functioning as a school bus for a school-related purpose is directly or indirectly involved in the crash."
+   },
+   {
+    "name": "C15 Work Zone",
+    "type": "Subfields (5)",
+    "description": "A crash that occurs in or related to a construction, maintenance, or utility work zone, whether workers were present at the time of the crash or not. Subfields: Work Zone Type (select one); Location of the Crash (select one); Work Zone Description (This is a multi-selection Subfield."
+   },
+   {
+    "name": "C16 Secondary Crash",
+    "type": "Subfields (2)",
+    "description": "Identifies if this crash was related to a prior (primary) crash. Subfields: Secondary Crash (select one); Primary Crash Case Number (Specify)."
+   },
+   {
+    "name": "C17 Related Factors \u2013 Crash Level",
+    "type": "Multi-select",
+    "description": "Identifies factors related to this crash."
+   },
+   {
+    "name": "C18 Route Number or Road Name",
+    "type": "Specify",
+    "description": "The signed route number or road name for the road on which the crash occurred."
+   },
+   {
+    "name": "V1 Motor Vehicle Number",
+    "type": "Specify one",
+    "description": "Motor vehicle number assigned to uniquely identify each motor vehicle involved in the crash."
+   },
+   {
+    "name": "V2 Vehicle Identification Number",
+    "type": "Specify one",
+    "description": "A unique combination of 17 alphanumeric characters assigned to a specific motor vehicle designated by the manufacturer."
+   },
+   {
+    "name": "V3 Motor Vehicle Unit Type",
+    "type": "Select one",
+    "description": "The type of unit that applies to this motor vehicle at the time it became an involved vehicle in the crash."
+   },
+   {
+    "name": "V4 Vehicle Owner and Address",
+    "type": "Subfields (2)",
+    "description": "The name and address of the owner of this vehicle. Subfields: Name or Entity (Specify); Address (Specify)."
+   },
+   {
+    "name": "V5 Motor Carrier or Responsible Entity Identification",
+    "type": "Subfields (4)",
+    "description": "The identification number (or numbers) of the business entity, individual, partnership, corporation, or organization responsible for the transportation of people or property. Subfields: U.S."
+   },
+   {
+    "name": "V6 Type of Motor Carrier or Responsible Entity",
+    "type": "Select one",
+    "description": "The type of business entity, individual, partnership, corporation, or organization responsible for the transportation of people or property."
+   },
+   {
+    "name": "V7 Motor Carrier or Responsible Entity Name and Address",
+    "type": "Subfields (2)",
+    "description": "The name and address of the business entity, individual, partnership, corporation, or organization responsible for the transportation of people or property. Subfields: Motor Carrier or Responsible Entity Name (Specify); Motor Carrier or Responsible Entity Address (Specify)."
+   },
+   {
+    "name": "V8 Motor Vehicle Registration State or Country",
+    "type": "Select or Specify one",
+    "description": "The State, commonwealth, territory, Indian Nation, U.S. Government, foreign country, etc., issuing the license plate displayed on the motor vehicle."
+   },
+   {
+    "name": "V9 Motor Vehicle License Plate Number",
+    "type": "Specify one",
+    "description": "The alphanumeric identifier or other characters, exactly as displayed, on the license plate or tag affixed to the motor vehicle."
+   },
+   {
+    "name": "V10 Motor Vehicle Make",
+    "type": "Specify one or select Unknown",
+    "description": "The manufacturer-assigned name applied to a group of motor vehicles."
+   },
+   {
+    "name": "V11 Motor Vehicle Model Year",
+    "type": "Specify one or select Unknown",
+    "description": "The year assigned to a motor vehicle by the manufacturer."
+   },
+   {
+    "name": "V12 Motor Vehicle Model",
+    "type": "Specify one or select Unknown",
+    "description": "The manufacturer-assigned name denoting a family of motor vehicles within a make that have a degree of similarity in construction, such as body, chassis, etc."
+   },
+   {
+    "name": "V13 Motor Vehicle Body Type Category",
+    "type": "Subfields (2)",
+    "description": "The category indicating the general configuration or shape of a motor vehicle distinguished by characteristics such as number of doors, rows of seats, windows, or roof line. Subfields: Body Type Category (select one); Number of Seats, including driver (applicable only for Body Types in Group 2."
+   },
+   {
+    "name": "V14 Power Unit Gross Vehicle Weight Rating",
+    "type": "Select one",
+    "description": "The value specified by the manufacturer as the recommended maximum loaded weight of a single motor vehicle."
+   },
+   {
+    "name": "V15 Cargo Body Type (Power Unit Only)",
+    "type": "Select one",
+    "description": "The primary cargo-carrying capability of this vehicle."
+   },
+   {
+    "name": "V16 Hazardous Materials",
+    "type": "Subfields (5)",
+    "description": "Indication of the hazardous materials identification and class being transported by the motor vehicle, and whether hazardous materials were released. Subfields: Hazardous Materials Present (select one); Placard (select one); 4-Digit Hazardous Materials Identification Number (Specify); Hazardous\u2026"
+   },
+   {
+    "name": "V17 Vehicle Trailing",
+    "type": "Select one",
+    "description": "Identifies whether this vehicle had any attached trailing units or was towing another motor vehicle."
+   },
+   {
+    "name": "V18 Trailer VIN",
+    "type": "Subfields (3)",
+    "description": "A unique combination of alphanumeric characters assigned to each trailer designated by the manufacturer. Subfields: First Trailer (Select or Specify 1); Second Trailer (Select or Specify 1); Third Trailer (Select or Specify 1)."
+   },
+   {
+    "name": "V19 Trailer Body Type",
+    "type": "Subfields (3)",
+    "description": "The primary cargo carrying capability of this trailer. Subfields: First Trailer (select one); Second Trailer (select one); Third Trailer (select one)."
+   },
+   {
+    "name": "V20 Total Occupants in Motor Vehicle",
+    "type": "Specify one",
+    "description": "The total number of injured and uninjured occupants in this motor vehicle involved in the crash, including people in or on the motor vehicle at the time of the crash."
+   },
+   {
+    "name": "V21 Special Use",
+    "type": "Select one",
+    "description": "The type of authorized special use being served by this motor vehicle regardless of whether the use is marked on the vehicle or aligns to the body type, at the time of the crash. For example, a 15-Passenger van being used as a school bus."
+   },
+   {
+    "name": "V22 Bus Use",
+    "type": "Select one",
+    "description": "The common type of bus service this vehicle was being used for at the time of the crash or the primary use for the bus if not in service at the time of the crash."
+   },
+   {
+    "name": "V23 Emergency Response",
+    "type": "Subfields (3)",
+    "description": "Subfield 1 indicates operation of any motor vehicle that is legally authorized by a government authority to respond to emergencies with or without the use of emergency warning equipment, such as a police vehicle, fire truck, or ambulance while engaged in such response."
+   },
+   {
+    "name": "V24 Motor Vehicle Posted or Statutory Speed Limit",
+    "type": "Select or Specify one",
+    "description": "The posted or statutory speed limit for this motor vehicle, just prior to this vehicle\u2019s involvement in the crash."
+   },
+   {
+    "name": "V25 Trafficway Flow",
+    "type": "Select one",
+    "description": "Identifies whether the trafficway associated with this vehicle serves one-way or two-way traffic, just prior to this vehicle\u2019s involvement in the crash."
+   },
+   {
+    "name": "V26 Median Barrier Presence",
+    "type": "Select one",
+    "description": "Identifies whether the trafficway associated with this vehicle included a median barrier, just prior to this vehicle\u2019s involvement in the crash."
+   },
+   {
+    "name": "V27 Number of Open Lanes in Vehicle\u2019s Environment",
+    "type": "Select one or specify number of lanes",
+    "description": "Total number of open lanes in this motor vehicle\u2019s environment, just prior to this vehicle\u2019s involvement in the crash, including through lanes, turn lanes, acceleration or deceleration lanes, HOT or HOV lanes, or any other lanes."
+   },
+   {
+    "name": "V28 Roadway Alignment",
+    "type": "Select one",
+    "description": "The geometric or layout characteristics of the roadway in the direction of travel for this vehicle, just prior to this vehicle\u2019s involvement in the crash."
+   },
+   {
+    "name": "V29 Roadway Grade",
+    "type": "Select one",
+    "description": "The inclination characteristics of the roadway in the direction of travel for this vehicle, just prior to this vehicle\u2019s involvement in the crash."
+   },
+   {
+    "name": "V30 Roadway Surface Condition",
+    "type": "Select one",
+    "description": "The roadway surface condition for this vehicle, just prior to this vehicle\u2019s involvement in the crash."
+   },
+   {
+    "name": "V31 Traffic Control Device",
+    "type": "Select one",
+    "description": "The traffic control device (TCD) applicable to this motor vehicle, just prior to this vehicle\u2019s involvement in the crash."
+   },
+   {
+    "name": "V32 Device Functioning",
+    "type": "Select one",
+    "description": "Identifies whether the traffic control device recorded for this vehicle in the data element TRAFFIC CONTROL DEVICE was functioning properly just prior to this vehicle\u2019s involvement in the crash."
+   },
+   {
+    "name": "V33 Vehicle Status Prior to Critical Event",
+    "type": "Select one",
+    "description": "The controlled maneuver for this motor vehicle, just prior to this vehicle\u2019s involvement in the crash."
+   },
+   {
+    "name": "V34 Initial Contact Point",
+    "type": "Select one",
+    "description": "The approximate contact point on this vehicle associated with this vehicle\u2019s first harmful event."
+   },
+   {
+    "name": "V35 Damaged Areas",
+    "type": "Multi-select",
+    "description": "Identifies all areas damaged on the vehicle as a result of this crash."
+   },
+   {
+    "name": "V36 Extent of Damage",
+    "type": "Select one",
+    "description": "Identifies the extent to which the damage identified in DAMAGED AREAS affects the vehicle\u2019s operability rather than the cost to repair."
+   },
+   {
+    "name": "V37 Sequence of Events",
+    "type": "Multi-select",
+    "description": "Events in sequence related to this motor vehicle, including non-harmful events, non-collision harmful events, and collision events."
+   },
+   {
+    "name": "V38 Most Harmful Event for This Motor Vehicle",
+    "type": "Select one",
+    "description": "The event that resulted in the most severe injury or, if no injury, the greatest property damage involving this motor vehicle."
+   },
+   {
+    "name": "V39 Hit-and-Run",
+    "type": "Select one",
+    "description": "Refers to cases where the motor vehicle in-transport is a contact vehicle in the crash and either the vehicle or the driver departs the scene without the driver stopping to render aid or report the crash."
+   },
+   {
+    "name": "V40 Vehicle Towed",
+    "type": "Select one",
+    "description": "Identifies whether the vehicle was towed or carried from the scene of the crash."
+   },
+   {
+    "name": "V41 Contributing Circumstances, Motor Vehicle",
+    "type": "Multi-select",
+    "description": "Pre-existing motor vehicle defects or maintenance conditions that may have contributed to the occurrence or severity of the crash."
+   },
+   {
+    "name": "V42 Vehicle Underride or Override",
+    "type": "Select one",
+    "description": "Indicates whether this vehicle experienced an underride or override with another vehicle during the crash. An underride refers to this motor vehicle sliding under another motor vehicle during a crash. An override refers to this motor vehicle riding up over another motor vehicle during a crash."
+   },
+   {
+    "name": "V43 Fire Occurrence",
+    "type": "Select one",
+    "description": "Identifies whether a fire in any way related to the crash occurred in this vehicle."
+   },
+   {
+    "name": "V44 Related Factors \u2013 Vehicle Level",
+    "type": "Multi-select",
+    "description": "Records factors related to this vehicle to identify and track ongoing or emerging issues associated with these vehicle characteristics."
+   },
+   {
+    "name": "D1 Driver Presence",
+    "type": "Select one",
+    "description": "Identifies whether a driver was present in this vehicle at the time of the crash."
+   },
+   {
+    "name": "D2 Driver Address",
+    "type": "Attribute values",
+    "description": "No selection rule stated. The address of the driver of this vehicle."
+   },
+   {
+    "name": "D3 Driver License Jurisdiction",
+    "type": "Subfields (2)",
+    "description": "The geographic or political entity issuing a driver license to this person. Subfields: Type (select one); ANSI State FIPS or ISO 3166 Country Code (Specify)."
+   },
+   {
+    "name": "D4 Driver License Number",
+    "type": "Specify",
+    "description": "A unique set of alphanumeric characters assigned by the authorizing agent issuing a driver license to this person."
+   },
+   {
+    "name": "D5 Speeding-Related",
+    "type": "Select one",
+    "description": "The investigating officer indicates that the driver involved in the crash was speeding."
+   },
+   {
+    "name": "D6 Driver Distraction",
+    "type": "Multi-select",
+    "description": "Identifies this driver\u2019s attention to driving prior to the driver\u2019s realization of an impending critical event or just prior to impact if realization of an impending critical event does not occur."
+   },
+   {
+    "name": "D7 Attempted Avoidance Maneuver",
+    "type": "Select one",
+    "description": "Identifies movements or actions taken by the driver after the driver realizes there is an impending danger. This element assesses what the driver\u2019s action was in response to this realization."
+   },
+   {
+    "name": "D8 Driver\u2019s Vision Obscured by",
+    "type": "Multi-select",
+    "description": "This data element records impediments to a driver\u2019s visual field."
+   },
+   {
+    "name": "D9 Citations Issued",
+    "type": "Multi-select",
+    "description": "The violations, citations, or infractions of the State\u2019s vehicle code issued to this driver in this crash, regardless of whether the driver survived the crash."
+   },
+   {
+    "name": "D10 Related Factors \u2013 Driver Level",
+    "type": "Multi-select",
+    "description": "Identifies factors related to this driver."
+   },
+   {
+    "name": "P1 Person Number",
+    "type": "Attribute values",
+    "description": "No selection rule stated. Identifies a number for the motor vehicle occupant in the motor vehicle they occupied, or for each non-motorist, in consecutive order."
+   },
+   {
+    "name": "P2 Name of Person Involved",
+    "type": "Specify or select Unknown",
+    "description": "The full name of the person involved in the crash."
+   },
+   {
+    "name": "P3 Date of Birth",
+    "type": "Specify or select Unknown",
+    "description": "The year, month, and day of birth of the person involved in this crash."
+   },
+   {
+    "name": "P4 Sex",
+    "type": "Select one",
+    "description": "The sex of the person involved in the crash."
+   },
+   {
+    "name": "P5 Person Type",
+    "type": "Select one",
+    "description": "The role of this person involved in the crash."
+   },
+   {
+    "name": "P6 Special Function",
+    "type": "Select one",
+    "description": "Identifies if this person involved in the crash was performing a unique function at the time of the crash."
+   },
+   {
+    "name": "P7 Injury Status",
+    "type": "Select one",
+    "description": "The injury severity level for a person involved in a crash, using the KABCO scale."
+   },
+   {
+    "name": "P8 Transported to First Medical Facility by",
+    "type": "Select one",
+    "description": "Type of unit providing transport to the first medical facility receiving the patient."
+   },
+   {
+    "name": "P9 EMS Response Agency",
+    "type": "Subfields (2)",
+    "description": "The agency identifier and run number of the EMS agency that responded to this crash and attended to this person. Subfields: EMS Response Agency Identifier (Specify); EMS Response Run Number (Specify)."
+   },
+   {
+    "name": "P10 Medical Facility Receiving Patient",
+    "type": "Specify",
+    "description": "Name of the first hospital, clinic, or trauma center that received the patient for treatment."
+   },
+   {
+    "name": "P11 EMS UUID",
+    "type": "Attribute values",
+    "description": "No selection rule stated. The Universally Unique Identifier of the EMS patient care report for this person."
+   },
+   {
+    "name": "P12 Occupant\u2019s Motor Vehicle Unit Number",
+    "type": "Specify one",
+    "description": "The unique number assigned for this crash to the motor vehicle in which this person was an occupant."
+   },
+   {
+    "name": "P13 Seating Position",
+    "type": "Select one",
+    "description": "The location for this occupant in, on, or outside of the motor vehicle prior to the first event in the SEQUENCE OF EVENTS."
+   },
+   {
+    "name": "P14 Restraint System Use",
+    "type": "Subfields (2)",
+    "description": "The restraint equipment in use by the occupant and any indication of improper use of the available restraint system at the time of the crash. Subfields: Type of Restraint System in Use (select one); Indication of Restraint System Misuse (select one)."
+   },
+   {
+    "name": "P15 Helmet Use",
+    "type": "Subfields (2)",
+    "description": "Records the type of helmet in use, and any indications of misuse of the helmet, by motor vehicle occupants of MOTOR VEHICLE BODY TYPE CATEGORY All-Terrain Vehicle or All- Terrain Cycle (ATV or ATC), Snowmobile, Moped, Multipurpose Off-Highway Utility Vehicle (MOHUV) or Recreational Off-Highway\u2026"
+   },
+   {
+    "name": "P16 Air Bag Deployed",
+    "type": "Select one",
+    "description": "Deployment status of an air bag relative to the position in the vehicle for this occupant."
+   },
+   {
+    "name": "P17 Ejection",
+    "type": "Select one",
+    "description": "Identifies if the occupant was completely or partially thrown from the interior of the motor vehicle as a result of this crash."
+   },
+   {
+    "name": "P18 Law Enforcement Suspects Alcohol Involvement",
+    "type": "Select one",
+    "description": "This data element reflects the judgment of law enforcement as to whether alcohol was suspected or not for this person."
+   },
+   {
+    "name": "P19 Alcohol Test",
+    "type": "Subfields (3)",
+    "description": "Identifies (1) if a chemical test for the presence of alcohol (ethanol) was given to this person, (2) the bodily tissue or fluid used to perform a chemical test for the presence of alcohol (ethanol) in this person, and (3) the result of a chemical test for the presence of alcohol (ethanol) in this\u2026"
+   },
+   {
+    "name": "P20 Law Enforcement Suspects Drug Involvement",
+    "type": "Select one",
+    "description": "This data element reflects the judgment of law enforcement as to whether drugs were suspected or not for this person."
+   },
+   {
+    "name": "NM1 Vehicle Number of Motor Vehicle Striking Non-Motorist",
+    "type": "Specify one",
+    "description": "Number assigned to identify the first motor vehicle that struck the non-motorist in the crash."
+   },
+   {
+    "name": "NM2 Non-Motorist Status Prior to Critical Event",
+    "type": "Multi-select",
+    "description": "The status of the non-motorist immediately prior to the crash."
+   },
+   {
+    "name": "NM3 Non-Motorist Distraction",
+    "type": "Select one",
+    "description": "Identifies this non-motorist\u2019s attention prior to the non-motorist\u2019s involvement in this crash. This element reports on the presence of any distractions that may or may not have contributed to the crash."
+   },
+   {
+    "name": "NM4 Non-Motorist Contributing Circumstances",
+    "type": "Multi-select",
+    "description": "The actions or circumstances of the non-motorist at the time of the crash that may have contributed to the crash."
+   },
+   {
+    "name": "NM5 Non-Motorist at Intersection",
+    "type": "Select one",
+    "description": "The location of the non-motorist with respect to an intersection at the time of the crash."
+   },
+   {
+    "name": "NM6 Non-Motorist in Crosswalk",
+    "type": "Select one",
+    "description": "The location of the non-motorist with respect to a crosswalk at the time of the crash."
+   },
+   {
+    "name": "NM7 Non-Motorist Specific Location",
+    "type": "Select one",
+    "description": "The location of the non-motorist with respect to the trafficway at the time of the crash."
+   },
+   {
+    "name": "NM8 Non-Motorist Safety Equipment",
+    "type": "Subfields (6)",
+    "description": "The safety equipment used by this non-motorist. Subfields: Non-Motorist Helmet Use (select one); Non-Motorist Use of Protective Pads (select one); Non-Motorist Use of Other Protective Safety Equipment (select one); Non-Motorist Use of Reflective Clothing or Carried Item (select one); Non-Motorist\u2026"
+   },
+   {
+    "name": "NM9 Non-Motorist Device Type",
+    "type": "Subfields (2)",
+    "description": "The type of transport device and motorization of the device operated by the non-motorist. Subfields: Device Type (select one); Device Motorization (select one)."
+   },
+   {
+    "name": "NM10 Non-Motorist Traffic Control Device",
+    "type": "Select one",
+    "description": "The traffic control device applicable to this non-motorist at the time of the crash."
+   }
+  ]
+ },
+ {
+  "slug": "fhwa-nbi",
+  "kind": "standard",
+  "platform": "manual",
+  "accessUrl": "https://www.fhwa.dot.gov/bridge/nbi/format.cfm",
+  "title": "National Bridge Inventory (NBI) \u2014 published ASCII/delimited record",
+  "publisher": "Federal Highway Administration (FHWA), U.S. DOT",
+  "jurisdiction": "US",
+  "recordDescription": "Inventory and condition record for each highway bridge in the U.S.: location, route, structure type, dimensions, traffic, condition ratings, appraisal, inspection and improvement data.",
+  "landingPage": "https://www.fhwa.dot.gov/bridge/nbi/ascii2025.cfm",
+  "license": "U.S. Government work; no license stated on the page",
+  "updateFrequency": "version NBI Record Format (Recording and Coding Guide items, 445-character record) as used in the 2025 delimited files",
+  "fields": [
+   {
+    "name": "STATE_CODE_001",
+    "type": "3/N",
+    "label": "Item 1 State Code",
+    "description": "NBI Item 1: State Code. Record position 1 - 3, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "STRUCTURE_NUMBER_008",
+    "type": "15/AN",
+    "label": "Item 8 Structure Number",
+    "description": "NBI Item 8: Structure Number. Record position 4 - 18, length/type 15/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "RECORD_TYPE_005A",
+    "type": "1/AN",
+    "label": "Item 5A Record Type",
+    "description": "NBI Item 5A: Record Type. Record position 19, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "ROUTE_PREFIX_005B",
+    "type": "1/N",
+    "label": "Item 5B Route Signing Prefix",
+    "description": "NBI Item 5B: Route Signing Prefix. Record position 20, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "SERVICE_LEVEL_005C",
+    "type": "1/N",
+    "label": "Item 5C Designated Level of Service",
+    "description": "NBI Item 5C: Designated Level of Service. Record position 21, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "ROUTE_NUMBER_005D",
+    "type": "5/AN",
+    "label": "Item 5D Route Number",
+    "description": "NBI Item 5D: Route Number. Record position 22 - 26, length/type 5/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "DIRECTION_005E",
+    "type": "1/N",
+    "label": "Item 5E Directional Suffix",
+    "description": "NBI Item 5E: Directional Suffix. Record position 27, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "HIGHWAY_DISTRICT_002",
+    "type": "2/AN",
+    "label": "Item 2 Highway Agency District",
+    "description": "NBI Item 2: Highway Agency District. Record position 28 - 29, length/type 2/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "COUNTY_CODE_003",
+    "type": "3/N",
+    "label": "Item 3 County (Parish) Code",
+    "description": "NBI Item 3: County (Parish) Code. Record position 30 - 32, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "PLACE_CODE_004",
+    "type": "5/N",
+    "label": "Item 4 Place Code",
+    "description": "NBI Item 4: Place Code. Record position 33 - 37, length/type 5/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "FEATURES_DESC_006A",
+    "type": "24/AN",
+    "label": "Item 6A Features Intersected",
+    "description": "NBI Item 6A: Features Intersected. Record position 38 - 61, length/type 24/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "CRITICAL_FACILITY_006B",
+    "type": "1/AN",
+    "label": "Item 6B Critical Facility Indicator",
+    "description": "NBI Item 6B: Critical Facility Indicator. Record position 62, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "FACILITY_CARRIED_007",
+    "type": "18/AN",
+    "label": "Item 7 Facility Carried By Structure",
+    "description": "NBI Item 7: Facility Carried By Structure. Record position 63 - 80, length/type 18/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "LOCATION_009",
+    "type": "25/AN",
+    "label": "Item 9 Location",
+    "description": "NBI Item 9: Location. Record position 81 - 105, length/type 25/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "MIN_VERT_CLR_010",
+    "type": "4/N",
+    "label": "Item 10 Inventory Rte, Min Vert Clearance",
+    "description": "NBI Item 10: Inventory Rte, Min Vert Clearance. Record position 106 - 109, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "KILOPOINT_011",
+    "type": "7/N",
+    "label": "Item 11 Kilometerpoint",
+    "description": "NBI Item 11: Kilometerpoint. Record position 110 - 116, length/type 7/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "BASE_HWY_NETWORK_012",
+    "type": "1/N",
+    "label": "Item 12 Base Highway Network",
+    "description": "NBI Item 12: Base Highway Network. Record position 117, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "LRS_INV_ROUTE_013A",
+    "type": "10/AN",
+    "label": "Item 13A LRS Inventory Route",
+    "description": "NBI Item 13A: LRS Inventory Route. Record position 118 - 127, length/type 10/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "SUBROUTE_NO_013B",
+    "type": "2/N",
+    "label": "Item 13B Subroute Number",
+    "description": "NBI Item 13B: Subroute Number. Record position 128 - 129, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "LAT_016",
+    "type": "8/N",
+    "label": "Item 16 Latitude",
+    "description": "NBI Item 16: Latitude. Record position 130 - 137, length/type 8/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "LONG_017",
+    "type": "9/N",
+    "label": "Item 17 Longitude",
+    "description": "NBI Item 17: Longitude. Record position 138 - 146, length/type 9/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "DETOUR_KILOS_019",
+    "type": "3/N",
+    "label": "Item 19 Bypass/Detour Length",
+    "description": "NBI Item 19: Bypass/Detour Length. Record position 147 - 149, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "TOLL_020",
+    "type": "1/N",
+    "label": "Item 20 Toll",
+    "description": "NBI Item 20: Toll. Record position 150, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "MAINTENANCE_021",
+    "type": "2/N",
+    "label": "Item 21 Maintenance Responsibility",
+    "description": "NBI Item 21: Maintenance Responsibility. Record position 151 - 152, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "OWNER_022",
+    "type": "2/N",
+    "label": "Item 22 Owner",
+    "description": "NBI Item 22: Owner. Record position 153 - 154, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "FUNCTIONAL_CLASS_026",
+    "type": "2/N",
+    "label": "Item 26 Functional Class Of Inventory Rte.",
+    "description": "NBI Item 26: Functional Class Of Inventory Rte. Record position 155 - 156, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "YEAR_BUILT_027",
+    "type": "4/N",
+    "label": "Item 27 Year Built",
+    "description": "NBI Item 27: Year Built. Record position 157 - 160, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "TRAFFIC_LANES_ON_028A",
+    "type": "2/N",
+    "label": "Item 28A Lanes On Structure",
+    "description": "NBI Item 28A: Lanes On Structure. Record position 161 - 162, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "TRAFFIC_LANES_UND_028B",
+    "type": "2/N",
+    "label": "Item 28B Lanes Under Structure",
+    "description": "NBI Item 28B: Lanes Under Structure. Record position 163 - 164, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "ADT_029",
+    "type": "6/N",
+    "label": "Item 29 Average Daily Traffic",
+    "description": "NBI Item 29: Average Daily Traffic. Record position 165 - 170, length/type 6/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "YEAR_ADT_030",
+    "type": "4/N",
+    "label": "Item 30 Year Of Average Daily Traffic",
+    "description": "NBI Item 30: Year Of Average Daily Traffic. Record position 171 - 174, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "DESIGN_LOAD_031",
+    "type": "1/N",
+    "label": "Item 31 Design Load",
+    "description": "NBI Item 31: Design Load. Record position 175, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "APPR_WIDTH_MT_032",
+    "type": "4/N",
+    "label": "Item 32 Approach Roadway Width",
+    "description": "NBI Item 32: Approach Roadway Width. Record position 176 - 179, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "MEDIAN_CODE_033",
+    "type": "1/N",
+    "label": "Item 33 Bridge Median",
+    "description": "NBI Item 33: Bridge Median. Record position 180, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "DEGREES_SKEW_034",
+    "type": "2/N",
+    "label": "Item 34 Skew",
+    "description": "NBI Item 34: Skew. Record position 181 - 182, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "STRUCTURE_FLARED_035",
+    "type": "1/N",
+    "label": "Item 35 Structure Flared",
+    "description": "NBI Item 35: Structure Flared. Record position 183, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "RAILINGS_036A",
+    "type": "1/AN",
+    "label": "Item 36A Bridge Railings",
+    "description": "NBI Item 36A: Bridge Railings. Record position 184, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "TRANSITIONS_036B",
+    "type": "1/AN",
+    "label": "Item 36B Transitions",
+    "description": "NBI Item 36B: Transitions. Record position 185, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "APPR_RAIL_036C",
+    "type": "1/AN",
+    "label": "Item 36C Approach Guardrail",
+    "description": "NBI Item 36C: Approach Guardrail. Record position 186, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "APPR_RAIL_END_036D",
+    "type": "1/AN",
+    "label": "Item 36D Approach Guardrail Ends",
+    "description": "NBI Item 36D: Approach Guardrail Ends. Record position 187, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "HISTORY_037",
+    "type": "1/N",
+    "label": "Item 37 Historical significance",
+    "description": "NBI Item 37: Historical significance. Record position 188, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "NAVIGATION_038",
+    "type": "1/AN",
+    "label": "Item 38 Navigation Control",
+    "description": "NBI Item 38: Navigation Control. Record position 189, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "NAV_VERT_CLR_MT_039",
+    "type": "4/N",
+    "label": "Item 39 Navigation Vertical Clearance",
+    "description": "NBI Item 39: Navigation Vertical Clearance. Record position 190 - 193, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "NAV_HORR_CLR_MT_040",
+    "type": "5/N",
+    "label": "Item 40 Navigation Horizontal Clearance",
+    "description": "NBI Item 40: Navigation Horizontal Clearance. Record position 194 - 198, length/type 5/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "OPEN_CLOSED_POSTED_041",
+    "type": "1/AN",
+    "label": "Item 41 Structure Open/Posted/Closed",
+    "description": "NBI Item 41: Structure Open/Posted/Closed. Record position 199, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "SERVICE_ON_042A",
+    "type": "1/N",
+    "label": "Item 42A Type of Service On Bridge",
+    "description": "NBI Item 42A: Type of Service On Bridge. Record position 200, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "SERVICE_UND_042B",
+    "type": "1/N",
+    "label": "Item 42B Type of Service Under Bridge",
+    "description": "NBI Item 42B: Type of Service Under Bridge. Record position 201, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "STRUCTURE_KIND_043A",
+    "type": "1/N",
+    "label": "Item 43A Kind of Material/Design",
+    "description": "NBI Item 43A: Kind of Material/Design. Record position 202, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "STRUCTURE_TYPE_043B",
+    "type": "2/N",
+    "label": "Item 43B Type of Design/Construction",
+    "description": "NBI Item 43B: Type of Design/Construction. Record position 203 - 204, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "APPR_KIND_044A",
+    "type": "1/N",
+    "label": "Item 44A Kind of Material/Design",
+    "description": "NBI Item 44A: Kind of Material/Design. Record position 205, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "APPR_TYPE_044B",
+    "type": "2/N",
+    "label": "Item 44B Type of Design/Construction",
+    "description": "NBI Item 44B: Type of Design/Construction. Record position 206 - 207, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "MAIN_UNIT_SPANS_045",
+    "type": "3/N",
+    "label": "Item 45 Number Of Spans In Main Unit",
+    "description": "NBI Item 45: Number Of Spans In Main Unit. Record position 208 - 210, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "APPR_SPANS_046",
+    "type": "4/N",
+    "label": "Item 46 Number Of Approach Spans",
+    "description": "NBI Item 46: Number Of Approach Spans. Record position 211 - 214, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "HORR_CLR_MT_047",
+    "type": "3/N",
+    "label": "Item 47 Inventory Rte Total Horz Clearance",
+    "description": "NBI Item 47: Inventory Rte Total Horz Clearance. Record position 215 - 217, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "MAX_SPAN_LEN_MT_048",
+    "type": "5/N",
+    "label": "Item 48 Length Of Maximum Span",
+    "description": "NBI Item 48: Length Of Maximum Span. Record position 218 - 222, length/type 5/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "STRUCTURE_LEN_MT_049",
+    "type": "6/N",
+    "label": "Item 49 Structure Length",
+    "description": "NBI Item 49: Structure Length. Record position 223 - 228, length/type 6/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "LEFT_CURB_MT_050A",
+    "type": "3/N",
+    "label": "Item 50A Left Curb/Sidewalk Width",
+    "description": "NBI Item 50A: Left Curb/Sidewalk Width. Record position 229 - 231, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "RIGHT_CURB_MT_050B",
+    "type": "3/N",
+    "label": "Item 50B Right Curb/Sidewalk Width",
+    "description": "NBI Item 50B: Right Curb/Sidewalk Width. Record position 232 - 234, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "ROADWAY_WIDTH_MT_051",
+    "type": "4/N",
+    "label": "Item 51 Bridge Roadway Width Curb-To-Curb",
+    "description": "NBI Item 51: Bridge Roadway Width Curb-To-Curb. Record position 235 - 238, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "DECK_WIDTH_MT_052",
+    "type": "4/N",
+    "label": "Item 52 Deck Width, Out-To-Out",
+    "description": "NBI Item 52: Deck Width, Out-To-Out. Record position 239 - 242, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "VERT_CLR_OVER_MT_053",
+    "type": "4/N",
+    "label": "Item 53 Min Vert Clear Over Bridge Roadway",
+    "description": "NBI Item 53: Min Vert Clear Over Bridge Roadway. Record position 243 - 246, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "VERT_CLR_UND_REF_054A",
+    "type": "1/AN",
+    "label": "Item 54A Reference Feature",
+    "description": "NBI Item 54A: Reference Feature. Record position 247, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "VERT_CLR_UND_054B",
+    "type": "4/N",
+    "label": "Item 54B Minimum Vertical Underclearance",
+    "description": "NBI Item 54B: Minimum Vertical Underclearance. Record position 248 - 251, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "LAT_UND_REF_055A",
+    "type": "1/AN",
+    "label": "Item 55A Reference Feature",
+    "description": "NBI Item 55A: Reference Feature. Record position 252, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "LAT_UND_MT_055B",
+    "type": "3/N",
+    "label": "Item 55B Minimum Lateral Underclearance",
+    "description": "NBI Item 55B: Minimum Lateral Underclearance. Record position 253 - 255, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "LEFT_LAT_UND_MT_056",
+    "type": "3/N",
+    "label": "Item 56 Min Lateral Underclear On Left",
+    "description": "NBI Item 56: Min Lateral Underclear On Left. Record position 256 - 258, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "DECK_COND_058",
+    "type": "1/AN",
+    "label": "Item 58 Deck",
+    "description": "NBI Item 58: Deck. Record position 259, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "SUPERSTRUCTURE_COND_059",
+    "type": "1/AN",
+    "label": "Item 59 Superstructure",
+    "description": "NBI Item 59: Superstructure. Record position 260, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "SUBSTRUCTURE_COND_060",
+    "type": "1/AN",
+    "label": "Item 60 Substructure",
+    "description": "NBI Item 60: Substructure. Record position 261, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "CHANNEL_COND_061",
+    "type": "1/AN",
+    "label": "Item 61 Channel/Channel Protection",
+    "description": "NBI Item 61: Channel/Channel Protection. Record position 262, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "CULVERT_COND_062",
+    "type": "1/AN",
+    "label": "Item 62 Culverts",
+    "description": "NBI Item 62: Culverts. Record position 263, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "OPR_RATING_METH_063",
+    "type": "1/N",
+    "label": "Item 63 Method Used To Determine Operating Rating",
+    "description": "NBI Item 63: Method Used To Determine Operating Rating. Record position 264, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "OPERATING_RATING_064",
+    "type": "3/N",
+    "label": "Item 64 Operating Rating",
+    "description": "NBI Item 64: Operating Rating. Record position 265 - 267, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "INV_RATING_METH_065",
+    "type": "1/N",
+    "label": "Item 65 Method Used To Determine Inventory Rating",
+    "description": "NBI Item 65: Method Used To Determine Inventory Rating. Record position 268, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "INVENTORY_RATING_066",
+    "type": "3/N",
+    "label": "Item 66 Inventory Rating",
+    "description": "NBI Item 66: Inventory Rating. Record position 269 - 271, length/type 3/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "STRUCTURAL_EVAL_067",
+    "type": "1/AN",
+    "label": "Item 67 Structural Evaluation",
+    "description": "NBI Item 67: Structural Evaluation. Record position 272, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "DECK_GEOMETRY_EVAL_068",
+    "type": "1/AN",
+    "label": "Item 68 Deck Geometry",
+    "description": "NBI Item 68: Deck Geometry. Record position 273, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "UNDCLRENCE_EVAL_069",
+    "type": "1/AN",
+    "label": "Item 69 Underclear, Vertical & Horizontal",
+    "description": "NBI Item 69: Underclear, Vertical & Horizontal. Record position 274, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "POSTING_EVAL_070",
+    "type": "1/N",
+    "label": "Item 70 Bridge Posting",
+    "description": "NBI Item 70: Bridge Posting. Record position 275, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "WATERWAY_EVAL_071",
+    "type": "1/AN",
+    "label": "Item 71 Waterway Adequacy",
+    "description": "NBI Item 71: Waterway Adequacy. Record position 276, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "APPR_ROAD_EVAL_072",
+    "type": "1/AN",
+    "label": "Item 72 Approach Roadway Alignment",
+    "description": "NBI Item 72: Approach Roadway Alignment. Record position 277, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "WORK_PROPOSED_075A",
+    "type": "2/N",
+    "label": "Item 75A Type of Work Proposed",
+    "description": "NBI Item 75A: Type of Work Proposed. Record position 278 - 279, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "WORK_DONE_BY_075B",
+    "type": "1/AN",
+    "label": "Item 75B Work Done By",
+    "description": "NBI Item 75B: Work Done By. Record position 280, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "IMP_LEN_MT_076",
+    "type": "6/N",
+    "label": "Item 76 Length Of Structure Improvement",
+    "description": "NBI Item 76: Length Of Structure Improvement. Record position 281 - 286, length/type 6/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "DATE_OF_INSPECT_090",
+    "type": "4/N",
+    "label": "Item 90 Inspection Date",
+    "description": "NBI Item 90: Inspection Date. Record position 287 - 290, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "INSPECT_FREQ_MONTHS_091",
+    "type": "2/N",
+    "label": "Item 91 Designated Inspection Frequency",
+    "description": "NBI Item 91: Designated Inspection Frequency. Record position 291 - 292, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "FRACTURE_092A",
+    "type": "3/AN",
+    "label": "Item 92A Fracture Critical Details",
+    "description": "NBI Item 92A: Fracture Critical Details. Record position 293 - 295, length/type 3/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "UNDWATER_LOOK_SEE_092B",
+    "type": "3/AN",
+    "label": "Item 92B Underwater Inspection",
+    "description": "NBI Item 92B: Underwater Inspection. Record position 296 - 298, length/type 3/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "SPEC_INSPECT_092C",
+    "type": "3/AN",
+    "label": "Item 92C Other Special Inspection",
+    "description": "NBI Item 92C: Other Special Inspection. Record position 299 - 301, length/type 3/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "FRACTURE_LAST_DATE_093A",
+    "type": "4/AN",
+    "label": "Item 93A Fracture Critical Details Date",
+    "description": "NBI Item 93A: Fracture Critical Details Date. Record position 302 - 305, length/type 4/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "UNDWATER_LAST_DATE_093B",
+    "type": "4/AN",
+    "label": "Item 93B Underwater Inspection Date",
+    "description": "NBI Item 93B: Underwater Inspection Date. Record position 306 - 309, length/type 4/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "SPEC_LAST_DATE_093C",
+    "type": "4/AN",
+    "label": "Item 93C Other Special Inspection Date",
+    "description": "NBI Item 93C: Other Special Inspection Date. Record position 310 - 313, length/type 4/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "BRIDGE_IMP_COST_094",
+    "type": "6/N",
+    "label": "Item 94 Bridge Improvement Cost",
+    "description": "NBI Item 94: Bridge Improvement Cost. Record position 314 - 319, length/type 6/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "ROADWAY_IMP_COST_095",
+    "type": "6/N",
+    "label": "Item 95 Roadway Improvement Cost",
+    "description": "NBI Item 95: Roadway Improvement Cost. Record position 320 - 325, length/type 6/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "TOTAL_IMP_COST_096",
+    "type": "6/N",
+    "label": "Item 96 Total Project Cost",
+    "description": "NBI Item 96: Total Project Cost. Record position 326 - 331, length/type 6/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "YEAR_OF_IMP_097",
+    "type": "4/N",
+    "label": "Item 97 Year Of Improvement Cost Estimate",
+    "description": "NBI Item 97: Year Of Improvement Cost Estimate. Record position 332 - 335, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "OTHER_STATE_CODE_098A",
+    "type": "3/AN",
+    "label": "Item 98A Neighboring State Code",
+    "description": "NBI Item 98A: Neighboring State Code. Record position 336 - 338, length/type 3/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "OTHER_STATE_PCNT_098B",
+    "type": "2/N",
+    "label": "Item 98B Percent Responsibility",
+    "description": "NBI Item 98B: Percent Responsibility. Record position 339 - 340, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "OTHR_STATE_STRUC_NO_099",
+    "type": "15/AN",
+    "label": "Item 99 Border Bridge Structure Number",
+    "description": "NBI Item 99: Border Bridge Structure Number. Record position 341 - 355, length/type 15/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "STRAHNET_HIGHWAY_100",
+    "type": "1/N",
+    "label": "Item 100 STRAHNET Highway Designation",
+    "description": "NBI Item 100: STRAHNET Highway Designation. Record position 356, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "PARALLEL_STRUCTURE_101",
+    "type": "1/AN",
+    "label": "Item 101 Parallel Structure Designation",
+    "description": "NBI Item 101: Parallel Structure Designation. Record position 357, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "TRAFFIC_DIRECTION_102",
+    "type": "1/N",
+    "label": "Item 102 Direction Of Traffic",
+    "description": "NBI Item 102: Direction Of Traffic. Record position 358, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "TEMP_STRUCTURE_103",
+    "type": "1/AN",
+    "label": "Item 103 Temporary Structure Designation",
+    "description": "NBI Item 103: Temporary Structure Designation. Record position 359, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "HIGHWAY_SYSTEM_104",
+    "type": "1/N",
+    "label": "Item 104 Highway System Of Inventory Route",
+    "description": "NBI Item 104: Highway System Of Inventory Route. Record position 360, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "FEDERAL_LANDS_105",
+    "type": "1/N",
+    "label": "Item 105 Federal Lands Highways",
+    "description": "NBI Item 105: Federal Lands Highways. Record position 361, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "YEAR_RECONSTRUCTED_106",
+    "type": "4/N",
+    "label": "Item 106 Year Reconstructed",
+    "description": "NBI Item 106: Year Reconstructed. Record position 362 - 365, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "DECK_STRUCTURE_TYPE_107",
+    "type": "1/AN",
+    "label": "Item 107 Deck Structure Type",
+    "description": "NBI Item 107: Deck Structure Type. Record position 366, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "SURFACE_TYPE_108A",
+    "type": "1/AN",
+    "label": "Item 108A Type of Wearing Surface",
+    "description": "NBI Item 108A: Type of Wearing Surface. Record position 367, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "MEMBRANE_TYPE_108B",
+    "type": "1/AN",
+    "label": "Item 108B Type of Membrane",
+    "description": "NBI Item 108B: Type of Membrane. Record position 368, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "DECK_PROTECTION_108C",
+    "type": "1/AN",
+    "label": "Item 108C Deck Protection",
+    "description": "NBI Item 108C: Deck Protection. Record position 369, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "PERCENT_ADT_TRUCK_109",
+    "type": "2/N",
+    "label": "Item 109 AVERAGE DAILY TRUCK TRAFFIC",
+    "description": "NBI Item 109: AVERAGE DAILY TRUCK TRAFFIC. Record position 370 - 371, length/type 2/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "NATIONAL_NETWORK_110",
+    "type": "1/N",
+    "label": "Item 110 DESIGNATED NATIONAL NETWORK",
+    "description": "NBI Item 110: DESIGNATED NATIONAL NETWORK. Record position 372, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "PIER_PROTECTION_111",
+    "type": "1/N",
+    "label": "Item 111 PIER/ABUTMENT PROTECTION",
+    "description": "NBI Item 111: PIER/ABUTMENT PROTECTION. Record position 373, length/type 1/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "BRIDGE_LEN_IND_112",
+    "type": "1/AN",
+    "label": "Item 112 NBIS BRIDGE LENGTH",
+    "description": "NBI Item 112: NBIS BRIDGE LENGTH. Record position 374, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "SCOUR_CRITICAL_113",
+    "type": "1/AN",
+    "label": "Item 113 SCOUR CRITICAL BRIDGES",
+    "description": "NBI Item 113: SCOUR CRITICAL BRIDGES. Record position 375, length/type 1/AN per the FHWA NBI Record Format."
+   },
+   {
+    "name": "FUTURE_ADT_114",
+    "type": "6/N",
+    "label": "Item 114 FUTURE AVERAGE DAILY TRAFFIC",
+    "description": "NBI Item 114: FUTURE AVERAGE DAILY TRAFFIC. Record position 376 - 381, length/type 6/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "YEAR_OF_FUTURE_ADT_115",
+    "type": "4/N",
+    "label": "Item 115 YEAR OF FUTURE AVG DAILY TRAFFIC",
+    "description": "NBI Item 115: YEAR OF FUTURE AVG DAILY TRAFFIC. Record position 382 - 385, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "MIN_NAV_CLR_MT_116",
+    "type": "4/N",
+    "label": "Item 116 MINIMUM NAVIGATION VERTICAL CLEARANCE VERTICAL LIFT BRIDGE",
+    "description": "NBI Item 116: MINIMUM NAVIGATION VERTICAL CLEARANCE VERTICAL LIFT BRIDGE. Record position 386 - 389, length/type 4/N per the FHWA NBI Record Format."
+   },
+   {
+    "name": "FED_AGENCY",
+    "type": "1/AN",
+    "label": "Federal Agency Indicator",
+    "description": "Federal Agency Indicator. Record position 390, length/type 1/AN per the FHWA NBI Record Format. Download-only field, not part of the NBI submittal file."
+   },
+   {
+    "name": "SUBMITTED_BY",
+    "type": "2/N",
+    "label": "Submitted By (State Code or Owner Code)",
+    "description": "Submitted By (State Code or Owner Code). Record position 391-392, length/type 2/N per the FHWA NBI Record Format. Download-only field, not part of the NBI submittal file."
+   },
+   {
+    "name": "BRIDGE_CONDITION",
+    "type": "1/AN",
+    "label": "Item CAT10 Bridge Condition (as defined by 23 CFR 490 Subpart D.)",
+    "description": "NBI Item CAT10: Bridge Condition (as defined by 23 CFR 490 Subpart D.). Record position 434, length/type 1/AN per the FHWA NBI Record Format. Download-only field, not part of the NBI submittal file."
+   },
+   {
+    "name": "LOWEST_RATING",
+    "type": "1/AN",
+    "label": "Item CAT23 Lowest Condition Code (lowest value of Items 58, 59, 60, and 62.)",
+    "description": "NBI Item CAT23: Lowest Condition Code (lowest value of Items 58, 59, 60, and 62.). Record position 435, length/type 1/AN per the FHWA NBI Record Format. Download-only field, not part of the NBI submittal file."
+   },
+   {
+    "name": "DECK_AREA",
+    "type": "10/N",
+    "label": "Item CAT29 Deck Area (as defined by 23 CFR 490 Subpart D).",
+    "description": "NBI Item CAT29: Deck Area (as defined by 23 CFR 490 Subpart D). Record position 436 - 445, length/type 10/N per the FHWA NBI Record Format. Download-only field, not part of the NBI submittal file."
+   }
+  ]
+ },
+ {
+  "slug": "epa-wqx",
+  "kind": "standard",
+  "platform": "manual",
+  "accessUrl": "https://www.waterqualitydata.us/portal_userguide/",
+  "title": "Water Quality Portal / WQX result retrieval profiles (Site, Sample Results Physical/Chemical)",
+  "publisher": "U.S. EPA and U.S. Geological Survey (Water Quality Portal, National Water Quality Monitoring Council)",
+  "jurisdiction": "US",
+  "recordDescription": "Discrete water-quality monitoring data: monitoring locations (sites) and sample activity results (characteristic, value, unit, method, detection limits) from EPA WQX and USGS NWIS.",
+  "landingPage": "https://www.waterqualitydata.us/",
+  "license": "Not stated on the user guide page",
+  "updateFrequency": "version WQP User Guide legacy profiles: Table 4 'Site Data Only' and Table 7 'Sample Results (Physical/Chemical)' (retrieved 2026-10-13)",
+  "fields": [
+   {
+    "name": "OrganizationIdentifier",
+    "type": "unspecified",
+    "label": "WQP profile: Site + Result (physical/chemical)",
+    "description": "A designator used to uniquely identify a unique business establishment within a context."
+   },
+   {
+    "name": "OrganizationFormalName",
+    "type": "unspecified",
+    "label": "WQP profile: Site + Result (physical/chemical)",
+    "description": "The legal designator (i.e. formal name) of an organization."
+   },
+   {
+    "name": "MonitoringLocationIdentifier",
+    "type": "unspecified",
+    "label": "WQP profile: Site + Result (physical/chemical)",
+    "description": "A designator used to describe the unique name, number, or code assigned to identify the monitoring location."
+   },
+   {
+    "name": "MonitoringLocationName",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The designator specified by the sampling organization for the site at which sampling or other activities are conducted."
+   },
+   {
+    "name": "MonitoringLocationTypeName",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The descriptive name for a type of monitoring location."
+   },
+   {
+    "name": "MonitoringLocationDescriptionText",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "Text description of the monitoring location."
+   },
+   {
+    "name": "HUCEightDigitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The 8 digit federal code used to identify the hydrologic unit of the monitoring location to the cataloging unit level of precision."
+   },
+   {
+    "name": "DrainageAreaMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The drainage basin of a lake, stream, wetland, or estuary site. Measure value is given in the units stored in DrainageAreaMeasure/MeasureUnitCode. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "DrainageAreaMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The code that represents the unit for measuring the item. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "ContributingDrainageAreaMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The contributing drainage area of a lake, stream, wetland, or estuary site. Measure value is given in the units stored in ContributingDrainageAreaMeasure/MeasureUnitCode. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "ContributingDrainageAreaMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The code that represents the unit for measuring the item. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "LatitudeMeasure",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The measure of the angular distance on a meridian north or south of the equator."
+   },
+   {
+    "name": "LongitudeMeasure",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The measure of the angular distance on a meridian east or west of the prime meridian."
+   },
+   {
+    "name": "SourceMapScaleNumeric",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The number that represents the proportional distance on the ground for one unit of measure on the map or photo."
+   },
+   {
+    "name": "HorizontalAccuracyMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The horizontal measure of the relative accuracy of the latitude and longitude coordinates.\" Measure value is given in the units stored in HorizontalAccuracyMeasure/MeasureUnitCode. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "HorizontalAccuracyMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The code that represents the unit for measuring the item. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "HorizontalCollecitonMethodName",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The name that identifies the method used to determine the latitude and longitude coordinates for a point on the earth."
+   },
+   {
+    "name": "HorizontalCoordinateReferenceSystemDatumName",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The name that describes the reference datum used in determining latitude and longitude coordinates."
+   },
+   {
+    "name": "VerticalMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The measure of elevation (i.e., the altitude), above or below a reference datum. Measure value is given in the units stored in VerticalMeasure/MeasureUnitCode."
+   },
+   {
+    "name": "VerticalMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The code that represents the unit for measuring the item."
+   },
+   {
+    "name": "VerticalAccuracyMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The vertical measure of the relative accuracy of the latitude and longitude coordinates. Measure value is given in the units stored in VerticalAccuracyMeasure/MeasureUnitCode. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "VerticalAccuracyMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The code that represents the unit for measuring the item. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "VerticalCollectionMethodName",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The name that identifies the method used to collect the vertical measure (i.e. the altitude) of a reference point."
+   },
+   {
+    "name": "VerticalCoordinateReferenceSystemDatumName",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The name of the reference datum used to determine the vertical measure (i.e., the altitude)."
+   },
+   {
+    "name": "CountryCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "A code designator used to identify a primary geopolitical unit of the world."
+   },
+   {
+    "name": "StateCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "A code designator used to identify a principal administrative subdivision of the United States, Canada, or Mexico."
+   },
+   {
+    "name": "CountyCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "A code designator used to identify a U.S. county or county equivalent."
+   },
+   {
+    "name": "AquiferName",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "Name of the aquifer in which the well is completed. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "FormationTypeText",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "Name of the primary formation or soils unit, in which the well is completed. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "AquiferTypeName",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The type of aquifer, such as confined or unconfined. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "ConstructionDateText",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "Date of construction when well was completed. May be year only. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "WellDepthMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "Depth below land surface datum (LSD) to the bottom of the hole on completion of drilling. Measure value is given in the units stored in WellDepthMeasure/MeasureUnitCode. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "WellDepthMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The code that represents the unit for measuring the item. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "WellHoleDepthMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "Depth below land surface datum (LSD) to the bottom of the hole on completion of drilling. Measure value is given in the units stored in WellHoleDepthMeasure/MeasureUnitCode. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "WellHoleDepthMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The code that represents the unit for measuring the item. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "ProviderName",
+    "type": "unspecified",
+    "label": "WQP profile: Site",
+    "description": "The name of the database that provided the data to the Water Quality portal (E.G. WQX, NWIS)."
+   },
+   {
+    "name": "ActivityIdentifier",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Designator that uniquely identifies an activity within an organization."
+   },
+   {
+    "name": "ActivityTypeCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The text describing the type of activity."
+   },
+   {
+    "name": "ActivityMediaName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Name or code indicating the environmental medium where the sample was taken."
+   },
+   {
+    "name": "ActivityMediaSubdivisionName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Name or code indicating the environmental matrix as a subdivision of the sample media."
+   },
+   {
+    "name": "ActivityStartDate",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The calendar date on which the field activity is started."
+   },
+   {
+    "name": "ActivityStartTime/Time",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The time of day that is reported when the field activity began, based on a 24-hour timescale."
+   },
+   {
+    "name": "ActivityStartTime/TimeZoneCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The time zone for which the time of day is reported. Any of the longitudinal divisions of the earth's surface in which a standard time is kept."
+   },
+   {
+    "name": "ActivityEndDate",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The calendar date when the field activity is completed."
+   },
+   {
+    "name": "ActivityEndTime/Time",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The time of day that is reported when the field activity ended, based on a 24-hour timescale."
+   },
+   {
+    "name": "ActivityEndTime/TimeZoneCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The time zone for which the time of day is reported. Any of the longitudinal divisions of the earth's surface in which a standard time is kept."
+   },
+   {
+    "name": "ActivityDepthHeightMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A measurement of the vertical location (measured from a reference point) at which an activity occurred. Measure value is given in the units stored in ActivityDepthHeightMeasure/MeasureUnitCode."
+   },
+   {
+    "name": "ActivityDepthHeightMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The code that represents the unit for measuring the item."
+   },
+   {
+    "name": "ActivityDepthAltitudeReferencePointText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The reference used to indicate the datum or reference used to establish the depth/altitude of an activity."
+   },
+   {
+    "name": "ActivityTopDepthHeightMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A measurement of the upper vertical location of a vertical location range (measured from a reference point) at which an activity occurred. Measure value is given in the units stored in ActivityTopDepthHeightMeasure/MeasureUnitCode."
+   },
+   {
+    "name": "ActivityTopDepthHeightMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The code that represents the unit for measuring the item."
+   },
+   {
+    "name": "ActivityBottomDepthHeightMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A measurement of the lower vertical location of a vertical location range (measured from a reference point) at which an activity occurred. Measure value is given in the units stored in ActivityBottomDepthHeightMeasure/MeasureUnitCode."
+   },
+   {
+    "name": "ActivityBottomDepthHeightMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The code that represents the unit for measuring the item."
+   },
+   {
+    "name": "ProjectIdentifier",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A designator used to uniquely identify a data collection project within a context of an organization."
+   },
+   {
+    "name": "ActivityConductingOrganizationText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A name of the Organization conducting an activity."
+   },
+   {
+    "name": "ActivityCommentText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "General comments concerning the activity."
+   },
+   {
+    "name": "SampleAquifer",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A code that designates the aquifer associated with groundwater samples. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "HydrologicCondition",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Hydrologic condition is the hydrologic condition that is represented by the sample collected (i.e. ? normal, falling, rising, peak stage). (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "HydrologicEvent",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A hydrologic event that is represented by the sample collected (i.e. - storm, drought, snowmelt). (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "SampleCollectionMethod/MethodIdentifier",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The identification number or code assigned by the method publisher."
+   },
+   {
+    "name": "SampleCollectionMethod/MethodIdentifierContext",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Identifies the source or data system that created or defined the identifier."
+   },
+   {
+    "name": "SampleCollectionMethod/MethodName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The title that appears on the method from the method publisher."
+   },
+   {
+    "name": "SampleCollectionEquipmentName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The name for the equipment used in collecting the sample."
+   },
+   {
+    "name": "ResultDetectionConditionText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The textual descriptor of a result."
+   },
+   {
+    "name": "CharacteristicName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The object, property, or substance which is evaluated or enumerated by either a direct field measurement, a direct field observation, or by laboratory analysis of material collected in the field."
+   },
+   {
+    "name": "ResultSampleFractionText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The text name of the portion of the sample associated with results obtained from a physically-partitioned sample."
+   },
+   {
+    "name": "ResultMeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The reportable measure of the result for the chemical, microbiological or other characteristic being analyzed. Measure value is given in the units stored in ResultMeasure/MeasureUnitCode."
+   },
+   {
+    "name": "MeasureQualifierCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A code used to identify any qualifying issues that affect the results."
+   },
+   {
+    "name": "ResultMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The code that represents the unit for measuring the item."
+   },
+   {
+    "name": "ResultStatusIdentifier",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Indicates the acceptability of the result with respect to QA/QC criteria."
+   },
+   {
+    "name": "StatisticalBaseCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The code for the method used to calculate derived results."
+   },
+   {
+    "name": "ResultValueTypeName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A name that qualifies the process which was used in the determination of the result value (e.g., actual, estimated, calculated)."
+   },
+   {
+    "name": "ResultWeightBasisText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The name that represents the form of the sample or portion of the sample which is associated with the result value (e.g., wet weight, dry weight, ash-free dry weight)."
+   },
+   {
+    "name": "ResultTimeBasisText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The period of time (in days) over which a measurement was made. For example, BOD can be measured as 5 day or 20 day BOD."
+   },
+   {
+    "name": "ResultTemperatureBasisText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The name that represents the controlled temperature at which the sample was maintained during analysis, e.g. 25 deg BOD analysis."
+   },
+   {
+    "name": "ResultParticleSizeBasisText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "User defined free text describing the particle size class for which the associated result is defined."
+   },
+   {
+    "name": "PrecisionValue",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A measure of mutual agreement among individual measurements of the same property usually under prescribed similar conditions."
+   },
+   {
+    "name": "ResultCommentText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Free text with general comments concerning the result."
+   },
+   {
+    "name": "USGSPCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "5-digit number used in the US Geological Survey computerized data system, National Water Information System (NWIS), to uniquely identify a specific constituent. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "ResultDepthHeightMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A measurement of the vertical location (measured from a reference point) at which a result occurred. (Element is only in WQX (EPA).)"
+   },
+   {
+    "name": "ResultDepthHeightMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The code that represents the unit for measuring the item. (Element is only in WQX (EPA).)"
+   },
+   {
+    "name": "ResultDepthAltitudeReferencePointText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The reference used to indicate the datum or reference used to establish the depth/altitude of a result. (Element is only in WQX (EPA).)"
+   },
+   {
+    "name": "SubjectTaxonomicName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The name of the organism from which a tissue sample was taken."
+   },
+   {
+    "name": "SampleTissueAnatomyName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The name of the anatomy from which a tissue sample was taken. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "ResultAnalyticalMethod/MethodIdentifier",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The identification number or code assigned by the method publisher."
+   },
+   {
+    "name": "ResultAnalyticalMethod/MethodIdentifierContext",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Identifies the source or data system that created or defined the identifier."
+   },
+   {
+    "name": "ResultAnalyticalMethod/MethodName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The title that appears on the method from the method publisher."
+   },
+   {
+    "name": "MethodDescriptionText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "A brief summary that provides general information about the method. (Element is only in NWIS (USGS).)"
+   },
+   {
+    "name": "LaboratoryName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The name of Lab responsible for the result."
+   },
+   {
+    "name": "AnalysisStartDate",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The calendar date on which the analysis began."
+   },
+   {
+    "name": "ResultLaboratoryCommentText",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Remarks which further describe the laboratory procedures which produced the result."
+   },
+   {
+    "name": "DetectionQuantitationLimitTypeName",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Text describing the type of detection or quantitation level used in the analysis of a characteristic."
+   },
+   {
+    "name": "DetectionQuantitationLimitMeasure/MeasureValue",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "Constituent concentration that, when processed through the complete method, produces a signal that is statistically different from a blank. Measure value is given in the units stored in DetectionQuantitationLimitMeasure/MeasureUnitCode."
+   },
+   {
+    "name": "DetectionQuantitationLimitMeasure/MeasureUnitCode",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The code that represents the unit for measuring the item."
+   },
+   {
+    "name": "PreparationStartDate",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The calendar date when the preparation/extraction of the sample for analysis began."
+   },
+   {
+    "name": "DataProvider",
+    "type": "unspecified",
+    "label": "WQP profile: Result (physical/chemical)",
+    "description": "The source system that provided data to the Water Quality Portal (NWIS, WQX, etc)."
+   }
+  ]
+ }
+]

@@ -186,6 +186,11 @@ they follow corroboration and retraction automatically.
 
   Two fields that make up one key together (`town` + `address`) are
   reported as one composite join.
+- **Standards** are conformed to, not joined against. A standard's page
+  lists the listed datasets whose `conformsTo` names it (`conformedBy`),
+  and standards never appear in a dataset's join list. A standard's own
+  fields can still be mapped onto concepts. That is what lets every
+  dataset following it line up with the catalog.
 - **Overlays:** map layers that share no identifying field but cover the
   same area are listed once, as `overlays`, rather than as related
   sources. Every layer overlays every other, and listing each one
