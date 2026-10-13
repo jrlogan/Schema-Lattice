@@ -709,6 +709,71 @@ evidence: { caution?: { reason, sources }, confirmed?: { sources }, note }
 Results are ordered by the adjusted score; `similarity` stays raw and
 `verdict` is always computed on raw scores.
 
+## Public source tools (evidence phase 2)
+
+Full design: `public-sources.md`. A source is a public dataset or
+published standard; a mapping says which of its fields carries which
+concept field. Curators' (operator, contributor-tier apps) submissions
+take effect at once; everyone else's are evidence claims, listed once
+corroborated. None of these tools needs a key.
+
+### `lattice_find_sources`
+
+```typescript
+{ description?: string; jurisdiction?: string; conceptUri?: string;   // at least one
+  includeProposed?: boolean; limit?: number; ephemeral?: boolean; sessionId?: string }
+→ { results: Array<{ slug, title, kind, publisher, jurisdiction, coverage?: "exact" | "broader" | "narrower",
+      recordDescription, status: "listed" | "proposed", platform, accessUrl, similarity?,
+      carries: Array<{ conceptUri, prefLabel, role, mappedFields }> }>;
+    met: boolean; notice: string; next: string }
+```
+
+`jurisdiction` is `US`, `US-CT` or `US-CT/new-haven`; sources covering a
+broader area are included. Searches are logged (wording omitted when
+`ephemeral`); unmet ones appear in `lattice_sources_report`.
+
+### `lattice_resolve_source`
+
+`{ slug }` → the source's metadata, `exampleQuery`, `fields` (each with
+`means: [{ conceptUri, concept, field, conversion?, curatedBy? | corroboratedBy? }]`),
+`carries`, `unmappedFields`, and `related: [{ slug, title, jurisdiction,
+joins: [{ kind: "key" | "attribute" | "spatial", via, pairs: [{ a, b, conceptField }], how }] }]`.
+
+### `lattice_propose_source`
+
+`{ accessUrl, publisher?, jurisdiction?, recordDescription?, title?, slug?, kind?,
+landingPage?, format?, license?, updateFrequency?, conformsTo?, platform?: "manual", fields?, note? }`
+→ `{ slug, status: "listed" | "proposed", fieldsVerified, fieldCount, evidence, next }`.
+ArcGIS layer and Socrata dataset URLs have their field lists read from the
+publisher; anything else needs `platform: "manual"` and `fields`.
+Re-proposing a known `accessUrl` corroborates the existing source.
+
+### `lattice_map_source`
+
+`{ source, conceptUri, role?: "record" | "reference", fields: [{ from, to, conversion?, verdict? }], note? }`
+→ `{ recorded, listedNow, pending, pairs: [{ from, to, verdict, status, independentSources }] }`.
+Every `from` must be in the source's field list and every `to` in the
+concept's structure; one bad pair refuses the whole call, listing each
+problem.
+
+### `lattice_check_source`
+
+`{ slug }` → `{ checked, added, removed, retyped, mappingsBroken }`, after
+re-reading the field list from the publisher.
+
+### `lattice_sources_report`
+
+`{}` → `{ counts, proposed, pendingMappings, disputes, unmetSearches, unmappedFields }`.
+
+### Changes to existing tools
+
+- `lattice_resolve` returns `publicSources`: listed sources mapping onto
+  the concept, with role and mapped field pairs.
+- `lattice_discover` results carry `publicSources: n` when n > 0.
+- `lattice_evidence_admin` gains `withdraw-source` (target: slug), and
+  `switch` accepts `<kind>.accept` / `<kind>.apply` (`source`,
+  `field-mapping`).
+
 ## Registry tools (v0.1 M2.75)
 
 The app registry is the aggregation point for manifests, ownership,

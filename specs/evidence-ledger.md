@@ -2,7 +2,10 @@
 
 **Status:** Phase 1 (match feedback) implemented in
 `packages/lattice-server/src/evidence/ledger.ts`, tested by
-`test/evidence.ts`. Phases 2–3 are draft. It is
+`test/evidence.ts`. Phase 2 is implemented as public data sources
+(`public-sources.md`): `source` and `field-mapping` claims through
+`registerKind`/`proposeClaims`, with curated claims (operator,
+contributor apps) in effect at once. Phase 3 is draft. It is
 the "governance / endorsement / social signal" item README defers to
 v0.2, narrowed to one question: how can the catalog learn from people
 and AIs who use it, without logins and without letting spam in?

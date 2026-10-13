@@ -70,6 +70,11 @@ SchemaLattice is a composition, not a new ontology system.
   small enough for any LLM to internalize in one skill file.
 - A genuinely new relation `:coRefersWith` for "same real-world referent,
   different perspective" — the thing SKOS and PAV don't cover.
+- A register of public data sources (open-data portals, GIS layers) with
+  field lists read from the publisher, field-level mappings onto concepts,
+  and join keys between datasets worked out from those mappings
+  (`specs/public-sources.md`; first seeded with Connecticut and New Haven
+  property data).
 
 ## Scope of v0.1
 

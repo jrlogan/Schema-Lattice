@@ -7,6 +7,7 @@
 
 import { EvidenceRejected } from "../evidence/ledger.ts";
 import { ContributionRejected } from "../evidence/contributions.ts";
+import { SourceRejected } from "../sources/sources.ts";
 import type { LatticeInstance } from "../server/instance.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
 import { InvalidParameter, NotFound, toToolError, type ToolError } from "./errors.ts";
@@ -358,7 +359,7 @@ export const TOOLS: ToolDef[] = [
       },
       required: ["description"],
     },
-    handler: (instance, args) => {
+    handler: async (instance, args) => {
       const description = requireString(args, "description");
       // The wording is stored and can surface in demand reports; a cap
       // keeps one call from parking a novel (or a payload) in the log.
@@ -367,7 +368,7 @@ export const TOOLS: ToolDef[] = [
           length: description.length,
         });
       }
-      return instance.discover({
+      const response = await instance.discover({
         description,
         contexts: resolveContextFilter(instance, optionalStringArray(args, "contexts")),
         contextHint: optionalString(args, "contextHint"),
@@ -375,6 +376,14 @@ export const TOOLS: ToolDef[] = [
         sessionId: optionalString(args, "sessionId"),
         ephemeral: args.ephemeral === true,
       });
+      // Point at real published data for a concept when the catalog knows of any.
+      return {
+        ...response,
+        results: response.results.map((r) => {
+          const n = instance.sources.sourcesForConcept(r.uri).length;
+          return n > 0 ? { ...r, publicSources: n } : r;
+        }),
+      };
     },
   },
 
@@ -412,6 +421,10 @@ export const TOOLS: ToolDef[] = [
         record,
         stats: stats?.stats ?? null,
         usages: instance.registry.listUsages(uri),
+        // Public datasets whose records are (or point at) this concept, and
+        // which of their fields carry which of its fields. Mutable, evidence-
+        // derived, and not part of the concept's content-addressed record.
+        publicSources: instance.sources.sourcesForConcept(uri),
       };
     },
   },
@@ -943,8 +956,13 @@ export const TOOLS: ToolDef[] = [
     inputSchema: {
       type: "object",
       properties: {
-        action: { type: "string", enum: ["freeze", "unfreeze", "retract", "purge-source", "purge-contributions", "switch"] },
-        target: { type: "string", description: "Claim key, state key or source; for switch: accept | apply" },
+        action: { type: "string", enum: ["freeze", "unfreeze", "retract", "purge-source", "purge-contributions", "withdraw-source", "switch"] },
+        target: {
+          type: "string",
+          description:
+            "Claim key, state key or source; for withdraw-source: a source slug; for switch: accept | apply, " +
+            "optionally prefixed by a kind (source.accept, field-mapping.apply)",
+        },
         on: { type: "boolean", description: "For switch" },
         reason: { type: "string" },
       },
@@ -955,10 +973,16 @@ export const TOOLS: ToolDef[] = [
       const target = requireString(args, "target");
       try {
         if (action === "purge-contributions") return instance.contributions.purgeSource(target);
+        if (action === "withdraw-source") {
+          return instance.sources.withdraw(target, optionalString(args, "reason") ?? "no reason given");
+        }
         if (action === "switch") {
-          if (target !== "accept" && target !== "apply") throw new InvalidParameter('switch target must be "accept" or "apply"');
-          instance.evidence.setSwitch(target, args.on !== false);
-          return { switches: instance.evidence.switches() };
+          const [kind, which] = target.includes(".") ? target.split(".", 2) : ["match", target];
+          if (which !== "accept" && which !== "apply") {
+            throw new InvalidParameter('switch target must be "accept" or "apply", optionally as <kind>.accept');
+          }
+          instance.evidence.setSwitch(which, args.on !== false, kind);
+          return { kind, switches: instance.evidence.switches(kind) };
         }
         if (!["freeze", "unfreeze", "retract", "purge-source"].includes(action)) {
           throw new InvalidParameter(`unknown action ${action}`);
@@ -969,10 +993,197 @@ export const TOOLS: ToolDef[] = [
           optionalString(args, "reason") ?? "no reason given",
         );
       } catch (err) {
-        if (err instanceof EvidenceRejected) throw new InvalidParameter(err.message, err.details);
+        if (err instanceof EvidenceRejected || err instanceof SourceRejected) throw new InvalidParameter(err.message, err.details);
         throw err;
       }
     },
+  },
+
+  // ------------------------------------------------------------- public sources
+  // specs/public-sources.md: where real records of a concept are published, and
+  // how a published table's fields line up with the concept's.
+
+  {
+    name: "lattice_find_sources",
+    write: false,
+    description:
+      "Find public datasets (open-data portals, GIS layers, government APIs) by what you need, where, " +
+      "and/or which catalog concept their records are. Use it before you scrape, guess an API or ask " +
+      "the person for a CSV: the catalog may already know where the data is and what every column " +
+      "means. jurisdiction is an ISO code with an optional locality (US, US-CT, US-CT/new-haven); results " +
+      "include broader sources that cover it (a statewide layer covers a city). Each result names the " +
+      "concepts it carries; lattice_resolve_source gives fields and join keys.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        description: { type: "string", description: "What the data is about, e.g. \"property assessments and sales\"" },
+        jurisdiction: { type: "string", description: "US, US-CT or US-CT/new-haven" },
+        conceptUri: { type: "string", description: "Only sources that map onto this concept" },
+        includeProposed: { type: "boolean", description: "Also show sources not yet curated or corroborated (flagged)" },
+        limit: { type: "number", description: "Default 10, max 50" },
+        ephemeral: { type: "boolean", description: "Do not record the wording of this search" },
+        sessionId: { type: "string" },
+      },
+    },
+    handler: (instance, args) =>
+      sourcesCall(() =>
+        instance.sources.find({
+          description: optionalString(args, "description"),
+          jurisdiction: optionalString(args, "jurisdiction"),
+          conceptUri: optionalString(args, "conceptUri"),
+          includeProposed: args.includeProposed === true,
+          limit: optionalNumber(args, "limit"),
+          ephemeral: args.ephemeral === true,
+          sessionId: optionalString(args, "sessionId"),
+        }),
+      ),
+  },
+  {
+    name: "lattice_resolve_source",
+    write: false,
+    description:
+      "One public data source in full: publisher, endpoint and an example query, license, every field " +
+      "with the catalog concept field it carries (and any conversion), the concepts its records are or " +
+      "point at, and related sources with join keys (key, attribute or spatial) worked out from shared " +
+      "concept fields. This is the integration documentation for a public dataset.",
+    inputSchema: {
+      type: "object",
+      properties: { slug: { type: "string" } },
+      required: ["slug"],
+    },
+    handler: (instance, args) => {
+      const slug = requireString(args, "slug");
+      const source = instance.sources.resolve(slug);
+      if (!source) throw new NotFound(`no source "${slug}" — search with lattice_find_sources`, { slug });
+      return source;
+    },
+  },
+  {
+    name: "lattice_propose_source",
+    // Not key-gated, like lattice_propose: an anonymous proposal is a
+    // quarantined claim, listed only once curated or corroborated.
+    write: false,
+    description:
+      "Add a public dataset you found and used, so the next builder doesn't have to search for it. " +
+      "Give its API URL: the server reads the field list from the publisher itself for ArcGIS layers " +
+      "(…/FeatureServer/0) and Socrata datasets (…/resource/xxxx-xxxx.json); for anything else pass " +
+      "platform \"manual\" and fields. Only public data reachable without credentials. Proposing a " +
+      "source that is already known counts as corroborating it. Follow with lattice_map_source.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        accessUrl: { type: "string", description: "The https:// API endpoint" },
+        title: { type: "string", description: "Defaults to the publisher's own title" },
+        publisher: { type: "string", description: "The agency or organisation that publishes it" },
+        jurisdiction: { type: "string", description: "US, US-CT or US-CT/new-haven" },
+        recordDescription: { type: "string", description: "One sentence: what one record is" },
+        slug: { type: "string", description: "Optional kebab-case id; derived from the title" },
+        kind: { type: "string", enum: ["dataset", "standard"] },
+        landingPage: { type: "string" },
+        format: { type: "string" },
+        license: { type: "string" },
+        updateFrequency: { type: "string" },
+        conformsTo: { ...stringArray, description: "Slugs of registered standards it follows" },
+        platform: { type: "string", enum: ["manual"], description: "Only to force a hand-supplied field list" },
+        fields: {
+          type: "array",
+          description: "Only for manual sources: [{ name, type, label?, description? }]",
+          items: { type: "object" },
+        },
+        note: { type: "string", description: "Optional, up to 500 characters" },
+      },
+      required: ["accessUrl"],
+    },
+    handler: (instance, args, principal, ctx) =>
+      sourcesCall(() =>
+        instance.sources.propose(
+          {
+            accessUrl: requireString(args, "accessUrl"),
+            slug: optionalString(args, "slug"),
+            kind: optionalString(args, "kind"),
+            title: optionalString(args, "title"),
+            publisher: optionalString(args, "publisher"),
+            jurisdiction: optionalString(args, "jurisdiction"),
+            recordDescription: optionalString(args, "recordDescription"),
+            landingPage: optionalString(args, "landingPage"),
+            format: optionalString(args, "format"),
+            license: optionalString(args, "license"),
+            updateFrequency: optionalString(args, "updateFrequency"),
+            conformsTo: optionalStringArray(args, "conformsTo"),
+            platform: optionalString(args, "platform"),
+            fields: args.fields,
+            note: optionalString(args, "note"),
+          },
+          instance.evidence.sourceOf(principal, ctx.clientAddress),
+        ),
+      ),
+  },
+  {
+    name: "lattice_map_source",
+    write: false,
+    description:
+      "Say which catalog concept a public source's records are (role record) or point at (role " +
+      "reference), and which of its fields carries which concept field: [{ from, to, conversion? }]. " +
+      "Field names are checked on both sides. Mapping fields from two sources onto the same concept " +
+      "field is what lets the catalog tell the next builder how the sources join. To dispute a listed " +
+      "pair, send it with verdict \"wrong\". Pairs are listed once curated or corroborated by independent " +
+      "builders.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        source: { type: "string", description: "Source slug" },
+        conceptUri: { type: "string" },
+        role: { type: "string", enum: ["record", "reference"], description: "Default record" },
+        fields: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              from: { type: "string", description: "The source's field name, exactly" },
+              to: { type: "string", description: "The concept's field name (dot path for nested fields)" },
+              conversion: { type: "string", description: "Units, formats, code tables; up to 200 characters" },
+              verdict: { type: "string", enum: ["right", "wrong"], description: "Default right" },
+            },
+            required: ["from", "to"],
+          },
+        },
+        note: { type: "string" },
+      },
+      required: ["source", "conceptUri", "fields"],
+    },
+    handler: (instance, args, principal, ctx) =>
+      sourcesCall(() =>
+        instance.sources.map(
+          {
+            source: requireString(args, "source"),
+            conceptUri: requireString(args, "conceptUri"),
+            role: optionalString(args, "role"),
+            fields: args.fields,
+            note: optionalString(args, "note"),
+          },
+          instance.evidence.sourceOf(principal, ctx.clientAddress),
+        ),
+      ),
+  },
+  {
+    name: "lattice_check_source",
+    write: false,
+    description:
+      "Re-read a source's field list from its publisher and report fields added, removed or retyped since " +
+      "the catalog last looked, and any mappings that broke. Run it when a request against the source " +
+      "fails on a field name.",
+    inputSchema: { type: "object", properties: { slug: { type: "string" } }, required: ["slug"] },
+    handler: (instance, args) => sourcesCall(() => instance.sources.check(requireString(args, "slug"))),
+  },
+  {
+    name: "lattice_sources_report",
+    write: false,
+    description:
+      "The public data sources queue: proposed sources and field mappings with corroboration progress, " +
+      "disputes, searches that found nothing (what builders need and the catalog can't point to yet), " +
+      "and fields of listed sources that nobody has mapped. The place to start when you want to help.",
+    inputSchema: { type: "object", properties: {} },
+    handler: (instance, _args, principal) => instance.sources.report({ operator: principal.tier === "operator" }),
   },
 
   // ------------------------------------------------------------- registry
@@ -1191,6 +1402,16 @@ export const TOOLS: ToolDef[] = [
 ];
 
 export const TOOLS_BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));
+
+/** Source refusals are the caller's to fix, so they read as invalid parameters. */
+async function sourcesCall<T>(fn: () => T | Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    if (err instanceof SourceRejected) throw new InvalidParameter(err.message, { rejected: true, ...err.details });
+    throw err;
+  }
+}
 
 /**
  * Run a tool by name, converting any thrown error into the standard

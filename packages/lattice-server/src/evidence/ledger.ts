@@ -59,6 +59,21 @@ interface EvidenceRow {
 
 type Direction = "wrong" | "right";
 
+export interface KindSpec {
+  /** Does the claim still make sense against the catalog as it is now? */
+  valid(subject: string, claim: Record<string, unknown>): boolean;
+  /** True when corroboration alone must not promote this claim: only a curator can. */
+  needsCurator?(subject: string, claim: Record<string, unknown>): boolean;
+}
+
+export interface ClaimOutcome {
+  claimKey: string;
+  direction: Direction;
+  status: string;
+  reason?: string;
+  corroboration: ProposeResult["corroboration"];
+}
+
 export interface ProposeResult {
   id: string;
   status: "pending";
@@ -74,6 +89,7 @@ export interface ProposeResult {
 export class EvidenceLedger {
   private db: Database.Database;
   private salt: string;
+  private kinds = new Map<string, KindSpec>();
 
   constructor(
     private store: Store,
@@ -146,15 +162,116 @@ export class EvidenceLedger {
 
   // --- operator switches ---------------------------------------------------
 
-  switches(): { accept: boolean; apply: boolean } {
+  switches(kind = "match"): { accept: boolean; apply: boolean } {
     return {
-      accept: this.meta("match.accept") !== "off",
-      apply: this.meta("match.apply") !== "off",
+      accept: this.meta(`${kind}.accept`) !== "off",
+      apply: this.meta(`${kind}.apply`) !== "off",
     };
   }
 
-  setSwitch(which: "accept" | "apply", on: boolean): void {
-    this.setMeta(`match.${which}`, on ? "on" : "off");
+  setSwitch(which: "accept" | "apply", on: boolean, kind = "match"): void {
+    this.setMeta(`${kind}.${which}`, on ? "on" : "off");
+  }
+
+  // --- other claim kinds -----------------------------------------------------
+
+  /**
+   * Register a claim kind other than `match` (specs/public-sources.md). `valid`
+   * re-checks a claim's structure on every rescore, as hasConcept does for
+   * match: a claim about a field that no longer exists stops counting.
+   */
+  registerKind(kind: string, spec: KindSpec): void {
+    this.kinds.set(kind, spec);
+  }
+
+  /** Operator, or an app the operator promoted: their claims take effect at once. */
+  isCurator(source: string): boolean {
+    if (source === "operator") return true;
+    if (!source.startsWith("app:")) return false;
+    const row = this.db.prepare("SELECT tier FROM apps WHERE slug = ?").get(source.slice(4)) as { tier: string } | undefined;
+    return row?.tier === "contributor" || row?.tier === "operator";
+  }
+
+  /**
+   * Record claims of a registered kind in one go and rescore once. Each claim
+   * is checked by the caller first; here it only becomes a ledger row.
+   */
+  proposeClaims(
+    kind: string,
+    claims: Array<{ claimKey: string; subject: string; direction: Direction; claim: Record<string, unknown> }>,
+    source: string,
+    now: Date = new Date(),
+  ): ClaimOutcome[] {
+    if (!this.kinds.has(kind)) throw new EvidenceRejected(`unknown evidence kind ${kind}`);
+    if (!this.switches(kind).accept) throw new EvidenceRejected(`${kind} evidence is paused by the operator`);
+    const recent = (
+      this.db
+        .prepare("SELECT COUNT(*) AS n FROM evidence WHERE source = ? AND updated_at >= ?")
+        .get(source, new Date(now.getTime() - DAY).toISOString()) as { n: number }
+    ).n;
+    if (recent + claims.length > EVIDENCE_CONFIG.dailyCapPerSource) {
+      throw new EvidenceRejected("daily evidence limit reached for this source; try again tomorrow");
+    }
+    const upsert = this.db.prepare(
+      `INSERT INTO evidence (id, claim_key, kind, subject, cluster, polarity, source, resolved, claim, query_vec, created_at, updated_at)
+       VALUES (?, ?, ?, ?, '-', ?, ?, 1, ?, NULL, ?, ?)
+       ON CONFLICT(claim_key, source) DO UPDATE SET polarity = excluded.polarity, claim = excluded.claim, updated_at = excluded.updated_at`,
+    );
+    const tx = this.db.transaction(() => {
+      for (const c of claims) {
+        upsert.run(
+          `ev-${randomUUID()}`, c.claimKey, kind, c.subject, c.direction === "wrong" ? 1 : -1, source,
+          JSON.stringify({ kind, ...c.claim }), now.toISOString(), now.toISOString(),
+        );
+      }
+    });
+    tx();
+    this.store.logEvent("evidence", { kind, claims: claims.length }, source);
+    this.rescore(now);
+    return claims.map((c) => this.outcome(c.claimKey, c.direction));
+  }
+
+  /** Where one direction of a claim key stands now. */
+  outcome(claimKey: string, direction: Direction): ClaimOutcome {
+    const state = this.db.prepare("SELECT status, reason FROM claim_state WHERE state_key = ?").get(`${claimKey}#${direction}`) as
+      | { status: string; reason: string | null }
+      | undefined;
+    const rows = this.rowsFor(claimKey);
+    const asserting = rows.filter((r) => r.polarity === (direction === "wrong" ? 1 : -1));
+    const firstAt = Math.min(...rows.map((r) => Date.parse(r.created_at)));
+    return {
+      claimKey,
+      direction,
+      status: state?.status ?? "pending",
+      ...(state?.reason ? { reason: state.reason } : {}),
+      corroboration: {
+        independentSources: asserting.length,
+        needed: EVIDENCE_CONFIG.minSources,
+        nonAnonymousNeeded: !asserting.some((r) => !r.source.startsWith("net:")),
+        earliestPromotion: new Date(firstAt + EVIDENCE_CONFIG.quarantineDays * DAY).toISOString(),
+      },
+    };
+  }
+
+  /** Claim keys of one kind whose given direction is promoted (curated or corroborated). */
+  promotedKeys(kind: string, direction: Direction = "right"): Array<{ claimKey: string; reason: string | null; sources: number }> {
+    return (
+      this.db
+        .prepare(
+          "SELECT claim_key AS claimKey, reason, sources FROM claim_state WHERE status = 'promoted' AND direction = ? AND claim_key LIKE ?",
+        )
+        .all(direction, `${kind}|%`) as Array<{ claimKey: string; reason: string | null; sources: number }>
+    );
+  }
+
+  /** Every claim key of one kind with its state in one direction, for reports. */
+  statesOf(kind: string, direction: Direction = "right"): Array<{ claimKey: string; status: string; score: number; sources: number; firstAt: string; reason: string | null }> {
+    return this.db
+      .prepare(
+        `SELECT claim_key AS claimKey, status, score, sources, first_at AS firstAt, reason FROM claim_state
+         WHERE direction = ? AND claim_key LIKE ? ORDER BY changed_at DESC`,
+      )
+      .all(direction, `${kind}|%`) as Array<{ claimKey: string; status: string; score: number; sources: number; firstAt: string; reason: string | null }>;
   }
 
   // --- sources -------------------------------------------------------------
@@ -382,6 +499,19 @@ export class EvidenceLedger {
       const nonAnonymous = asserting.some((r) => !r.source.startsWith("net:"));
       const aged = now.getTime() - Date.parse(firstAt) >= EVIDENCE_CONFIG.quarantineDays * DAY;
       const subject = rows[0].subject;
+      const kind = rows[0].kind;
+      const spec = this.kinds.get(kind);
+      // Curators (operator, contributor apps) put a claim in effect at once, for
+      // kinds that allow it. Undoing that takes the same bar as promoting: the
+      // opposite direction must itself be promotable.
+      const curator = spec ? asserting.find((r) => this.isCurator(r.source)) : undefined;
+      const opposedEnough =
+        opposing.length >= EVIDENCE_CONFIG.minSources &&
+        opposing.some((r) => !r.source.startsWith("net:")) &&
+        opposition - EVIDENCE_CONFIG.oppositionFactor * support >= EVIDENCE_CONFIG.promoteScore;
+      const latest = JSON.parse(rows[rows.length - 1].claim) as Record<string, unknown>;
+      const valid = spec ? spec.valid(subject, latest) : this.store.hasConcept(subject);
+      const curatorOnly = !!spec?.needsCurator?.(subject, latest);
 
       let status = prior?.status ?? "pending";
       let reason = prior?.reason ?? null;
@@ -392,14 +522,22 @@ export class EvidenceLedger {
       } else if (this.burst(asserting, now)) {
         status = "frozen";
         reason = `${EVIDENCE_CONFIG.burstSources}+ new anonymous sources within an hour — held for operator review`;
-      } else if (!this.store.hasConcept(subject)) {
+      } else if (!valid) {
         status = "rejected";
-        reason = "concept no longer resolves";
+        reason = spec ? "no longer matches the catalog (a field, source or concept is gone)" : "concept no longer resolves";
+      } else if (curator && !opposedEnough) {
+        status = "promoted";
+        reason = `curated by ${curator.source}`;
       } else if (status === "promoted") {
         if (score < EVIDENCE_CONFIG.retractBelow) {
           status = "retracted";
           reason = `score fell to ${score.toFixed(1)}`;
+        } else {
+          reason = null;
         }
+      } else if (curatorOnly) {
+        status = "pending";
+        reason = "needs a curator: nothing about this claim could be checked by the server";
       } else if (
         aged &&
         score >= EVIDENCE_CONFIG.promoteScore &&
@@ -410,6 +548,7 @@ export class EvidenceLedger {
         reason = null;
       } else if (status !== "retracted" && status !== "operator-retracted") {
         status = "pending";
+        reason = null;
       }
 
       this.db
@@ -422,7 +561,7 @@ export class EvidenceLedger {
         )
         .run(stateKey, claimKey, direction, status, score, asserting.length, firstAt, now.toISOString(), reason);
 
-      if (status === "promoted" && this.switches().apply) {
+      if (status === "promoted" && kind === "match" && this.switches().apply) {
         const vecs = asserting.filter((r) => r.query_vec).map((r) => toVec(r.query_vec!));
         if (vecs.length === 0) continue;
         const reasons = asserting.map((r) => (JSON.parse(r.claim) as { reason?: string }).reason).filter(Boolean) as string[];
@@ -491,7 +630,7 @@ export class EvidenceLedger {
       sources: number; first_at: string; changed_at: string; reason: string | null;
     }>;
     const claims = states.map((s) => {
-      const [, conceptUri, cluster] = s.claim_key.split("|");
+      const [kind, conceptUri, cluster] = s.claim_key.split("|");
       const notes = (
         this.db
           .prepare("SELECT claim FROM evidence WHERE claim_key = ? ORDER BY updated_at DESC LIMIT 3")
@@ -500,11 +639,17 @@ export class EvidenceLedger {
         .map((r) => (JSON.parse(r.claim) as { note?: string }).note)
         .filter(Boolean)
         .map((n) => n!.slice(0, EVIDENCE_CONFIG.reportNoteMax));
+      const subjectOf =
+        kind === "match"
+          ? { conceptUri, queryCluster: cluster }
+          : { claimKey: s.claim_key, ...this.latestClaim(s.claim_key) };
       return {
-        kind: "match",
-        conceptUri,
-        queryCluster: cluster,
-        claim: s.direction === "wrong" ? "wrong for queries like these" : "right for queries like these",
+        kind,
+        ...subjectOf,
+        claim:
+          kind === "match"
+            ? s.direction === "wrong" ? "wrong for queries like these" : "right for queries like these"
+            : s.direction === "wrong" ? "disputed" : "holds",
         status: s.status,
         score: Number(s.score.toFixed(2)),
         independentSources: s.sources,
@@ -527,6 +672,16 @@ export class EvidenceLedger {
       },
       claims,
     };
+  }
+
+  /** The latest claim body for a key, without its note (notes are shown separately, truncated). */
+  latestClaim(claimKey: string): Record<string, unknown> {
+    const row = this.db
+      .prepare("SELECT claim FROM evidence WHERE claim_key = ? ORDER BY updated_at DESC LIMIT 1")
+      .get(claimKey) as { claim: string } | undefined;
+    if (!row) return {};
+    const { note: _note, kind: _kind, ...rest } = JSON.parse(row.claim) as Record<string, unknown>;
+    return rest;
   }
 
   /** Operator: freeze / unfreeze / retract a claim, or purge a source. */

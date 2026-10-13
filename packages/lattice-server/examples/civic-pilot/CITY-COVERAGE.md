@@ -13,6 +13,7 @@ open-source app or published standard with attribution — never invented.
 | Human services directory | `human-services` | HSDS / Open Referral | ●●● |
 | Permits & inspections | `civic-permitting` | BLDS (permitdata.org) | ●● |
 | Council & legislation | `civic-legislation` | Open Civic Data (Popolo) | ●● |
+| Property, assessment, zoning, flood | `real-property`, `public-geography` | CT CAMA, CT sales, FEMA NFHL, New Haven GIS ([pilot](../public-sources/RESULTS.md)) | ●● |
 | Procurement & contracts | `public-procurement` | OCDS | ●● |
 
 Verified effect: the permit-tracker probe that scored distant/no-match

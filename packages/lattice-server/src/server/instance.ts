@@ -50,11 +50,15 @@ import {
 } from "../query/stats.ts";
 import { demandReport, type DemandReport } from "../query/demand.ts";
 import { Contributions } from "../evidence/contributions.ts";
+import { Sources } from "../sources/sources.ts";
+import type { JsonFetcher } from "../sources/fetch.ts";
 
 export interface InstanceOptions {
   dataDir: string;
   /** Override the embedding runtime (tests, alternative models). */
   embedder?: Embedder;
+  /** Override how source field lists are fetched from publishers (tests). */
+  fetchJson?: JsonFetcher;
 }
 
 /**
@@ -92,6 +96,7 @@ export class LatticeInstance {
   readonly registry: Registry;
   readonly evidence: EvidenceLedger;
   readonly contributions: Contributions;
+  readonly sources: Sources;
 
   private constructor(opts: InstanceOptions) {
     this.store = new Store({
@@ -117,6 +122,7 @@ export class LatticeInstance {
       this.ancestryCtx.skeletonUris,
       new Set([this.governance.contextUri]),
     );
+    this.sources = new Sources(this.store, this.embedder, this.evidence, this.vectors, opts.fetchJson);
   }
 
   static async create(opts: InstanceOptions): Promise<LatticeInstance> {

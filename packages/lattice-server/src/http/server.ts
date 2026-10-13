@@ -16,6 +16,7 @@ import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
 import { landingPage, llmsText } from "./landing.ts";
 import { contributePage } from "./contribute.ts";
+import { renderSourcePage, renderSourcesIndex } from "./sources-page.ts";
 import {
   BUILD_ON, NEARBY, conceptsForContexts, conceptsForMatches, nearestRoots, renderPack, renderPackIndex, resolveContextSlug,
 } from "./pack.ts";
@@ -29,6 +30,14 @@ import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const MAX_BODY_BYTES = 1_000_000;
+
+/**
+ * Tools anyone may call that record a claim, or make the server fetch from a
+ * publisher on the caller's behalf. They share the tighter evidence bucket.
+ */
+const EVIDENCE_TOOLS = new Set([
+  "lattice_propose", "lattice_contribute", "lattice_propose_source", "lattice_map_source", "lattice_check_source",
+]);
 
 export interface HttpServerHandle {
   port: number;
@@ -211,7 +220,7 @@ async function handle(
         ? "discover"
         : path === "/api/tools/lattice_feedback"
           ? "feedback"
-          : path === "/api/tools/lattice_propose" || path === "/api/tools/lattice_contribute"
+          : path.startsWith("/api/tools/") && EVIDENCE_TOOLS.has(path.slice("/api/tools/".length))
             ? "evidence"
             : "general";
     const key = principal.anonymous
@@ -278,6 +287,7 @@ async function handle(
         builderSkill: "GET /skill/builder (one-page brief for apps built on an existing backend)",
         contribute: "GET /contribute (send back types the catalog lacks; or POST /api/tools/lattice_contribute)",
         pack: "GET /pack, /pack/{context}[,{context}] or /pack?q=... (paste-ready vocabulary for hosted app builders without MCP)",
+        sources: "GET /sources, /sources?q=...&jurisdiction=US-CT/new-haven, /sources/{slug} (public datasets: endpoints, what each field means, join keys)",
         client: "GET /cli/schemalattice.mjs (publish a platform's vocabulary from its code; vendor it)",
         resolveConcept: "GET /c/{context}/{slug}@{hash}",
         resolveContext: "GET /s/{context}@{hash}",
@@ -346,6 +356,40 @@ async function handle(
     }
     const titles = (slugs as string[]).map((s) => instance.listContexts().find((c) => c.slug === s && c.latest)?.title ?? s);
     sendText(res, 200, renderPack(conceptsForContexts(instance, slugs as string[]), { host, title: titles.join(" + "), selfUrl }), markdown, "public, max-age=300");
+    return;
+  }
+
+  // --- public data sources as markdown ----------------------------------
+  if ((path === "/sources" || path.startsWith("/sources/")) && isRead) {
+    const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
+    const markdown = "text/markdown; charset=utf-8";
+    if (path === "/sources" || path === "/sources/") {
+      const q = url.searchParams.get("q")?.trim() ?? "";
+      const jurisdiction = url.searchParams.get("jurisdiction")?.trim() ?? "";
+      if (!q && !jurisdiction) {
+        sendText(res, 200, renderSourcesIndex(instance, host), markdown, "public, max-age=300");
+        return;
+      }
+      const found = await callTool(instance, "lattice_find_sources", {
+        ...(q ? { description: q } : {}),
+        ...(jurisdiction ? { jurisdiction } : {}),
+        ephemeral: ["1", "true"].includes(url.searchParams.get("private") ?? ""),
+        limit: 25,
+      }, principal, callContext(req));
+      if (isToolError(found)) {
+        sendText(res, 400, `# Search refused\n\n${found.error.message}\n`, markdown);
+        return;
+      }
+      sendText(res, 200, renderSourcesIndex(instance, host, { query: q, jurisdiction, results: (found as { results: never[] }).results }), markdown);
+      return;
+    }
+    const slug = path.slice("/sources/".length);
+    const source = instance.sources.resolve(slug);
+    if (!source) {
+      sendText(res, 404, `# No such source: ${slug.replace(/[^a-z0-9-]/g, "")}\n\nSee https://${host}/sources for the list.\n`, markdown);
+      return;
+    }
+    sendText(res, 200, renderSourcePage(source, host), markdown, "public, max-age=300");
     return;
   }
 
@@ -560,7 +604,7 @@ async function handleMcp(
     const name = request.method === "tools/call" ? request.params?.name : undefined;
     const bucket: Bucket | null = name === "lattice_discover" ? "discover"
       : name === "lattice_feedback" ? "feedback"
-      : name === "lattice_propose" || name === "lattice_contribute" ? "evidence" : null;
+      : typeof name === "string" && EVIDENCE_TOOLS.has(name) ? "evidence" : null;
     if (bucket) {
       const key = principal.anonymous ? ctx.clientAddress ?? "unknown" : actorOf(principal);
       const retryAfter = limiter.hit(key, bucket);
