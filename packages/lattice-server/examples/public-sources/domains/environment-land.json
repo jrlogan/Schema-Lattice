@@ -1,0 +1,3039 @@
+{
+  "contexts": [
+    {
+      "slug": "environmental-monitoring",
+      "title": "Environmental Monitoring",
+      "definition": "Observations of the environment at fixed sites, as OGC SensorThings and EPA WQX describe them: the stations that measure air, water, tide and weather, the values they record, and reported releases into the environment."
+    },
+    {
+      "slug": "urban-forest",
+      "title": "Urban Forest",
+      "definition": "Trees growing in a city's streets and public land, as municipal and nonprofit tree inventories record them and as the OpenTrees crosswalk normalizes them: species, size, planting and condition."
+    }
+  ],
+  "concepts": [
+    {
+      "context": "environmental-monitoring",
+      "conceptSlug": "monitoring-site",
+      "prefLabel": "Monitoring Site",
+      "altLabels": [
+        "Monitoring Location",
+        "Monitoring Station",
+        "Sampling Station",
+        "Gauge"
+      ],
+      "definition": "A fixed place where an agency or network repeatedly measures the environment (air, water, tide, weather), identified by its operator's station code and located by coordinates; measured values are recorded against it over time.",
+      "conceptKind": "place",
+      "broaderRoot": "location",
+      "closeMatch": [
+        "wd:Q1924376"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "siteId",
+            "type": "string",
+            "classification": "public",
+            "description": "Operator's station code, e.g. WQX MonitoringLocationIdentifier, AQS site id, NOAA station id"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "siteType",
+            "type": "string",
+            "classification": "public",
+            "description": "Kind of site, e.g. River/Stream, Estuary, Well"
+          },
+          {
+            "name": "operatorId",
+            "type": "string",
+            "classification": "public",
+            "description": "Code of the organization that runs the site"
+          },
+          {
+            "name": "operatorName",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "latitude",
+            "type": "number",
+            "classification": "public",
+            "unit": "degrees"
+          },
+          {
+            "name": "longitude",
+            "type": "number",
+            "classification": "public",
+            "unit": "degrees"
+          },
+          {
+            "name": "elevation",
+            "type": "number",
+            "classification": "public",
+            "unit": "m"
+          },
+          {
+            "name": "watershedCode",
+            "type": "string",
+            "classification": "public",
+            "description": "USGS hydrologic unit code (HUC) the site drains to"
+          },
+          {
+            "name": "stateCode",
+            "type": "string",
+            "classification": "public",
+            "description": "State FIPS code"
+          },
+          {
+            "name": "countyCode",
+            "type": "string",
+            "classification": "public",
+            "description": "County FIPS code"
+          },
+          {
+            "name": "geometry",
+            "type": "geometry",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://docs.ogc.org/is/18-088/18-088.html",
+        "authoredBy": [
+          "SchemaLattice environment-land pilot"
+        ],
+        "sourceNotes": "Fields shared by OGC SensorThings 1.1 Thing/Location, the EPA WQX Station profile (Water Quality Portal), USGS Water Data monitoring locations, EPA AirNow monitor sites (AQSID, SiteName, Latitude/Longitude, Elevation) and NOAA CO-OPS station metadata (id, name, lat, lon)."
+      }
+    },
+    {
+      "context": "environmental-monitoring",
+      "conceptSlug": "observation",
+      "prefLabel": "Observation",
+      "altLabels": [
+        "Measurement",
+        "Sample Result",
+        "Reading",
+        "Environmental Measurement"
+      ],
+      "definition": "One measured value of an environmental property (such as dissolved oxygen, ozone or water level) taken at a fixed station at a given time, carrying its unit, the method or sensor used, a statistic and a quality or approval status.",
+      "conceptKind": "measurement",
+      "broaderRoot": "quantity",
+      "closeMatch": [
+        "schema:Observation"
+      ],
+      "broadMatch": [
+        "wd:Q12453"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "observationId",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "siteId",
+            "type": "string",
+            "classification": "public",
+            "description": "The station's siteId (Monitoring Site)"
+          },
+          {
+            "name": "seriesId",
+            "type": "string",
+            "classification": "public",
+            "description": "The time series / datastream this value belongs to"
+          },
+          {
+            "name": "observedProperty",
+            "type": "string",
+            "classification": "public",
+            "description": "What was measured, e.g. 'Dissolved oxygen (DO)', 'Ozone'"
+          },
+          {
+            "name": "parameterCode",
+            "type": "string",
+            "classification": "public",
+            "description": "USGS 5-digit parameter code, e.g. 00300"
+          },
+          {
+            "name": "phenomenonTime",
+            "type": "datetime",
+            "classification": "public",
+            "description": "When the measured value applies"
+          },
+          {
+            "name": "value",
+            "type": "number",
+            "classification": "public"
+          },
+          {
+            "name": "unit",
+            "type": "string",
+            "classification": "public",
+            "description": "Unit code of the value, e.g. mg/L, degC, PPB"
+          },
+          {
+            "name": "method",
+            "type": "string",
+            "classification": "public",
+            "description": "Analytical method, sensor or procedure used"
+          },
+          {
+            "name": "statistic",
+            "type": "string",
+            "classification": "public",
+            "description": "Statistic the value represents, e.g. instantaneous, daily mean"
+          },
+          {
+            "name": "qualityStatus",
+            "type": "string",
+            "classification": "public",
+            "description": "Approval/review status, e.g. Provisional, Accepted, preliminary"
+          },
+          {
+            "name": "qualifier",
+            "type": "string",
+            "classification": "public",
+            "description": "Qualifier or flag codes on the value"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://docs.ogc.org/is/18-088/18-088.html",
+        "authoredBy": [
+          "SchemaLattice environment-land pilot"
+        ],
+        "sourceNotes": "Fields shared by OGC SensorThings 1.1 Observation/Datastream/ObservedProperty/Sensor, the EPA WQX result profile (CharacteristicName, ResultMeasureValue, ResultMeasure/MeasureUnitCode, USGSPCode, ResultStatusIdentifier, MeasureQualifierCode, StatisticalBaseCode), USGS latest-continuous (parameter_code, statistic_id, approval_status, qualifier), NOAA CO-OPS datagetter (t, v, f, q) and AirNow."
+      }
+    },
+    {
+      "context": "environmental-monitoring",
+      "conceptSlug": "environmental-incident",
+      "prefLabel": "Environmental Incident",
+      "altLabels": [
+        "Spill",
+        "Release Report",
+        "Spill Incident",
+        "Sewage Overflow Report"
+      ],
+      "definition": "A reported release of oil, chemicals, sewage or another substance into the environment, recorded by an emergency-response agency with when and where it happened, what was released and what caused it.",
+      "conceptKind": "event",
+      "broaderRoot": "event",
+      "closeMatch": [
+        "wd:Q70451013"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "incidentId",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "reportedAt",
+            "type": "datetime",
+            "classification": "public"
+          },
+          {
+            "name": "occurredAt",
+            "type": "datetime",
+            "classification": "public"
+          },
+          {
+            "name": "town",
+            "type": "string",
+            "classification": "public",
+            "description": "Municipality where it happened"
+          },
+          {
+            "name": "location",
+            "type": "string",
+            "classification": "personal-contact",
+            "description": "Free-text address or place; can be a private residence"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "public",
+            "description": "Free-text account of the release"
+          },
+          {
+            "name": "incidentType",
+            "type": "string",
+            "classification": "public",
+            "description": "e.g. Sewage Incident, Motor Vehicle Accident, Dielectric Fluid"
+          },
+          {
+            "name": "cause",
+            "type": "string",
+            "classification": "public",
+            "description": "What caused it, e.g. Equipment Failure, Natural Cause"
+          },
+          {
+            "name": "substances",
+            "type": "string",
+            "classification": "public",
+            "description": "What was released"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://data.ct.gov/d/ffju-s5c5",
+        "authoredBy": [
+          "SchemaLattice environment-land pilot"
+        ],
+        "sourceNotes": "Fields from the CT DEEP Spill Incidents dataset (incident_id, reported_date, incident_date, township, incident_address, incident_description, incident_type, incident_source, chemicals). Only one source was verified; no federal schema was mapped."
+      }
+    },
+    {
+      "context": "urban-forest",
+      "conceptSlug": "street-tree",
+      "prefLabel": "Street Tree",
+      "altLabels": [
+        "Roadside Tree",
+        "Public Tree",
+        "Tree"
+      ],
+      "definition": "A single tree growing in a public right-of-way or along a road, inventoried by a city or forestry program with its species, trunk diameter at breast height, planting date and risk rating.",
+      "conceptKind": "entity",
+      "broaderRoot": "physical-object",
+      "closeMatch": [
+        "wd:Q491700"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "treeId",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "siteId",
+            "type": "string",
+            "classification": "public",
+            "description": "Planting-site identifier, stable when the tree is replaced"
+          },
+          {
+            "name": "scientificName",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "genus",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "family",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "cultivar",
+            "type": "string",
+            "classification": "public",
+            "description": "Cultivar or variety (OpenTrees 'variety')"
+          },
+          {
+            "name": "commonName",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "dbh",
+            "type": "number",
+            "classification": "public",
+            "unit": "in",
+            "description": "Trunk diameter at breast height"
+          },
+          {
+            "name": "plantedDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "inventoryDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "riskRating",
+            "type": "integer",
+            "classification": "public",
+            "description": "Overall risk rating from a tree risk assessment"
+          },
+          {
+            "name": "stature",
+            "type": "string",
+            "classification": "public",
+            "description": "Mature size class, e.g. small/medium/large"
+          },
+          {
+            "name": "address",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "latitude",
+            "type": "number",
+            "classification": "public",
+            "unit": "degrees"
+          },
+          {
+            "name": "longitude",
+            "type": "number",
+            "classification": "public",
+            "unit": "degrees"
+          },
+          {
+            "name": "geometry",
+            "type": "geometry",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/stevage/opentrees-data/blob/master/sources.js",
+        "authoredBy": [
+          "SchemaLattice environment-land pilot"
+        ],
+        "sourceNotes": "OpenTrees crosswalk schema (scientific, genus, species, variety, common, dbh, planted, updated) plus the New Haven URI street tree inventory (GlobalID, SiteID, Species, Genus, Family, Cultivar, COMM_NAME, DBH, PLNT_DATE, INV_DATE, RISKRATE, TreeStature, Address, LAT/LONG)."
+      }
+    },
+    {
+      "context": "real-property",
+      "conceptSlug": "affordable-housing-property",
+      "prefLabel": "Affordable Housing Property",
+      "altLabels": [
+        "Affordable Housing Development",
+        "Income-Restricted Housing",
+        "Subsidized Housing Project",
+        "LIHTC Project",
+        "Public Housing Development",
+        "Below Market Rate Property"
+      ],
+      "definition": "A residential development or building in which some or all dwelling units are income-restricted or publicly subsidized (inclusionary below-market-rate units, tax-credit financing, public housing), counted by unit size and income ceiling.",
+      "conceptKind": "entity",
+      "broaderRoot": "asset",
+      "broadMatch": [
+        "wd:Q4689034"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "projectId",
+            "type": "string",
+            "classification": "public",
+            "description": "Program identifier, e.g. HUD_ID or public housing development code"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "address",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "city",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "zip",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "totalUnits",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "affordableUnits",
+            "type": "integer",
+            "classification": "public",
+            "description": "Units that are income-restricted or subsidized"
+          },
+          {
+            "name": "occupiedUnits",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "studioUnits",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "oneBedroomUnits",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "twoBedroomUnits",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "threeBedroomUnits",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "fourPlusBedroomUnits",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "incomeCeiling",
+            "type": "string",
+            "classification": "public",
+            "description": "Income limit of the restricted units, e.g. 60% AMI"
+          },
+          {
+            "name": "yearCompleted",
+            "type": "integer",
+            "classification": "public",
+            "description": "Year placed in service or completed"
+          },
+          {
+            "name": "latitude",
+            "type": "number",
+            "classification": "public",
+            "unit": "degrees"
+          },
+          {
+            "name": "longitude",
+            "type": "number",
+            "classification": "public",
+            "unit": "degrees"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://www.huduser.gov/portal/datasets/lihtc/property.html",
+        "authoredBy": [
+          "SchemaLattice environment-land pilot"
+        ],
+        "sourceNotes": "Fields shared by HUD LIHTC (HUD_ID, PROJECT, N_UNITS, LI_UNITS, N_0BR..N_4BR, INC_CEIL, YR_PIS), HUD Public Housing Developments (DEVELOPMENT_CODE, TOTAL_UNITS, TOTAL_OCCUPIED), New Haven BMR (unit counts by bedroom, ami) and CT DOH Housing Production (units, completion date)."
+      }
+    },
+    {
+      "context": "real-property",
+      "conceptSlug": "contaminated-site",
+      "prefLabel": "Contaminated Site",
+      "altLabels": [
+        "Brownfield",
+        "Remediation Site",
+        "Remediation Case",
+        "Hazardous Waste Site"
+      ],
+      "definition": "A property where hazardous substances or petroleum have been, or may have been, released into soil or groundwater, tracked by a state remediation or brownfield program with its program, cleanup stage, status and any use restrictions.",
+      "conceptKind": "place",
+      "broaderRoot": "location",
+      "closeMatch": [
+        "wd:Q5164914"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "siteId",
+            "type": "string",
+            "classification": "public",
+            "description": "State site identifier, e.g. STE-0000002362"
+          },
+          {
+            "name": "caseNumber",
+            "type": "string",
+            "classification": "public",
+            "description": "Remediation case number; one site can have several cases"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "personal-identity",
+            "description": "Site or case name; often a business, sometimes a person's name"
+          },
+          {
+            "name": "address",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "town",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "zip",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "program",
+            "type": "string",
+            "classification": "public",
+            "description": "Remediation or brownfield program, e.g. LUST, BRRP, ABC, Transfer Act"
+          },
+          {
+            "name": "programDate",
+            "type": "date",
+            "classification": "public",
+            "description": "Date the site entered or was approved in the program"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "cleanupStage",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "useRestrictions",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Environmental use restriction recorded"
+          },
+          {
+            "name": "engineeredControls",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "acres",
+            "type": "number",
+            "classification": "public",
+            "unit": "acres"
+          },
+          {
+            "name": "fundingSources",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "latitude",
+            "type": "number",
+            "classification": "public",
+            "unit": "degrees"
+          },
+          {
+            "name": "longitude",
+            "type": "number",
+            "classification": "public",
+            "unit": "degrees"
+          },
+          {
+            "name": "recordUrl",
+            "type": "url",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://data.ct.gov/d/xcxg-6jqp",
+        "authoredBy": [
+          "SchemaLattice environment-land pilot"
+        ],
+        "sourceNotes": "Fields shared by CT DEEP's list of contaminated or potentially contaminated sites (REACT: site id, case number, program, status, cleanup stage, use restrictions) and CT DEEP/DECD Brownfields 2025 (Site_Name, Site_Addre, Site_Town, Program, Program_Ap, Parcel_Acr, Funding_So, Latitude/Longitude)."
+      }
+    },
+    {
+      "context": "real-property",
+      "conceptSlug": "historic-district",
+      "prefLabel": "Historic District",
+      "altLabels": [
+        "Local Historic District",
+        "National Register District",
+        "Preservation District"
+      ],
+      "definition": "An area designated by a local commission, the state or the National Register for preservation because of its historic or architectural character, with the year it was established; exterior changes inside it may need review.",
+      "conceptKind": "place",
+      "broaderRoot": "location",
+      "closeMatch": [
+        "wd:Q15243209"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "designationType",
+            "type": "string",
+            "classification": "public",
+            "description": "Who designated it: local (LD), state or National Register"
+          },
+          {
+            "name": "yearEstablished",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "geometry",
+            "type": "geometry",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://services6.arcgis.com/AWSPcxcHO7OnZlnu/arcgis/rest/services/New_Haven_Local_Historic_Districts/FeatureServer/5",
+        "authoredBy": [
+          "SchemaLattice environment-land pilot"
+        ],
+        "sourceNotes": "Fields from New Haven's historic district layers (HistoricDistrict, Type, YearEstablished); the local, state and National Register layers share this schema."
+      }
+    },
+    {
+      "context": "real-property",
+      "conceptSlug": "park",
+      "prefLabel": "Park",
+      "altLabels": [
+        "Open Space Area",
+        "Recreation Area",
+        "Playground",
+        "Green"
+      ],
+      "definition": "A publicly used green space or recreation property, such as a playground, golf course, town green or community center grounds, with its category, owner, whether the recreation department manages it, and the land parcels it occupies.",
+      "conceptKind": "place",
+      "broaderRoot": "location",
+      "closeMatch": [
+        "wd:Q22698",
+        "schema:Park"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "parkId",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "classification": "public",
+            "description": "e.g. Pocket, Neighborhood, Special"
+          },
+          {
+            "name": "ownerType",
+            "type": "string",
+            "classification": "public",
+            "description": "Kind of owner, e.g. Municipal, State, Board of Education"
+          },
+          {
+            "name": "managedByParksDept",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "publicAccess",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "onHistoricRegister",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "geometry",
+            "type": "geometry",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://gis.newhavenct.gov/server/rest/services/Hosted/Comprehensive_Parks_Public_View/FeatureServer/0",
+        "authoredBy": [
+          "SchemaLattice environment-land pilot"
+        ],
+        "sourceNotes": "Fields from New Haven's Comprehensive Parks layer (id_text, park_name, category, owner, parks_managed, public_, on_historic_registry, parcel_id list)."
+      }
+    },
+    {
+      "context": "public-geography",
+      "conceptSlug": "address-point",
+      "prefLabel": "Address Point",
+      "altLabels": [
+        "Site Address",
+        "Address Location",
+        "Master Address Record"
+      ],
+      "definition": "An official addressable location kept by a municipality's addressing authority: house number, street name parts, unit, ZIP and neighborhood, placed as a point geometry at the structure or entrance it identifies.",
+      "conceptKind": "place",
+      "broaderRoot": "location",
+      "closeMatch": [
+        "wd:Q24574749"
+      ],
+      "broadMatch": [
+        "wd:Q319608"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "addressId",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "houseNumber",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "prefixDirection",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "streetName",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "streetType",
+            "type": "string",
+            "classification": "public",
+            "description": "Suffix type, e.g. ST, AVE"
+          },
+          {
+            "name": "suffixDirection",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "fullStreetName",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "unit",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "unitType",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "buildingName",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "neighborhood",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "city",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "state",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "zip",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "zip4",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "addressType",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "geometry",
+            "type": "geometry",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://gis.newhavenct.gov/server/rest/services/Hosted/New_Haven_Addresses_Authoritative_view/FeatureServer/0",
+        "authoredBy": [
+          "SchemaLattice environment-land pilot"
+        ],
+        "sourceNotes": "Fields from New Haven's authoritative address points, which follow the Esri address data model (house_number, prefix_direction, street_name, suffix_type, suffix_direction, full_street_name, unit, unit_type, building_name, neighborhood, city, state_abbreviation, zip, zip4, type, unique_id)."
+      }
+    }
+  ],
+  "sources": [
+    {
+      "slug": "noaa-coops-new-haven-8465705",
+      "accessUrl": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=8465705&product=water_level&datum=MLLW&date=latest&units=english&time_zone=lst_ldt&format=json",
+      "title": "NOAA CO-OPS New Haven, CT tide & met station 8465705",
+      "publisher": "NOAA Center for Operational Oceanographic Products and Services",
+      "jurisdiction": "US-CT/new-haven",
+      "recordDescription": "One timestamped observation (water level, wind, air/water temperature, pressure) or tide prediction at the New Haven harbor station.",
+      "landingPage": "https://tidesandcurrents.noaa.gov/stationhome.html?id=8465705",
+      "license": "US government public domain; no key",
+      "updateFrequency": "6-minute observations",
+      "kind": "dataset",
+      "note": "Fields from a real datagetter response (water_level, 2026-10-13). product, datum, units and time_zone are request parameters, not fields. Other products (air_temperature, wind, air_pressure, water_temperature, predictions) share t/v/f; wind adds s,d,dr,g.",
+      "platform": "manual",
+      "fields": [
+        {
+          "name": "metadata.id",
+          "type": "string",
+          "description": "Station id (8465705)"
+        },
+        {
+          "name": "metadata.name",
+          "type": "string"
+        },
+        {
+          "name": "metadata.lat",
+          "type": "string",
+          "description": "Latitude, decimal degrees as text"
+        },
+        {
+          "name": "metadata.lon",
+          "type": "string",
+          "description": "Longitude, decimal degrees as text"
+        },
+        {
+          "name": "data.t",
+          "type": "string",
+          "description": "Timestamp 'YYYY-MM-DD hh:mm' in the requested time_zone"
+        },
+        {
+          "name": "data.v",
+          "type": "string",
+          "description": "Value, in the requested units and datum"
+        },
+        {
+          "name": "data.s",
+          "type": "string",
+          "description": "Sigma (standard deviation of 1-second samples)"
+        },
+        {
+          "name": "data.f",
+          "type": "string",
+          "description": "Data flags, comma-separated"
+        },
+        {
+          "name": "data.q",
+          "type": "string",
+          "description": "Quality: p = preliminary, v = verified"
+        }
+      ]
+    },
+    {
+      "slug": "usgs-quinnipiac-fair-haven",
+      "accessUrl": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous/items?monitoring_location_id=USGS-01196573&f=json",
+      "title": "USGS 01196573 Quinnipiac River at Fair Haven — continuous water quality",
+      "publisher": "U.S. Geological Survey",
+      "jurisdiction": "US-CT/new-haven",
+      "recordDescription": "One latest value of one time series (parameter) at the monitoring location.",
+      "landingPage": "https://waterdata.usgs.gov/monitoring-location/01196573/",
+      "license": "US government public domain; no key (key optional for higher rate)",
+      "updateFrequency": "15-minute (provisional)",
+      "kind": "dataset",
+      "note": "Fields from a real OGC API-Features response (latest-continuous, 2026-10-13); one feature per time series. value is text. Only active USGS continuous site in New Haven.",
+      "platform": "manual",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "name": "geometry",
+          "type": "geometry",
+          "description": "GeoJSON Point of the monitoring location"
+        },
+        {
+          "name": "time_series_id",
+          "type": "string"
+        },
+        {
+          "name": "monitoring_location_id",
+          "type": "string",
+          "description": "e.g. USGS-01196573"
+        },
+        {
+          "name": "parameter_code",
+          "type": "string",
+          "description": "USGS parameter code, e.g. 00010 water temperature"
+        },
+        {
+          "name": "statistic_id",
+          "type": "string",
+          "description": "USGS statistic code, e.g. 00011 instantaneous"
+        },
+        {
+          "name": "time",
+          "type": "datetime"
+        },
+        {
+          "name": "value",
+          "type": "string"
+        },
+        {
+          "name": "unit_of_measure",
+          "type": "string"
+        },
+        {
+          "name": "approval_status",
+          "type": "string"
+        },
+        {
+          "name": "qualifier",
+          "type": "string"
+        },
+        {
+          "name": "last_modified",
+          "type": "datetime"
+        }
+      ]
+    },
+    {
+      "slug": "water-quality-portal-new-haven",
+      "accessUrl": "https://www.waterqualitydata.us/data/Station/search?bBox=-72.99,41.24,-72.86,41.36&mimeType=csv&zip=no",
+      "title": "Water Quality Portal (EPA/USGS/NWQMC) — New Haven area stations & results",
+      "publisher": "National Water Quality Monitoring Council (EPA WQX + USGS)",
+      "jurisdiction": "US",
+      "recordDescription": "Station endpoint: one monitoring location; Result endpoint: one measured characteristic value from one sampling activity.",
+      "landingPage": "https://www.waterqualitydata.us/",
+      "license": "public; no key",
+      "updateFrequency": "continuous as agencies submit",
+      "kind": "dataset",
+      "note": "Fields are the WQX Station profile columns (accessUrl) plus the narrowResult profile columns from /data/Result/search (same bBox, mimeType=csv), from real downloads. Station rows are sites; Result rows are values.",
+      "platform": "manual",
+      "fields": [
+        {
+          "name": "OrganizationIdentifier",
+          "type": "string"
+        },
+        {
+          "name": "OrganizationFormalName",
+          "type": "string"
+        },
+        {
+          "name": "MonitoringLocationIdentifier",
+          "type": "string"
+        },
+        {
+          "name": "MonitoringLocationName",
+          "type": "string"
+        },
+        {
+          "name": "MonitoringLocationTypeName",
+          "type": "string"
+        },
+        {
+          "name": "MonitoringLocationDescriptionText",
+          "type": "string"
+        },
+        {
+          "name": "HUCEightDigitCode",
+          "type": "string"
+        },
+        {
+          "name": "DrainageAreaMeasure/MeasureValue",
+          "type": "string"
+        },
+        {
+          "name": "DrainageAreaMeasure/MeasureUnitCode",
+          "type": "string"
+        },
+        {
+          "name": "ContributingDrainageAreaMeasure/MeasureValue",
+          "type": "string"
+        },
+        {
+          "name": "ContributingDrainageAreaMeasure/MeasureUnitCode",
+          "type": "string"
+        },
+        {
+          "name": "LatitudeMeasure",
+          "type": "string"
+        },
+        {
+          "name": "LongitudeMeasure",
+          "type": "string"
+        },
+        {
+          "name": "SourceMapScaleNumeric",
+          "type": "string"
+        },
+        {
+          "name": "HorizontalAccuracyMeasure/MeasureValue",
+          "type": "string"
+        },
+        {
+          "name": "HorizontalAccuracyMeasure/MeasureUnitCode",
+          "type": "string"
+        },
+        {
+          "name": "HorizontalCollectionMethodName",
+          "type": "string"
+        },
+        {
+          "name": "HorizontalCoordinateReferenceSystemDatumName",
+          "type": "string"
+        },
+        {
+          "name": "VerticalMeasure/MeasureValue",
+          "type": "string"
+        },
+        {
+          "name": "VerticalMeasure/MeasureUnitCode",
+          "type": "string"
+        },
+        {
+          "name": "VerticalAccuracyMeasure/MeasureValue",
+          "type": "string"
+        },
+        {
+          "name": "VerticalAccuracyMeasure/MeasureUnitCode",
+          "type": "string"
+        },
+        {
+          "name": "VerticalCollectionMethodName",
+          "type": "string"
+        },
+        {
+          "name": "VerticalCoordinateReferenceSystemDatumName",
+          "type": "string"
+        },
+        {
+          "name": "CountryCode",
+          "type": "string"
+        },
+        {
+          "name": "StateCode",
+          "type": "string"
+        },
+        {
+          "name": "CountyCode",
+          "type": "string"
+        },
+        {
+          "name": "AquiferName",
+          "type": "string"
+        },
+        {
+          "name": "LocalAqfrName",
+          "type": "string"
+        },
+        {
+          "name": "FormationTypeText",
+          "type": "string"
+        },
+        {
+          "name": "AquiferTypeName",
+          "type": "string"
+        },
+        {
+          "name": "ConstructionDateText",
+          "type": "string"
+        },
+        {
+          "name": "WellDepthMeasure/MeasureValue",
+          "type": "string"
+        },
+        {
+          "name": "WellDepthMeasure/MeasureUnitCode",
+          "type": "string"
+        },
+        {
+          "name": "WellHoleDepthMeasure/MeasureValue",
+          "type": "string"
+        },
+        {
+          "name": "WellHoleDepthMeasure/MeasureUnitCode",
+          "type": "string"
+        },
+        {
+          "name": "ProviderName",
+          "type": "string"
+        },
+        {
+          "name": "ActivityIdentifier",
+          "type": "string"
+        },
+        {
+          "name": "ActivityStartDate",
+          "type": "string"
+        },
+        {
+          "name": "ActivityStartTime/Time",
+          "type": "string"
+        },
+        {
+          "name": "ActivityStartTime/TimeZoneCode",
+          "type": "string"
+        },
+        {
+          "name": "ResultIdentifier",
+          "type": "string"
+        },
+        {
+          "name": "DataLoggerLine",
+          "type": "string"
+        },
+        {
+          "name": "ResultDetectionConditionText",
+          "type": "string"
+        },
+        {
+          "name": "MethodSpecificationName",
+          "type": "string"
+        },
+        {
+          "name": "CharacteristicName",
+          "type": "string"
+        },
+        {
+          "name": "ResultSampleFractionText",
+          "type": "string"
+        },
+        {
+          "name": "ResultMeasureValue",
+          "type": "string"
+        },
+        {
+          "name": "ResultMeasure/MeasureUnitCode",
+          "type": "string"
+        },
+        {
+          "name": "MeasureQualifierCode",
+          "type": "string"
+        },
+        {
+          "name": "ResultStatusIdentifier",
+          "type": "string"
+        },
+        {
+          "name": "StatisticalBaseCode",
+          "type": "string"
+        },
+        {
+          "name": "ResultValueTypeName",
+          "type": "string"
+        },
+        {
+          "name": "ResultWeightBasisText",
+          "type": "string"
+        },
+        {
+          "name": "ResultTimeBasisText",
+          "type": "string"
+        },
+        {
+          "name": "ResultTemperatureBasisText",
+          "type": "string"
+        },
+        {
+          "name": "ResultParticleSizeBasisText",
+          "type": "string"
+        },
+        {
+          "name": "PrecisionValue",
+          "type": "string"
+        },
+        {
+          "name": "DataQuality/BiasValue",
+          "type": "string"
+        },
+        {
+          "name": "ConfidenceIntervalValue",
+          "type": "string"
+        },
+        {
+          "name": "UpperConfidenceLimitValue",
+          "type": "string"
+        },
+        {
+          "name": "LowerConfidenceLimitValue",
+          "type": "string"
+        },
+        {
+          "name": "ResultCommentText",
+          "type": "string"
+        },
+        {
+          "name": "USGSPCode",
+          "type": "string"
+        },
+        {
+          "name": "ResultDepthHeightMeasure/MeasureValue",
+          "type": "string"
+        },
+        {
+          "name": "ResultDepthHeightMeasure/MeasureUnitCode",
+          "type": "string"
+        },
+        {
+          "name": "ResultDepthAltitudeReferencePointText",
+          "type": "string"
+        },
+        {
+          "name": "ResultSamplingPointName",
+          "type": "string"
+        },
+        {
+          "name": "BiologicalIntentName",
+          "type": "string"
+        },
+        {
+          "name": "BiologicalIndividualIdentifier",
+          "type": "string"
+        },
+        {
+          "name": "SubjectTaxonomicName",
+          "type": "string"
+        },
+        {
+          "name": "UnidentifiedSpeciesIdentifier",
+          "type": "string"
+        },
+        {
+          "name": "SampleTissueAnatomyName",
+          "type": "string"
+        },
+        {
+          "name": "GroupSummaryCountWeight/MeasureValue",
+          "type": "string"
+        },
+        {
+          "name": "GroupSummaryCountWeight/MeasureUnitCode",
+          "type": "string"
+        },
+        {
+          "name": "CellFormName",
+          "type": "string"
+        },
+        {
+          "name": "CellShapeName",
+          "type": "string"
+        },
+        {
+          "name": "HabitName",
+          "type": "string"
+        },
+        {
+          "name": "VoltismName",
+          "type": "string"
+        },
+        {
+          "name": "TaxonomicPollutionTolerance",
+          "type": "string"
+        },
+        {
+          "name": "TaxonomicPollutionToleranceScaleText",
+          "type": "string"
+        },
+        {
+          "name": "TrophicLevelName",
+          "type": "string"
+        },
+        {
+          "name": "FunctionalFeedingGroupName",
+          "type": "string"
+        },
+        {
+          "name": "TaxonomicDetailsCitation/ResourceTitleName",
+          "type": "string"
+        },
+        {
+          "name": "TaxonomicDetailsCitation/ResourceCreatorName",
+          "type": "string"
+        },
+        {
+          "name": "TaxonomicDetailsCitation/ResourceSubjectText",
+          "type": "string"
+        },
+        {
+          "name": "TaxonomicDetailsCitation/ResourcePublisherName",
+          "type": "string"
+        },
+        {
+          "name": "TaxonomicDetailsCitation/ResourceDate",
+          "type": "string"
+        },
+        {
+          "name": "TaxonomicDetailsCitation/ResourceIdentifier",
+          "type": "string"
+        },
+        {
+          "name": "FrequencyClassInformationUrl",
+          "type": "string"
+        },
+        {
+          "name": "ResultAnalyticalMethod/MethodIdentifier",
+          "type": "string"
+        },
+        {
+          "name": "ResultAnalyticalMethod/MethodIdentifierContext",
+          "type": "string"
+        },
+        {
+          "name": "ResultAnalyticalMethod/MethodName",
+          "type": "string"
+        },
+        {
+          "name": "ResultAnalyticalMethod/MethodUrl",
+          "type": "string"
+        },
+        {
+          "name": "ResultAnalyticalMethod/MethodQualifierTypeName",
+          "type": "string"
+        },
+        {
+          "name": "MethodDescriptionText",
+          "type": "string"
+        },
+        {
+          "name": "LaboratoryName",
+          "type": "string"
+        },
+        {
+          "name": "AnalysisStartDate",
+          "type": "string"
+        },
+        {
+          "name": "AnalysisStartTime/Time",
+          "type": "string"
+        },
+        {
+          "name": "AnalysisStartTime/TimeZoneCode",
+          "type": "string"
+        },
+        {
+          "name": "AnalysisEndDate",
+          "type": "string"
+        },
+        {
+          "name": "AnalysisEndTime/Time",
+          "type": "string"
+        },
+        {
+          "name": "AnalysisEndTime/TimeZoneCode",
+          "type": "string"
+        },
+        {
+          "name": "ResultLaboratoryCommentCode",
+          "type": "string"
+        },
+        {
+          "name": "ResultLaboratoryCommentText",
+          "type": "string"
+        },
+        {
+          "name": "ResultDetectionQuantitationLimitUrl",
+          "type": "string"
+        },
+        {
+          "name": "LaboratoryAccreditationIndicator",
+          "type": "string"
+        },
+        {
+          "name": "LaboratoryAccreditationAuthorityName",
+          "type": "string"
+        },
+        {
+          "name": "TaxonomistAccreditationIndicator",
+          "type": "string"
+        },
+        {
+          "name": "TaxonomistAccreditationAuthorityName",
+          "type": "string"
+        },
+        {
+          "name": "LabSamplePreparationUrl",
+          "type": "string"
+        }
+      ],
+      "conformsTo": [
+        "epa-wqx"
+      ]
+    },
+    {
+      "slug": "epa-airnow-monitor-sites",
+      "accessUrl": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/Air_Now_Monitor_Data_Public/FeatureServer/0",
+      "title": "EPA AirNow current monitor data (ArcGIS) — New Haven Criscuolo Park 09-009-0027",
+      "publisher": "U.S. EPA (data from CT DEEP)",
+      "jurisdiction": "US",
+      "recordDescription": "One monitoring site-hour with ozone, PM2.5, PM10 concentrations and AQI values.",
+      "landingPage": "https://www.airnow.gov/",
+      "license": "US government public data; preliminary, unvalidated",
+      "updateFrequency": "hourly",
+      "kind": "dataset"
+    },
+    {
+      "slug": "ct-deep-spill-incidents",
+      "accessUrl": "https://data.ct.gov/resource/ffju-s5c5.json",
+      "title": "CT DEEP Spill Incidents (July 2022–present)",
+      "publisher": "CT DEEP Emergency Response and Spill Prevention Division",
+      "jurisdiction": "US-CT",
+      "recordDescription": "One reported release of a substance to the environment (spill, sewage overflow, dielectric fluid, etc.).",
+      "landingPage": "https://data.ct.gov/d/ffju-s5c5",
+      "license": "Public Domain",
+      "updateFrequency": "about monthly (last row 2026-08-31)",
+      "kind": "dataset",
+      "note": "Dates are text 'YYYY/MM/DD hh:mm AM'. Sewage incidents are the only open proxy for sewer overflows. Older history: wr2a-rnsg (1996-2022-06)."
+    },
+    {
+      "slug": "new-haven-street-trees",
+      "accessUrl": "https://services1.arcgis.com/7uJv7I3kgh2y7Pe0/arcgis/rest/services/New_Haven_Street_Trees_02/FeatureServer/0",
+      "title": "New Haven Street Trees (URI / GreenSpace inventory)",
+      "publisher": "Urban Resources Initiative (Yale School of the Environment) — hosted in Yale ArcGIS Online org",
+      "jurisdiction": "US-CT/new-haven",
+      "recordDescription": "One street tree (point) inventoried or planted, with species, DBH, risk assessment and planting date.",
+      "landingPage": "https://www.arcgis.com/home/item.html?id=ac8d16bb874c41118c0550f2daff87dd",
+      "license": "not stated",
+      "updateFrequency": "stale (data last edited 2021-04)",
+      "kind": "dataset",
+      "note": "32,553 points; last edited 2021. Species/Genus/Family are often empty; COMM_NAME is filled. DBH appears to be inches. Contains staff-name and editor fields."
+    },
+    {
+      "slug": "ct-deep-brownfields-2025",
+      "accessUrl": "https://services1.arcgis.com/FjPcSmEFuDYlIdKC/arcgis/rest/services/Brownfields_Final_2025/FeatureServer/0",
+      "title": "Brownfields 2025",
+      "publisher": "CT DEEP (with DECD)",
+      "jurisdiction": "US-CT",
+      "recordDescription": "One brownfield site (CGS 32-760) in a state program (ABC, BRRP, etc.) with parcel id, acreage and funding sources.",
+      "landingPage": "https://geodata.ct.gov/ (search 'Brownfields 2025'); data.ct.gov federated 3zd4-xkm8",
+      "license": "CT Geodata Portal (public, no license stated)",
+      "updateFrequency": "Annual vintage (last edit 2026-03)",
+      "kind": "dataset",
+      "note": "Site_Parce is the town's parcel id; for New Haven it matches the Vision PID (parcel layer parcel_id)."
+    },
+    {
+      "slug": "ct-deep-contaminated-sites",
+      "accessUrl": "https://data.ct.gov/resource/xcxg-6jqp.json",
+      "title": "List of Contaminated or Potentially Contaminated Sites",
+      "publisher": "CT DEEP Remediation Division (REACT)",
+      "jurisdiction": "US-CT",
+      "recordDescription": "One remediation case (LUST, property transfer, etc.) at a site, with program, status and cleanup stage.",
+      "landingPage": "https://data.ct.gov/d/xcxg-6jqp",
+      "license": "Public Domain",
+      "updateFrequency": "Bi-weekly",
+      "kind": "dataset",
+      "note": "Case-level: several cases per site. No parcel id; join by address or coordinates."
+    },
+    {
+      "slug": "new-haven-below-market-rate-housing",
+      "accessUrl": "https://gis.newhavenct.gov/server/rest/services/Hosted/BMR_View/FeatureServer/0",
+      "title": "Below Market Rate (BMR) Housing",
+      "publisher": "City of New Haven (Economic Development; custodian IT GIS)",
+      "jurisdiction": "US-CT/new-haven",
+      "recordDescription": "One property (address/parcel) in New Haven that contains below-market-rate units, with unit counts by bedroom size and AMI tier.",
+      "landingPage": "https://gis.newhavenct.gov/arcgis/home/item.html?id=2642e537aac14796afc2aaa73df8a9af",
+      "license": "City of New Haven item terms: no special restrictions; provided as-is, no liability (no open-data license named)",
+      "updateFrequency": "Irregular (update log: AMI field 2023, points added 2024+; last edit 2026)",
+      "kind": "dataset",
+      "note": "Joins the city parcel layer by vision_pid = parcel_id and mblu. Has property-manager phone/website fields (business contacts)."
+    },
+    {
+      "slug": "ct-doh-housing-production",
+      "accessUrl": "https://data.ct.gov/resource/6urm-da9a.json",
+      "title": "Housing Production Report",
+      "publisher": "CT Department of Housing",
+      "jurisdiction": "US-CT",
+      "recordDescription": "One DOH-supported affordable housing development/preservation project with cost, funding sources, units and AMI breakdown.",
+      "landingPage": "https://data.ct.gov/d/6urm-da9a",
+      "license": "Public Domain",
+      "updateFrequency": "Quarterly",
+      "kind": "dataset",
+      "note": "No parcel id or coordinates; join to other housing lists by address/name and to towns by municipality."
+    },
+    {
+      "slug": "hud-lihtc-properties",
+      "accessUrl": "https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/LIHTC/FeatureServer/0",
+      "title": "Low-Income Housing Tax Credit Properties",
+      "publisher": "US HUD (PD&R)",
+      "jurisdiction": "US",
+      "recordDescription": "One LIHTC-financed project with units, low-income units, bedroom mix, year placed in service and geocodes.",
+      "landingPage": "https://hudgis-hud.opendata.arcgis.com/ (search 'LIHTC')",
+      "license": "US Government work (public domain)",
+      "updateFrequency": "Annual (last edit 2025-05)",
+      "kind": "dataset",
+      "note": "TRACT_LEVEL lacks the leading zero ('9009140700'): pad to 11 characters. CURCOSUB is the county-subdivision FIPS (New Haven 52070). Has contact fields (CONTACT, CO_TEL)."
+    },
+    {
+      "slug": "hud-public-housing-developments",
+      "accessUrl": "https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/Public_Housing_Developments/FeatureServer/0",
+      "title": "Public Housing Developments",
+      "publisher": "US HUD",
+      "jurisdiction": "US",
+      "recordDescription": "One public housing development of a housing authority with units, occupancy and aggregated resident characteristics.",
+      "landingPage": "https://hudgis-hud.opendata.arcgis.com/ (search 'Public Housing Developments')",
+      "license": "US Government work (public domain)",
+      "updateFrequency": "Quarterly-ish (last edit 2026-07)",
+      "kind": "dataset",
+      "note": "TRACT_LEVEL is the 11-digit 2020 tract GEOID on the old county (09009...) while CURCNTY is already the planning region (170). Has PHA staff contact fields."
+    },
+    {
+      "slug": "new-haven-local-historic-districts",
+      "accessUrl": "https://services6.arcgis.com/AWSPcxcHO7OnZlnu/arcgis/rest/services/New_Haven_Local_Historic_Districts/FeatureServer/5",
+      "title": "New Haven Local Historic Districts",
+      "publisher": "City of New Haven",
+      "jurisdiction": "US-CT/new-haven",
+      "recordDescription": "One local historic district boundary (Historic District Commission jurisdiction) with year established.",
+      "landingPage": "https://www.arcgis.com/home/search.html?q=New_Haven_Local_Historic_Districts",
+      "license": "City of New Haven AGOL (no license stated)",
+      "updateFrequency": "Rare (last edit 2022-01)",
+      "kind": "dataset",
+      "note": "Same schema: New_Haven_National_Register_Historic_Districts/FeatureServer/4 and New_Haven_State_Historic_Districts/FeatureServer/1."
+    },
+    {
+      "slug": "new-haven-comprehensive-parks",
+      "accessUrl": "https://gis.newhavenct.gov/server/rest/services/Hosted/Comprehensive_Parks_Public_View/FeatureServer/0",
+      "title": "Comprehensive Parks (Public View)",
+      "publisher": "City of New Haven",
+      "jurisdiction": "US-CT/new-haven",
+      "recordDescription": "One park or recreation property boundary (park, pocket park, community center, golf course) with owner, category, and whether Parks Dept manages it.",
+      "landingPage": "https://gis.newhavenct.gov/arcgis/home/item.html?id=8c8778ae88dc439a81a63493e1f16771",
+      "license": "City of New Haven item terms: no special restrictions; provided as-is, no liability (no open-data license named)",
+      "updateFrequency": "Irregular (last edit 2026-07)",
+      "kind": "dataset",
+      "note": "parcel_id is a semicolon-separated list of Vision PIDs (split, then = parcel layer parcel_id)."
+    },
+    {
+      "slug": "new-haven-address-points",
+      "accessUrl": "https://gis.newhavenct.gov/server/rest/services/Hosted/New_Haven_Addresses_Authoritative_view/FeatureServer/0",
+      "title": "New Haven Addresses (Authoritative)",
+      "publisher": "City of New Haven",
+      "jurisdiction": "US-CT/new-haven",
+      "recordDescription": "One site address point (house number + street + optional unit) in New Haven, Esri address-model schema.",
+      "landingPage": "https://gis.newhavenct.gov/arcgis/home/item.html?id=d69558963e5e4f32b1a03d2b372cc2bb",
+      "license": "City of New Haven item terms: no special restrictions; provided as-is, no liability (no open-data license named)",
+      "updateFrequency": "Continuous edits (last edit 2025-12)",
+      "kind": "dataset",
+      "note": "parcel_join_id is empty in every row: link to parcels spatially or by address."
+    },
+    {
+      "slug": "ct-protected-open-space-parcels",
+      "accessUrl": "https://services3.arcgis.com/3FL1kr7L4LvwA2Kb/arcgis/rest/services/Connecticut_CAMA_and_Parcel_Layer_Open_Space_Parcels/FeatureServer/0",
+      "title": "Connecticut Protected Open Space Parcels",
+      "publisher": "CT Office of Policy and Management GIS Office / DEEP",
+      "jurisdiction": "US-CT",
+      "recordDescription": "One parcel classified as protected open space, carrying the same CAMA attributes as the statewide parcel layer.",
+      "landingPage": "https://geodata.ct.gov/ (search 'Connecticut Protected Open Space Parcels'); data.ct.gov federated ryfg-xut8",
+      "license": "CT Geodata Portal (public, no license stated)",
+      "updateFrequency": "Tracks CAMA parcel layer refresh (last edit 2026-10)",
+      "kind": "dataset",
+      "note": "A filtered view of the statewide CAMA and parcel layer (same schema): parcels classed as protected open space."
+    }
+  ],
+  "mappings": [
+    {
+      "source": "ogc-sensorthings-1-1",
+      "concept": "environmental-monitoring/monitoring-site",
+      "role": "record",
+      "fields": [
+        {
+          "from": "Thing.id",
+          "to": "siteId"
+        },
+        {
+          "from": "Thing.name",
+          "to": "name"
+        },
+        {
+          "from": "Thing.description",
+          "to": "description"
+        },
+        {
+          "from": "Location.location",
+          "to": "geometry",
+          "conversion": "GeoJSON per Location.encodingType"
+        }
+      ]
+    },
+    {
+      "source": "ogc-sensorthings-1-1",
+      "concept": "environmental-monitoring/observation",
+      "role": "record",
+      "fields": [
+        {
+          "from": "Observation.id",
+          "to": "observationId"
+        },
+        {
+          "from": "Observation.phenomenonTime",
+          "to": "phenomenonTime",
+          "conversion": "an instant, or the start of an interval"
+        },
+        {
+          "from": "Observation.result",
+          "to": "value"
+        },
+        {
+          "from": "Observation.resultQuality",
+          "to": "qualityStatus"
+        },
+        {
+          "from": "Datastream.id",
+          "to": "seriesId"
+        },
+        {
+          "from": "Datastream.unitOfMeasurement",
+          "to": "unit",
+          "conversion": "JSON {name, symbol, definition}: take symbol"
+        },
+        {
+          "from": "ObservedProperty.name",
+          "to": "observedProperty"
+        },
+        {
+          "from": "Sensor.name",
+          "to": "method",
+          "conversion": "the sensor or procedure of the Datastream"
+        },
+        {
+          "from": "Thing.id",
+          "to": "siteId",
+          "conversion": "the Thing of the observation's Datastream"
+        }
+      ]
+    },
+    {
+      "source": "epa-wqx",
+      "concept": "environmental-monitoring/monitoring-site",
+      "role": "record",
+      "fields": [
+        {
+          "from": "MonitoringLocationIdentifier",
+          "to": "siteId"
+        },
+        {
+          "from": "MonitoringLocationName",
+          "to": "name"
+        },
+        {
+          "from": "MonitoringLocationDescriptionText",
+          "to": "description"
+        },
+        {
+          "from": "MonitoringLocationTypeName",
+          "to": "siteType"
+        },
+        {
+          "from": "OrganizationIdentifier",
+          "to": "operatorId"
+        },
+        {
+          "from": "OrganizationFormalName",
+          "to": "operatorName"
+        },
+        {
+          "from": "LatitudeMeasure",
+          "to": "latitude"
+        },
+        {
+          "from": "LongitudeMeasure",
+          "to": "longitude"
+        },
+        {
+          "from": "VerticalMeasure/MeasureValue",
+          "to": "elevation",
+          "conversion": "unit in VerticalMeasure/MeasureUnitCode (often ft): convert to m"
+        },
+        {
+          "from": "HUCEightDigitCode",
+          "to": "watershedCode",
+          "conversion": "8-digit HUC"
+        },
+        {
+          "from": "StateCode",
+          "to": "stateCode",
+          "conversion": "2-digit state FIPS"
+        },
+        {
+          "from": "CountyCode",
+          "to": "countyCode",
+          "conversion": "3-digit county FIPS"
+        }
+      ]
+    },
+    {
+      "source": "epa-wqx",
+      "concept": "environmental-monitoring/observation",
+      "role": "record",
+      "fields": [
+        {
+          "from": "MonitoringLocationIdentifier",
+          "to": "siteId"
+        },
+        {
+          "from": "CharacteristicName",
+          "to": "observedProperty"
+        },
+        {
+          "from": "USGSPCode",
+          "to": "parameterCode"
+        },
+        {
+          "from": "ActivityStartDate",
+          "to": "phenomenonTime",
+          "conversion": "date; add ActivityStartTime/Time and ActivityStartTime/TimeZoneCode"
+        },
+        {
+          "from": "ResultMeasureValue",
+          "to": "value",
+          "conversion": "text; may be blank when ResultDetectionConditionText says not detected"
+        },
+        {
+          "from": "ResultMeasure/MeasureUnitCode",
+          "to": "unit"
+        },
+        {
+          "from": "ResultAnalyticalMethod/MethodName",
+          "to": "method"
+        },
+        {
+          "from": "StatisticalBaseCode",
+          "to": "statistic"
+        },
+        {
+          "from": "ResultStatusIdentifier",
+          "to": "qualityStatus"
+        },
+        {
+          "from": "MeasureQualifierCode",
+          "to": "qualifier"
+        }
+      ]
+    },
+    {
+      "source": "water-quality-portal-new-haven",
+      "concept": "environmental-monitoring/monitoring-site",
+      "role": "record",
+      "fields": [
+        {
+          "from": "MonitoringLocationIdentifier",
+          "to": "siteId"
+        },
+        {
+          "from": "MonitoringLocationName",
+          "to": "name"
+        },
+        {
+          "from": "MonitoringLocationDescriptionText",
+          "to": "description"
+        },
+        {
+          "from": "MonitoringLocationTypeName",
+          "to": "siteType"
+        },
+        {
+          "from": "OrganizationIdentifier",
+          "to": "operatorId",
+          "conversion": "e.g. CT_DEP01_WQX = CT DEEP"
+        },
+        {
+          "from": "OrganizationFormalName",
+          "to": "operatorName"
+        },
+        {
+          "from": "LatitudeMeasure",
+          "to": "latitude"
+        },
+        {
+          "from": "LongitudeMeasure",
+          "to": "longitude"
+        },
+        {
+          "from": "VerticalMeasure/MeasureValue",
+          "to": "elevation",
+          "conversion": "unit in VerticalMeasure/MeasureUnitCode: convert to m"
+        },
+        {
+          "from": "HUCEightDigitCode",
+          "to": "watershedCode",
+          "conversion": "8-digit HUC, e.g. 01100004 Quinnipiac"
+        },
+        {
+          "from": "StateCode",
+          "to": "stateCode"
+        },
+        {
+          "from": "CountyCode",
+          "to": "countyCode"
+        }
+      ]
+    },
+    {
+      "source": "water-quality-portal-new-haven",
+      "concept": "environmental-monitoring/observation",
+      "role": "record",
+      "fields": [
+        {
+          "from": "ResultIdentifier",
+          "to": "observationId",
+          "conversion": "Result endpoint rows"
+        },
+        {
+          "from": "MonitoringLocationIdentifier",
+          "to": "siteId"
+        },
+        {
+          "from": "CharacteristicName",
+          "to": "observedProperty"
+        },
+        {
+          "from": "USGSPCode",
+          "to": "parameterCode"
+        },
+        {
+          "from": "ActivityStartDate",
+          "to": "phenomenonTime",
+          "conversion": "date; add ActivityStartTime/Time and ActivityStartTime/TimeZoneCode"
+        },
+        {
+          "from": "ResultMeasureValue",
+          "to": "value",
+          "conversion": "text"
+        },
+        {
+          "from": "ResultMeasure/MeasureUnitCode",
+          "to": "unit"
+        },
+        {
+          "from": "ResultAnalyticalMethod/MethodName",
+          "to": "method"
+        },
+        {
+          "from": "StatisticalBaseCode",
+          "to": "statistic"
+        },
+        {
+          "from": "ResultStatusIdentifier",
+          "to": "qualityStatus"
+        },
+        {
+          "from": "MeasureQualifierCode",
+          "to": "qualifier"
+        }
+      ]
+    },
+    {
+      "source": "usgs-quinnipiac-fair-haven",
+      "concept": "environmental-monitoring/observation",
+      "role": "record",
+      "fields": [
+        {
+          "from": "id",
+          "to": "observationId"
+        },
+        {
+          "from": "monitoring_location_id",
+          "to": "siteId",
+          "conversion": "'USGS-' + site number"
+        },
+        {
+          "from": "time_series_id",
+          "to": "seriesId"
+        },
+        {
+          "from": "parameter_code",
+          "to": "parameterCode"
+        },
+        {
+          "from": "time",
+          "to": "phenomenonTime"
+        },
+        {
+          "from": "value",
+          "to": "value",
+          "conversion": "text: parse to a number"
+        },
+        {
+          "from": "unit_of_measure",
+          "to": "unit"
+        },
+        {
+          "from": "statistic_id",
+          "to": "statistic",
+          "conversion": "USGS statistic code"
+        },
+        {
+          "from": "approval_status",
+          "to": "qualityStatus"
+        },
+        {
+          "from": "qualifier",
+          "to": "qualifier"
+        }
+      ]
+    },
+    {
+      "source": "usgs-quinnipiac-fair-haven",
+      "concept": "environmental-monitoring/monitoring-site",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "monitoring_location_id",
+          "to": "siteId",
+          "conversion": "same form as WQX MonitoringLocationIdentifier for USGS sites"
+        },
+        {
+          "from": "geometry",
+          "to": "geometry"
+        }
+      ]
+    },
+    {
+      "source": "noaa-coops-new-haven-8465705",
+      "concept": "environmental-monitoring/observation",
+      "role": "record",
+      "fields": [
+        {
+          "from": "metadata.id",
+          "to": "siteId"
+        },
+        {
+          "from": "data.t",
+          "to": "phenomenonTime",
+          "conversion": "local or GMT per the time_zone request parameter"
+        },
+        {
+          "from": "data.v",
+          "to": "value",
+          "conversion": "text; units and datum per the request (english = feet, datum MLLW); property = the product parameter"
+        },
+        {
+          "from": "data.q",
+          "to": "qualityStatus",
+          "conversion": "p = preliminary, v = verified"
+        },
+        {
+          "from": "data.f",
+          "to": "qualifier",
+          "conversion": "comma-separated flags"
+        }
+      ]
+    },
+    {
+      "source": "noaa-coops-new-haven-8465705",
+      "concept": "environmental-monitoring/monitoring-site",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "metadata.id",
+          "to": "siteId"
+        },
+        {
+          "from": "metadata.name",
+          "to": "name"
+        },
+        {
+          "from": "metadata.lat",
+          "to": "latitude",
+          "conversion": "text"
+        },
+        {
+          "from": "metadata.lon",
+          "to": "longitude",
+          "conversion": "text"
+        }
+      ]
+    },
+    {
+      "source": "epa-airnow-monitor-sites",
+      "concept": "environmental-monitoring/monitoring-site",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "AQSID",
+          "to": "siteId",
+          "conversion": "9-digit AQS id: state FIPS + county FIPS + site, e.g. 090090027"
+        },
+        {
+          "from": "SiteName",
+          "to": "name"
+        },
+        {
+          "from": "Latitude",
+          "to": "latitude"
+        },
+        {
+          "from": "Longitude",
+          "to": "longitude"
+        },
+        {
+          "from": "Elevation",
+          "to": "elevation",
+          "conversion": "meters"
+        },
+        {
+          "from": "DataSource",
+          "to": "operatorName"
+        }
+      ]
+    },
+    {
+      "source": "epa-airnow-monitor-sites",
+      "concept": "environmental-monitoring/observation",
+      "role": "record",
+      "fields": [
+        {
+          "from": "AQSID",
+          "to": "siteId"
+        },
+        {
+          "from": "ValidTime",
+          "to": "phenomenonTime",
+          "conversion": "epoch ms, the hour the values apply to"
+        },
+        {
+          "from": "OZONE",
+          "to": "value",
+          "conversion": "one row holds up to three values: observedProperty = ozone"
+        },
+        {
+          "from": "PM25",
+          "to": "value",
+          "conversion": "observedProperty = PM2.5"
+        },
+        {
+          "from": "PM10",
+          "to": "value",
+          "conversion": "observedProperty = PM10"
+        },
+        {
+          "from": "OZONE_Unit",
+          "to": "unit",
+          "conversion": "for OZONE (PPB)"
+        },
+        {
+          "from": "PM25_Unit",
+          "to": "unit",
+          "conversion": "for PM25 (UG/M3)"
+        },
+        {
+          "from": "PM10_Unit",
+          "to": "unit",
+          "conversion": "for PM10 (UG/M3)"
+        }
+      ]
+    },
+    {
+      "source": "ct-deep-spill-incidents",
+      "concept": "environmental-monitoring/environmental-incident",
+      "role": "record",
+      "fields": [
+        {
+          "from": "incident_id",
+          "to": "incidentId"
+        },
+        {
+          "from": "reported_date",
+          "to": "reportedAt",
+          "conversion": "text 'YYYY/MM/DD hh:mm AM', local time"
+        },
+        {
+          "from": "incident_date",
+          "to": "occurredAt",
+          "conversion": "text 'YYYY/MM/DD hh:mm AM', local time"
+        },
+        {
+          "from": "township",
+          "to": "town"
+        },
+        {
+          "from": "incident_address",
+          "to": "location"
+        },
+        {
+          "from": "incident_description",
+          "to": "description"
+        },
+        {
+          "from": "incident_type",
+          "to": "incidentType"
+        },
+        {
+          "from": "incident_source",
+          "to": "cause"
+        },
+        {
+          "from": "chemicals",
+          "to": "substances"
+        }
+      ]
+    },
+    {
+      "source": "ct-deep-spill-incidents",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "township",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-street-trees",
+      "concept": "urban-forest/street-tree",
+      "role": "record",
+      "fields": [
+        {
+          "from": "GlobalID",
+          "to": "treeId"
+        },
+        {
+          "from": "SiteID",
+          "to": "siteId"
+        },
+        {
+          "from": "Species",
+          "to": "scientificName"
+        },
+        {
+          "from": "Genus",
+          "to": "genus"
+        },
+        {
+          "from": "Family",
+          "to": "family"
+        },
+        {
+          "from": "Cultivar",
+          "to": "cultivar"
+        },
+        {
+          "from": "COMM_NAME",
+          "to": "commonName",
+          "conversion": "often 'Genus, epithet' style, e.g. 'Oak, Pin'"
+        },
+        {
+          "from": "DBH",
+          "to": "dbh",
+          "conversion": "inches (unit not stated in the layer; OpenTrees uses cm)"
+        },
+        {
+          "from": "PLNT_DATE",
+          "to": "plantedDate",
+          "conversion": "epoch ms"
+        },
+        {
+          "from": "INV_DATE",
+          "to": "inventoryDate",
+          "conversion": "epoch ms"
+        },
+        {
+          "from": "RISKRATE",
+          "to": "riskRating"
+        },
+        {
+          "from": "TreeStature",
+          "to": "stature"
+        },
+        {
+          "from": "Address",
+          "to": "address",
+          "conversion": "often null"
+        },
+        {
+          "from": "LAT",
+          "to": "latitude",
+          "conversion": "often null: use the point geometry"
+        },
+        {
+          "from": "LONG",
+          "to": "longitude",
+          "conversion": "often null"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-below-market-rate-housing",
+      "concept": "real-property/affordable-housing-property",
+      "role": "record",
+      "fields": [
+        {
+          "from": "property_n",
+          "to": "name"
+        },
+        {
+          "from": "parcel",
+          "to": "address"
+        },
+        {
+          "from": "municipali",
+          "to": "city"
+        },
+        {
+          "from": "zip_code",
+          "to": "zip"
+        },
+        {
+          "from": "total_bmr_",
+          "to": "affordableUnits",
+          "conversion": "below-market-rate units only"
+        },
+        {
+          "from": "occupied_b",
+          "to": "occupiedUnits",
+          "conversion": "occupied BMR units"
+        },
+        {
+          "from": "total_stud",
+          "to": "studioUnits"
+        },
+        {
+          "from": "total_1_be",
+          "to": "oneBedroomUnits"
+        },
+        {
+          "from": "total_2_be",
+          "to": "twoBedroomUnits"
+        },
+        {
+          "from": "total_3_be",
+          "to": "threeBedroomUnits"
+        },
+        {
+          "from": "total_4_be",
+          "to": "fourPlusBedroomUnits",
+          "conversion": "add total_5_be"
+        },
+        {
+          "from": "total_5_be",
+          "to": "fourPlusBedroomUnits",
+          "conversion": "add total_4_be"
+        },
+        {
+          "from": "ami",
+          "to": "incomeCeiling",
+          "conversion": "text, e.g. '65% AMI'"
+        },
+        {
+          "from": "lat",
+          "to": "latitude"
+        },
+        {
+          "from": "long",
+          "to": "longitude"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-below-market-rate-housing",
+      "concept": "https://schemalattice.com/c/real-property/land-parcel@8c8591f76678",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "vision_pid",
+          "to": "pin",
+          "conversion": "stored as a number: format as an integer string; New Haven Vision PID = parcel layer parcel_id"
+        },
+        {
+          "from": "mblu",
+          "to": "mapBlockLot",
+          "conversion": "e.g. '026 0903 00500' = parcel layer mblu"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-below-market-rate-housing",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "municipali",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "ct-doh-housing-production",
+      "concept": "real-property/affordable-housing-property",
+      "role": "record",
+      "fields": [
+        {
+          "from": "project_name",
+          "to": "name"
+        },
+        {
+          "from": "address",
+          "to": "address"
+        },
+        {
+          "from": "municipality",
+          "to": "city"
+        },
+        {
+          "from": "zip_code",
+          "to": "zip"
+        },
+        {
+          "from": "total_project_units",
+          "to": "totalUnits"
+        },
+        {
+          "from": "actual_completion_date",
+          "to": "yearCompleted",
+          "conversion": "take the year"
+        }
+      ]
+    },
+    {
+      "source": "ct-doh-housing-production",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "municipality",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "hud-lihtc-properties",
+      "concept": "real-property/affordable-housing-property",
+      "role": "record",
+      "fields": [
+        {
+          "from": "HUD_ID",
+          "to": "projectId"
+        },
+        {
+          "from": "PROJECT",
+          "to": "name"
+        },
+        {
+          "from": "PROJ_ADD",
+          "to": "address"
+        },
+        {
+          "from": "PROJ_CTY",
+          "to": "city",
+          "conversion": "postal city, upper case"
+        },
+        {
+          "from": "PROJ_ZIP",
+          "to": "zip"
+        },
+        {
+          "from": "N_UNITS",
+          "to": "totalUnits"
+        },
+        {
+          "from": "LI_UNITS",
+          "to": "affordableUnits",
+          "conversion": "low-income units"
+        },
+        {
+          "from": "N_0BR",
+          "to": "studioUnits"
+        },
+        {
+          "from": "N_1BR",
+          "to": "oneBedroomUnits"
+        },
+        {
+          "from": "N_2BR",
+          "to": "twoBedroomUnits"
+        },
+        {
+          "from": "N_3BR",
+          "to": "threeBedroomUnits"
+        },
+        {
+          "from": "N_4BR",
+          "to": "fourPlusBedroomUnits",
+          "conversion": "4 or more bedrooms"
+        },
+        {
+          "from": "INC_CEIL",
+          "to": "incomeCeiling",
+          "conversion": "one-character code (1, 2, 9 seen): decode with HUD's LIHTC data dictionary"
+        },
+        {
+          "from": "YR_PIS",
+          "to": "yearCompleted",
+          "conversion": "year placed in service, text; 8888 = unknown"
+        },
+        {
+          "from": "LAT",
+          "to": "latitude"
+        },
+        {
+          "from": "LON",
+          "to": "longitude"
+        }
+      ]
+    },
+    {
+      "source": "hud-lihtc-properties",
+      "concept": "https://schemalattice.com/c/public-geography/census-tract@602e860c2513",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "TRACT_LEVEL",
+          "to": "geoid",
+          "conversion": "pad to 11 digits with a leading zero; 2020 tract GEOID on the pre-2022 county code (09009...); current Census layers use planning-region codes (09170...)"
+        }
+      ]
+    },
+    {
+      "source": "hud-lihtc-properties",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "CURCOSUB",
+          "to": "fipsCode",
+          "conversion": "5-digit county-subdivision FIPS (New Haven 52070); prefix 09009 (pre-2022) or 09170 for the 10-digit code"
+        },
+        {
+          "from": "CURCOSUB_NM",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "hud-public-housing-developments",
+      "concept": "real-property/affordable-housing-property",
+      "role": "record",
+      "fields": [
+        {
+          "from": "DEVELOPMENT_CODE",
+          "to": "projectId",
+          "conversion": "PHA code + development number, e.g. CT004000001"
+        },
+        {
+          "from": "PROJECT_NAME",
+          "to": "name"
+        },
+        {
+          "from": "STD_ADDR",
+          "to": "address"
+        },
+        {
+          "from": "STD_CITY",
+          "to": "city",
+          "conversion": "postal city, space-padded"
+        },
+        {
+          "from": "STD_ZIP5",
+          "to": "zip"
+        },
+        {
+          "from": "TOTAL_UNITS",
+          "to": "totalUnits"
+        },
+        {
+          "from": "ACC_UNITS",
+          "to": "affordableUnits",
+          "conversion": "units under the public housing annual contributions contract"
+        },
+        {
+          "from": "TOTAL_OCCUPIED",
+          "to": "occupiedUnits"
+        },
+        {
+          "from": "LAT",
+          "to": "latitude"
+        },
+        {
+          "from": "LON",
+          "to": "longitude"
+        }
+      ]
+    },
+    {
+      "source": "hud-public-housing-developments",
+      "concept": "https://schemalattice.com/c/public-geography/census-tract@602e860c2513",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "TRACT_LEVEL",
+          "to": "geoid",
+          "conversion": "2020 tract GEOID on the pre-2022 county code (09009...); current Census layers use planning-region codes (09170...)"
+        }
+      ]
+    },
+    {
+      "source": "hud-public-housing-developments",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "CURCOSUB",
+          "to": "fipsCode",
+          "conversion": "5-digit county-subdivision FIPS (New Haven 52070); prefix 09009 (pre-2022) or 09170 for the 10-digit code"
+        },
+        {
+          "from": "CURCOSUB_NM",
+          "to": "name",
+          "conversion": "space-padded: trim"
+        }
+      ]
+    },
+    {
+      "source": "ct-deep-brownfields-2025",
+      "concept": "real-property/contaminated-site",
+      "role": "record",
+      "fields": [
+        {
+          "from": "Site_Name",
+          "to": "name"
+        },
+        {
+          "from": "Site_Addre",
+          "to": "address"
+        },
+        {
+          "from": "Site_Town",
+          "to": "town"
+        },
+        {
+          "from": "Site_Zip_C",
+          "to": "zip"
+        },
+        {
+          "from": "Program",
+          "to": "program",
+          "conversion": "e.g. ABC, BRRP"
+        },
+        {
+          "from": "Program_Ap",
+          "to": "programDate",
+          "conversion": "text M/D/YYYY"
+        },
+        {
+          "from": "Parcel_Acr",
+          "to": "acres"
+        },
+        {
+          "from": "Funding_So",
+          "to": "fundingSources"
+        },
+        {
+          "from": "Latitude",
+          "to": "latitude"
+        },
+        {
+          "from": "Longitude",
+          "to": "longitude"
+        }
+      ]
+    },
+    {
+      "source": "ct-deep-brownfields-2025",
+      "concept": "https://schemalattice.com/c/real-property/land-parcel@8c8591f76678",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "Site_Parce",
+          "to": "pin",
+          "conversion": "the town's parcel id, unique only within the town; for New Haven = Vision PID"
+        },
+        {
+          "from": "Site_Town",
+          "to": "city"
+        }
+      ]
+    },
+    {
+      "source": "ct-deep-brownfields-2025",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "Site_Town",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "ct-deep-contaminated-sites",
+      "concept": "real-property/contaminated-site",
+      "role": "record",
+      "fields": [
+        {
+          "from": "site_id_site_id",
+          "to": "siteId"
+        },
+        {
+          "from": "case_number",
+          "to": "caseNumber",
+          "conversion": "one row per case"
+        },
+        {
+          "from": "case_name",
+          "to": "name"
+        },
+        {
+          "from": "case_address",
+          "to": "address"
+        },
+        {
+          "from": "official_town",
+          "to": "town"
+        },
+        {
+          "from": "case_program",
+          "to": "program",
+          "conversion": "e.g. LUST, Transfer Act"
+        },
+        {
+          "from": "case_status",
+          "to": "status"
+        },
+        {
+          "from": "cleanup_stage",
+          "to": "cleanupStage"
+        },
+        {
+          "from": "env_use_restrictions_in_place",
+          "to": "useRestrictions"
+        },
+        {
+          "from": "engineered_controls_in_place",
+          "to": "engineeredControls"
+        },
+        {
+          "from": "site_id_latitude",
+          "to": "latitude"
+        },
+        {
+          "from": "site_id_longitude",
+          "to": "longitude"
+        },
+        {
+          "from": "react_case_link",
+          "to": "recordUrl"
+        }
+      ]
+    },
+    {
+      "source": "ct-deep-contaminated-sites",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "official_town",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-local-historic-districts",
+      "concept": "real-property/historic-district",
+      "role": "record",
+      "fields": [
+        {
+          "from": "HistoricDistrict",
+          "to": "name"
+        },
+        {
+          "from": "Type",
+          "to": "designationType",
+          "conversion": "LD = local district"
+        },
+        {
+          "from": "YearEstablished",
+          "to": "yearEstablished"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-comprehensive-parks",
+      "concept": "real-property/park",
+      "role": "record",
+      "fields": [
+        {
+          "from": "id_text",
+          "to": "parkId"
+        },
+        {
+          "from": "park_name",
+          "to": "name"
+        },
+        {
+          "from": "category",
+          "to": "category"
+        },
+        {
+          "from": "owner",
+          "to": "ownerType"
+        },
+        {
+          "from": "parks_managed",
+          "to": "managedByParksDept",
+          "conversion": "Yes/No"
+        },
+        {
+          "from": "public_",
+          "to": "publicAccess",
+          "conversion": "Yes/No"
+        },
+        {
+          "from": "on_historic_registry",
+          "to": "onHistoricRegister",
+          "conversion": "Yes/No; often null"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-comprehensive-parks",
+      "concept": "https://schemalattice.com/c/real-property/land-parcel@8c8591f76678",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "parcel_id",
+          "to": "pin",
+          "conversion": "semicolon-separated Vision PIDs, e.g. '19011;19013;19014': split, each = parcel layer parcel_id"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-address-points",
+      "concept": "public-geography/address-point",
+      "role": "record",
+      "fields": [
+        {
+          "from": "unique_id",
+          "to": "addressId"
+        },
+        {
+          "from": "house_number",
+          "to": "houseNumber"
+        },
+        {
+          "from": "prefix_direction",
+          "to": "prefixDirection"
+        },
+        {
+          "from": "street_name",
+          "to": "streetName"
+        },
+        {
+          "from": "suffix_type",
+          "to": "streetType"
+        },
+        {
+          "from": "suffix_direction",
+          "to": "suffixDirection"
+        },
+        {
+          "from": "full_street_name",
+          "to": "fullStreetName"
+        },
+        {
+          "from": "unit",
+          "to": "unit"
+        },
+        {
+          "from": "unit_type",
+          "to": "unitType"
+        },
+        {
+          "from": "building_name",
+          "to": "buildingName"
+        },
+        {
+          "from": "neighborhood",
+          "to": "neighborhood"
+        },
+        {
+          "from": "city",
+          "to": "city"
+        },
+        {
+          "from": "state_abbreviation",
+          "to": "state"
+        },
+        {
+          "from": "zip",
+          "to": "zip"
+        },
+        {
+          "from": "zip4",
+          "to": "zip4"
+        },
+        {
+          "from": "type",
+          "to": "addressType"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-address-points",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "city",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-address-points",
+      "concept": "https://schemalattice.com/c/civic-participation/city-district@bd808dfd5db4",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "neighborhood",
+          "to": "name",
+          "conversion": "New Haven neighborhood name, as in the neighborhoods layer"
+        }
+      ]
+    },
+    {
+      "source": "ct-protected-open-space-parcels",
+      "concept": "https://schemalattice.com/c/real-property/land-parcel@8c8591f76678",
+      "role": "record",
+      "fields": [
+        {
+          "from": "Parcel_ID",
+          "to": "pin",
+          "conversion": "unique only within its town; pair with the town (New Haven = Vision PID)"
+        },
+        {
+          "from": "CAMA_Link",
+          "to": "parcelKey",
+          "conversion": "town code + '-' + local parcel ID, e.g. 52070-6136; unique statewide"
+        },
+        {
+          "from": "Location",
+          "to": "address",
+          "conversion": "collapse repeated spaces before matching"
+        },
+        {
+          "from": "Town_Name",
+          "to": "city"
+        },
+        {
+          "from": "Property_Zip",
+          "to": "zip"
+        },
+        {
+          "from": "Zone",
+          "to": "zoneCode"
+        },
+        {
+          "from": "State_Use",
+          "to": "landUseCode"
+        },
+        {
+          "from": "State_Use_Description",
+          "to": "landUseDescription"
+        },
+        {
+          "from": "Land_Acres",
+          "to": "landAcres"
+        },
+        {
+          "from": "Owner",
+          "to": "ownerName"
+        },
+        {
+          "from": "Mailing_Address",
+          "to": "mailingAddress"
+        }
+      ]
+    },
+    {
+      "source": "ct-protected-open-space-parcels",
+      "concept": "https://schemalattice.com/c/real-property/property-assessment@99fbc6fd8ff4",
+      "role": "record",
+      "fields": [
+        {
+          "from": "Assessed_Total",
+          "to": "assessedTotal"
+        },
+        {
+          "from": "Assessed_Land",
+          "to": "assessedLand"
+        },
+        {
+          "from": "Assessed_Building",
+          "to": "assessedBuilding"
+        },
+        {
+          "from": "Pre_Yr_Assessed_Total",
+          "to": "priorAssessedTotal"
+        },
+        {
+          "from": "Appraised_Land",
+          "to": "appraisedLand"
+        },
+        {
+          "from": "Appraised_Building",
+          "to": "appraisedBuilding"
+        },
+        {
+          "from": "Appraised_Outbuilding",
+          "to": "appraisedOutbuilding"
+        },
+        {
+          "from": "Valuation_Year",
+          "to": "valuationYear"
+        }
+      ]
+    },
+    {
+      "source": "ct-protected-open-space-parcels",
+      "concept": "https://schemalattice.com/c/public-geography/census-tract@602e860c2513",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "FIPS",
+          "to": "geoid",
+          "conversion": "2020 tract GEOID on the pre-2022 county code (09009...); current Census layers use planning-region codes (09170...)"
+        }
+      ]
+    },
+    {
+      "source": "ct-protected-open-space-parcels",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "Town_Name",
+          "to": "name"
+        }
+      ]
+    }
+  ]
+}

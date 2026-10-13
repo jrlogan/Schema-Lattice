@@ -1,0 +1,1776 @@
+{
+  "contexts": [
+    {
+      "slug": "makerspace-operations",
+      "title": "Makerspace Operations",
+      "definition": "Operational vocabulary shared by makerspaces, hackerspaces, fab labs and tool libraries: the space itself, its members, shared equipment, the tool badges that gate it, members' authorizations, door and tool access events, equipment reservations and usage sessions, and tool lending."
+    }
+  ],
+  "concepts": [
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "makerspace",
+      "prefLabel": "Makerspace",
+      "altLabels": [
+        "Hackerspace",
+        "Fab Lab",
+        "Community Workshop",
+        "Shared Workshop"
+      ],
+      "definition": "A community-operated shared workshop (hackerspace, fab lab, library or school lab, tool library, repair cafe) where people use common tools and machines to make or repair things. Described as an organization with a public address, access and membership model, fabrication capabilities and verification provenance.",
+      "conceptKind": "agent",
+      "broaderRoot": "organization",
+      "closeMatch": [
+        "wd:Q45820240"
+      ],
+      "broadMatch": [
+        "wd:Q1032372",
+        "wd:Q1390062"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "public",
+            "description": "Stable slug, never reused"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "legalName",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "spaceKind",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "community_makerspace",
+              "hackerspace",
+              "fab_lab",
+              "mini_fab_lab",
+              "mobile_lab",
+              "library_makerspace",
+              "school_makerspace",
+              "university_makerspace",
+              "corporate_makerspace",
+              "tool_library",
+              "repair_cafe",
+              "artist_studio_collective",
+              "shared_production_facility",
+              "other"
+            ]
+          },
+          {
+            "name": "operatingStatus",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "active",
+              "forming",
+              "dormant",
+              "closed"
+            ]
+          },
+          {
+            "name": "summary",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "yearFounded",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "streetAddress",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "locality",
+            "type": "string",
+            "classification": "public",
+            "description": "City or town"
+          },
+          {
+            "name": "county",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "region",
+            "type": "string",
+            "classification": "public",
+            "description": "State or province code"
+          },
+          {
+            "name": "postalCode",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "country",
+            "type": "string",
+            "classification": "public",
+            "description": "ISO 3166-1 alpha-2"
+          },
+          {
+            "name": "latitude",
+            "type": "number",
+            "classification": "public"
+          },
+          {
+            "name": "longitude",
+            "type": "number",
+            "classification": "public"
+          },
+          {
+            "name": "website",
+            "type": "url",
+            "classification": "public"
+          },
+          {
+            "name": "email",
+            "type": "string",
+            "classification": "public",
+            "description": "The organization's public contact address"
+          },
+          {
+            "name": "phone",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "accessModel",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "member_24_7",
+              "member_extended_hours",
+              "staffed_hours_only",
+              "scheduled_open_hours",
+              "appointment_only",
+              "host_institution_hours"
+            ]
+          },
+          {
+            "name": "publicAccess",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Can a non-member use the space by any route"
+          },
+          {
+            "name": "taxStatus",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "nonprofit_501c3",
+              "nonprofit_other",
+              "for_profit",
+              "government",
+              "public_library",
+              "public_school",
+              "university",
+              "fiscally_sponsored",
+              "unknown"
+            ]
+          },
+          {
+            "name": "membershipModels",
+            "type": "array",
+            "classification": "public",
+            "values": [
+              "monthly_membership",
+              "annual_membership",
+              "day_pass",
+              "class_only",
+              "free_open",
+              "free_gated",
+              "sponsored"
+            ]
+          },
+          {
+            "name": "monthlyCostMin",
+            "type": "number",
+            "classification": "public",
+            "unit": "USD"
+          },
+          {
+            "name": "monthlyCostMax",
+            "type": "number",
+            "classification": "public",
+            "unit": "USD"
+          },
+          {
+            "name": "dayPassPrice",
+            "type": "number",
+            "classification": "public",
+            "unit": "USD"
+          },
+          {
+            "name": "minorPolicy",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "no_minors",
+              "minors_with_adult",
+              "minors_in_programs",
+              "minors_members",
+              "primarily_youth",
+              "unknown"
+            ]
+          },
+          {
+            "name": "toolLending",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "floorArea",
+            "type": "integer",
+            "classification": "public",
+            "unit": "ft2"
+          },
+          {
+            "name": "staffFte",
+            "type": "number",
+            "classification": "public"
+          },
+          {
+            "name": "hoursNote",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "capabilities",
+            "type": "array",
+            "classification": "public",
+            "description": "Fabrication capabilities, e.g. laser_cutting, cnc_router, welding_mig_tig"
+          },
+          {
+            "name": "spaceApiUrl",
+            "type": "url",
+            "classification": "public",
+            "description": "SpaceAPI endpoint giving live open/closed state"
+          },
+          {
+            "name": "calendarUrl",
+            "type": "url",
+            "classification": "public"
+          },
+          {
+            "name": "issuesBadges",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Signs Open Badges 3.0 credentials for its members"
+          },
+          {
+            "name": "acceptsBadges",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Honours credentials issued by recognised spaces"
+          },
+          {
+            "name": "badgeIssuerId",
+            "type": "string",
+            "classification": "public",
+            "description": "did:web or HTTPS issuer profile"
+          },
+          {
+            "name": "verificationStatus",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "imported",
+              "steward_verified",
+              "space_confirmed",
+              "self_managed"
+            ]
+          },
+          {
+            "name": "verifiedOn",
+            "type": "date",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://makerspace.network/schema/space/0.1.0",
+        "authoredBy": [
+          "SchemaLattice makerspace pilot"
+        ],
+        "sourceNotes": "Fields from the Makerspace Network space record JSON Schema (a profile of Open Know-Where ManufacturingFacility, crosswalked to SpaceAPI and fablabs.io), whose enums are in data/schema/enums.json. Corroborated by the operator's own Drupal site (membership types, tool lending, badge issuing) and the access-control apps."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "member",
+      "prefLabel": "Makerspace Member",
+      "altLabels": [
+        "Member Account",
+        "Membership",
+        "Maker"
+      ],
+      "definition": "A person's account at a shared community workshop: the identity the door and tool readers recognise, the membership plan and status that decide whether they may enter, and the dates and waiver that bound it. Also covers a non-member account held only for access cards.",
+      "conceptKind": "agent",
+      "broaderRoot": "person",
+      "broadMatch": [
+        "wd:Q60844538",
+        "schema:ProgramMembership"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "internal",
+            "description": "Stable account UUID shared with access-control systems"
+          },
+          {
+            "name": "firstName",
+            "type": "string",
+            "classification": "personal-identity"
+          },
+          {
+            "name": "lastName",
+            "type": "string",
+            "classification": "personal-identity"
+          },
+          {
+            "name": "email",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "phone",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "accessCardSerial",
+            "type": "string",
+            "classification": "access-secret",
+            "description": "RFID card serial presented at readers"
+          },
+          {
+            "name": "accessStatus",
+            "type": "enum",
+            "classification": "internal",
+            "description": "Manual override of door access",
+            "values": [
+              "allowed",
+              "denied"
+            ]
+          },
+          {
+            "name": "membershipType",
+            "type": "string",
+            "classification": "internal",
+            "description": "Plan or tier"
+          },
+          {
+            "name": "membershipStatus",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "pending",
+              "active",
+              "paused",
+              "ended"
+            ]
+          },
+          {
+            "name": "startDate",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "endDate",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "endReason",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "paymentStatus",
+            "type": "string",
+            "classification": "personal-financial"
+          },
+          {
+            "name": "waiverSignedAt",
+            "type": "datetime",
+            "classification": "internal"
+          },
+          {
+            "name": "waiverVersion",
+            "type": "integer",
+            "classification": "internal"
+          },
+          {
+            "name": "emergencyContactName",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "emergencyContactPhone",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "makerspace",
+            "type": "reference",
+            "classification": "public",
+            "description": "The space the membership is with"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/cardsystem",
+        "authoredBy": [
+          "SchemaLattice makerspace pilot"
+        ],
+        "sourceNotes": "Identity fields (uuid, card_serial, first_name, last_name, access) agree across the card-reader payload model, the offline access-control store (adds email) and the Drupal user/profile entities (membership type, end date and reason, payment status, waiver, emergency contact). Status values generalised from the Drupal membership workflow."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "equipment",
+      "prefLabel": "Shop Equipment",
+      "altLabels": [
+        "Equipment",
+        "Tool",
+        "Machine",
+        "Shared Tool",
+        "Library Item"
+      ],
+      "definition": "A shared tool or machine in a community workshop that members use, reserve or borrow, often gated behind a training badge and wired to a card reader. Distinguished from general assets by its fabrication capability, hazard band, required badges and reservation rules.",
+      "conceptKind": "entity",
+      "broaderRoot": "asset",
+      "broadMatch": [
+        "wd:Q39546"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "brand",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "serialNumber",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "count",
+            "type": "integer",
+            "classification": "public",
+            "description": "How many identical units"
+          },
+          {
+            "name": "capability",
+            "type": "string",
+            "classification": "public",
+            "description": "Fabrication capability vocabulary value, e.g. laser_cutting"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "available",
+              "in_use",
+              "borrowed",
+              "needs_repair",
+              "out_of_service",
+              "missing",
+              "retired"
+            ]
+          },
+          {
+            "name": "location",
+            "type": "string",
+            "classification": "public",
+            "description": "Room, area or shelf"
+          },
+          {
+            "name": "hazardBand",
+            "type": "integer",
+            "classification": "public",
+            "description": "1 (low) to 4 (high)"
+          },
+          {
+            "name": "requiredBadges",
+            "type": "array",
+            "classification": "public",
+            "description": "Badges a member must hold to use it"
+          },
+          {
+            "name": "reservable",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "maxReservationHours",
+            "type": "integer",
+            "classification": "public",
+            "unit": "h"
+          },
+          {
+            "name": "lendable",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Can leave the space on loan"
+          },
+          {
+            "name": "replacementValue",
+            "type": "number",
+            "classification": "internal",
+            "unit": "USD"
+          },
+          {
+            "name": "usefulLifeEndDate",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "readerDeviceId",
+            "type": "string",
+            "classification": "internal",
+            "description": "Card reader or activator controlling power to it"
+          },
+          {
+            "name": "manualUrl",
+            "type": "url",
+            "classification": "public"
+          },
+          {
+            "name": "notes",
+            "type": "string",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://makerspace.network/schema/space/0.1.0",
+        "authoredBy": [
+          "SchemaLattice makerspace pilot"
+        ],
+        "sourceNotes": "Brand, model, count, capability and notes from the Makerspace Network space record equipment[] (OKW ManufacturingEquipment). Status, location, hazard band, required badges, reservation limits, serial, value and useful life from the Drupal item and library_item node types; reader/activator device ids from the offline access-control store; the equipment id is what the station-login and 3D-printer auth plugins pass to the site API."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "equipment-badge",
+      "prefLabel": "Equipment Badge",
+      "altLabels": [
+        "Tool Badge",
+        "Skill Badge",
+        "Achievement Definition",
+        "Tool Authorization Type"
+      ],
+      "definition": "A named, versioned qualification that a shared workshop requires before someone may operate a particular machine or class of machines: its competency checklist, hazard class, prerequisites and how it is assessed (training, checkout, class). It is the definition; a person holding it is recorded separately.",
+      "conceptKind": "classification",
+      "broaderRoot": "credential",
+      "broadMatch": [
+        "openbadges:Achievement",
+        "wd:Q5276041"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "public",
+            "description": "Stable machine id of the badge"
+          },
+          {
+            "name": "version",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "summary",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "draft",
+              "review",
+              "published",
+              "inactive",
+              "superseded"
+            ]
+          },
+          {
+            "name": "capability",
+            "type": "string",
+            "classification": "public",
+            "description": "Fabrication capability it authorises"
+          },
+          {
+            "name": "hazardClass",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "kickback_rotating_blade",
+              "rotating_cutter",
+              "abrasive",
+              "thermal_burn",
+              "laser_radiation",
+              "chemical_exposure",
+              "electrical",
+              "pressurised",
+              "crush_pinch",
+              "fall_lift",
+              "low_hazard"
+            ]
+          },
+          {
+            "name": "competencies",
+            "type": "array",
+            "classification": "public",
+            "description": "Independently assessable checklist items"
+          },
+          {
+            "name": "excludes",
+            "type": "array",
+            "classification": "public",
+            "description": "Operations explicitly not covered"
+          },
+          {
+            "name": "siteSpecific",
+            "type": "array",
+            "classification": "public",
+            "description": "Local knowledge that never transfers"
+          },
+          {
+            "name": "prerequisiteBadges",
+            "type": "array",
+            "classification": "public"
+          },
+          {
+            "name": "checkoutRequirement",
+            "type": "enum",
+            "classification": "public",
+            "description": "Whether a supervised checkout or class is needed",
+            "values": [
+              "none",
+              "checkout",
+              "class"
+            ]
+          },
+          {
+            "name": "checkoutMinutes",
+            "type": "integer",
+            "classification": "public",
+            "unit": "min"
+          },
+          {
+            "name": "controlsAccess",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Whether card readers enforce it"
+          },
+          {
+            "name": "alignedAchievement",
+            "type": "url",
+            "classification": "public",
+            "description": "Network achievement definition this local badge aligns to"
+          },
+          {
+            "name": "criteriaUrl",
+            "type": "url",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://makerspace.network/schema/achievement/0.1.0",
+        "authoredBy": [
+          "SchemaLattice makerspace pilot"
+        ],
+        "sourceNotes": "Competencies, excludes, site-specific, hazard class, version and status from the Makerspace Network achievement JSON Schema (aligned to Open Badges 3.0 Achievement) and its alignment schema; checklist, prerequisites, checkout requirement and minutes, access-control flag and text id from the Drupal badges taxonomy. Card-reader and access-control payloads name it as badge_name/permission."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "equipment-authorization",
+      "prefLabel": "Equipment Authorization",
+      "altLabels": [
+        "Tool Authorization",
+        "Earned Badge",
+        "Badge Grant",
+        "Tool Permission"
+      ],
+      "definition": "The record that one person holds a specific tool badge at a shared workshop, so card readers and machines let them operate it. Carries who granted it after which training, its lifecycle (pending, active, suspended, expired) and, when exported, the signed credential that lets another space honour it.",
+      "conceptKind": "entity",
+      "broaderRoot": "credential",
+      "broadMatch": [
+        "openbadges:AchievementCredential",
+        "wd:Q788590"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "member",
+            "type": "reference",
+            "classification": "internal"
+          },
+          {
+            "name": "badge",
+            "type": "reference",
+            "classification": "public",
+            "description": "The badge definition held"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "pending",
+              "active",
+              "suspended",
+              "expired",
+              "rejected"
+            ]
+          },
+          {
+            "name": "accessGranted",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Whether readers currently allow use"
+          },
+          {
+            "name": "trainingCompletedOn",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "grantedOn",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "grantedBy",
+            "type": "reference",
+            "classification": "internal",
+            "description": "The facilitator or issuer who signed off"
+          },
+          {
+            "name": "validUntil",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "issuerId",
+            "type": "string",
+            "classification": "public",
+            "description": "Issuing space, as did:web or HTTPS profile"
+          },
+          {
+            "name": "credentialStatusUrl",
+            "type": "url",
+            "classification": "public",
+            "description": "Revocation status list entry"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://www.imsglobal.org/spec/ob/v3p0",
+        "authoredBy": [
+          "SchemaLattice makerspace pilot"
+        ],
+        "sourceNotes": "Member, badge and status from the Drupal badge_request node (pending/active/suspended/expired/rejected, class completed date); uuid + permission + access boolean from the card system's BadgePermission payload; user-tool assignments in the offline access-control store; validUntil, issuer and status list from Open Badges 3.0 AchievementCredential as adopted by the Makerspace Network reciprocity design."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "access-event",
+      "prefLabel": "Access Event",
+      "altLabels": [
+        "Badge Swipe",
+        "Card Scan",
+        "Access Log Entry",
+        "Guest Check-in"
+      ],
+      "definition": "One attempt to get through a door or power up a machine at a shared workshop: who presented which card or identifier at which reader, which permission was checked, and whether it was granted. Also covers a guest checked in by a hosting member.",
+      "conceptKind": "event",
+      "broaderRoot": "event",
+      "broadMatch": [
+        "wd:Q228502"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "occurredAt",
+            "type": "datetime",
+            "classification": "public"
+          },
+          {
+            "name": "eventType",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "access_request",
+              "guest_checkin"
+            ]
+          },
+          {
+            "name": "member",
+            "type": "reference",
+            "classification": "internal"
+          },
+          {
+            "name": "credentialPresented",
+            "type": "string",
+            "classification": "access-secret",
+            "description": "Card serial or token read"
+          },
+          {
+            "name": "identificationMethod",
+            "type": "string",
+            "classification": "public",
+            "description": "card, email, QR, PIN"
+          },
+          {
+            "name": "readerId",
+            "type": "string",
+            "classification": "internal",
+            "description": "Door or tool reader that asked"
+          },
+          {
+            "name": "requestedPermission",
+            "type": "reference",
+            "classification": "public",
+            "description": "Badge or door permission checked"
+          },
+          {
+            "name": "equipmentGranted",
+            "type": "array",
+            "classification": "public",
+            "description": "Tools enabled by the scan"
+          },
+          {
+            "name": "granted",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "hostMember",
+            "type": "reference",
+            "classification": "internal",
+            "description": "For guest check-ins"
+          },
+          {
+            "name": "note",
+            "type": "string",
+            "classification": "internal"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/cardsystem",
+        "authoredBy": [
+          "SchemaLattice makerspace pilot"
+        ],
+        "sourceNotes": "Reader, user and tools from the card system's BadgeAuthorization/BadgeLog and AuthRequest payloads (card serial or user id + badge name); permission, result, method, source, note and guest host from the Drupal access_control_log ECK entity (access_control_request and guest_checkin bundles); door and timestamp from the offline lobby presence store."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "tool-loan",
+      "prefLabel": "Tool Loan",
+      "altLabels": [
+        "Lending Library Checkout",
+        "Library Transaction",
+        "Tool Library Loan"
+      ],
+      "definition": "A borrowing of a shared tool to take away from a workshop or tool library: who borrowed which item, when it is due, renewals, the condition inspection on return, and any late, damage or replacement charges. Distinct from an on-site reservation.",
+      "conceptKind": "event",
+      "broaderRoot": "transaction",
+      "broadMatch": [
+        "wd:Q1580844"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "action",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "withdraw",
+              "return",
+              "renew",
+              "damage"
+            ]
+          },
+          {
+            "name": "borrower",
+            "type": "reference",
+            "classification": "internal"
+          },
+          {
+            "name": "item",
+            "type": "reference",
+            "classification": "public",
+            "description": "The lent equipment"
+          },
+          {
+            "name": "borrowDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "dueDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "returnDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "renewCount",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "inspectionNotes",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "inspectionIssues",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "amountDue",
+            "type": "number",
+            "classification": "personal-financial",
+            "unit": "USD"
+          },
+          {
+            "name": "amountPaid",
+            "type": "number",
+            "classification": "personal-financial",
+            "unit": "USD"
+          },
+          {
+            "name": "chargesStatus",
+            "type": "enum",
+            "classification": "personal-financial",
+            "values": [
+              "none",
+              "late_pending",
+              "late_invoiced",
+              "late_paid",
+              "damage_invoiced",
+              "damage_paid",
+              "replacement_invoiced",
+              "replacement_paid",
+              "waived",
+              "payment_error"
+            ]
+          },
+          {
+            "name": "closed",
+            "type": "boolean",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/makehaven-website",
+        "authoredBy": [
+          "SchemaLattice makerspace pilot"
+        ],
+        "sourceNotes": "From the Drupal lending_library library_transaction ECK entity (also the basis of the lattice-evals makerspace-retrofit-01 scenario); the Makerspace Network space record's operations.tool_lending flag marks which spaces run one. Only one operational system implements it so far."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "equipment-reservation",
+      "prefLabel": "Equipment Reservation",
+      "altLabels": [
+        "Tool Booking",
+        "Machine Reservation"
+      ],
+      "definition": "A booked time window on one shared machine at a workshop, held by a member for a stated purpose (personal work, badge checkout, class, production). Shown at the machine's station so walk-up users see who has it next.",
+      "conceptKind": "event",
+      "broaderRoot": "event",
+      "broadMatch": [
+        "schema:Reservation"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "equipment",
+            "type": "reference",
+            "classification": "public"
+          },
+          {
+            "name": "member",
+            "type": "reference",
+            "classification": "internal"
+          },
+          {
+            "name": "startsAt",
+            "type": "datetime",
+            "classification": "public"
+          },
+          {
+            "name": "endsAt",
+            "type": "datetime",
+            "classification": "public"
+          },
+          {
+            "name": "purpose",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "personal",
+              "badge",
+              "education",
+              "prototyping",
+              "manufacturing",
+              "staff",
+              "other"
+            ]
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "confirmed",
+              "cancelled"
+            ]
+          },
+          {
+            "name": "note",
+            "type": "string",
+            "classification": "internal"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/makehaven-website",
+        "authoredBy": [
+          "SchemaLattice makerspace pilot"
+        ],
+        "sourceNotes": "Drupal reservation node (asset, time range, purpose, status, notes) and the station-login client that reads asset/range/name/note/purpose/status from the site's upcoming-reservations-per-equipment API; the equipment record carries reservable and max hours."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "equipment-usage-session",
+      "prefLabel": "Equipment Usage Session",
+      "altLabels": [
+        "Machine Session",
+        "Tool Session",
+        "Station Login",
+        "Print Authorization"
+      ],
+      "definition": "A period during which one identified member actually runs a shared machine, opened when they authenticate at the machine and closed when they log out or the job ends. Records duration and consumables used so time and material can be billed.",
+      "conceptKind": "event",
+      "broaderRoot": "activity",
+      "broadMatch": [
+        "schema:UseAction"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "equipment",
+            "type": "reference",
+            "classification": "public"
+          },
+          {
+            "name": "member",
+            "type": "reference",
+            "classification": "internal"
+          },
+          {
+            "name": "identificationMethod",
+            "type": "string",
+            "classification": "public",
+            "description": "card, email or login"
+          },
+          {
+            "name": "authorized",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "startedAt",
+            "type": "datetime",
+            "classification": "public"
+          },
+          {
+            "name": "endedAt",
+            "type": "datetime",
+            "classification": "public"
+          },
+          {
+            "name": "durationSeconds",
+            "type": "integer",
+            "classification": "public",
+            "unit": "s"
+          },
+          {
+            "name": "materialUsed",
+            "type": "number",
+            "classification": "public",
+            "description": "Consumable quantity used"
+          },
+          {
+            "name": "material",
+            "type": "string",
+            "classification": "public",
+            "description": "Consumable material used"
+          },
+          {
+            "name": "endReason",
+            "type": "string",
+            "classification": "public",
+            "description": "logout, completed, cancelled, auth_timeout"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/maker-light-auth",
+        "authoredBy": [
+          "SchemaLattice makerspace pilot"
+        ],
+        "sourceNotes": "Station-login client (session start/end/duration per equipment, material usage entry) and the 3D-printer auth plugin (member identified by email against a badge permission, authorized flag, print time, cancel reason, auth timeout), both against the site's equipment and materials APIs."
+      }
+    }
+  ],
+  "sources": [
+    {
+      "slug": "makerspace-network-spaces",
+      "platform": "manual",
+      "kind": "dataset",
+      "accessUrl": "https://api.github.com/repos/makehaven/makerspace-network/contents/data/spaces",
+      "title": "Makerspace Network directory: space records",
+      "publisher": "Makerspace Network (makehaven/makerspace-network)",
+      "jurisdiction": "US-CT",
+      "recordDescription": "One makerspace, hackerspace, fab lab or comparable shared workshop, with address, access and membership model, capabilities and verification provenance.",
+      "landingPage": "https://connecticut.makerspace.network",
+      "license": "CC-BY-SA-4.0",
+      "updateFrequency": "as edited (git)",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "legal_name",
+          "type": "string"
+        },
+        {
+          "name": "kind",
+          "type": "string"
+        },
+        {
+          "name": "status",
+          "type": "string"
+        },
+        {
+          "name": "summary",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "year_founded",
+          "type": "integer"
+        },
+        {
+          "name": "region_ids",
+          "type": "array"
+        },
+        {
+          "name": "size_tier",
+          "type": "string"
+        },
+        {
+          "name": "address.street",
+          "type": "string"
+        },
+        {
+          "name": "address.street_2",
+          "type": "string"
+        },
+        {
+          "name": "address.locality",
+          "type": "string"
+        },
+        {
+          "name": "address.county",
+          "type": "string"
+        },
+        {
+          "name": "address.region",
+          "type": "string"
+        },
+        {
+          "name": "address.postal_code",
+          "type": "string"
+        },
+        {
+          "name": "address.country",
+          "type": "string"
+        },
+        {
+          "name": "address.latitude",
+          "type": "number"
+        },
+        {
+          "name": "address.longitude",
+          "type": "number"
+        },
+        {
+          "name": "address.notes",
+          "type": "string"
+        },
+        {
+          "name": "contact.website",
+          "type": "string"
+        },
+        {
+          "name": "contact.email",
+          "type": "string"
+        },
+        {
+          "name": "contact.phone",
+          "type": "string"
+        },
+        {
+          "name": "contact.social",
+          "type": "object"
+        },
+        {
+          "name": "logo_url",
+          "type": "string"
+        },
+        {
+          "name": "photo_url",
+          "type": "string"
+        },
+        {
+          "name": "operations.access_model",
+          "type": "string"
+        },
+        {
+          "name": "operations.public_access",
+          "type": "boolean"
+        },
+        {
+          "name": "operations.tax_status",
+          "type": "string"
+        },
+        {
+          "name": "operations.membership_models",
+          "type": "array"
+        },
+        {
+          "name": "operations.monthly_cost_usd.min",
+          "type": "number"
+        },
+        {
+          "name": "operations.monthly_cost_usd.max",
+          "type": "number"
+        },
+        {
+          "name": "operations.monthly_cost_usd.as_of",
+          "type": "date"
+        },
+        {
+          "name": "operations.day_pass_usd",
+          "type": "number"
+        },
+        {
+          "name": "operations.minor_policy",
+          "type": "string"
+        },
+        {
+          "name": "operations.tool_lending",
+          "type": "boolean"
+        },
+        {
+          "name": "operations.square_feet",
+          "type": "integer"
+        },
+        {
+          "name": "operations.staff_fte",
+          "type": "number"
+        },
+        {
+          "name": "operations.hours_note",
+          "type": "string"
+        },
+        {
+          "name": "capabilities",
+          "type": "array"
+        },
+        {
+          "name": "equipment",
+          "type": "array"
+        },
+        {
+          "name": "endpoints.spaceapi",
+          "type": "string"
+        },
+        {
+          "name": "endpoints.ical",
+          "type": "string"
+        },
+        {
+          "name": "endpoints.rss",
+          "type": "string"
+        },
+        {
+          "name": "external_refs",
+          "type": "array"
+        },
+        {
+          "name": "standards.participating",
+          "type": "boolean"
+        },
+        {
+          "name": "standards.level",
+          "type": "string"
+        },
+        {
+          "name": "standards.assessed_on",
+          "type": "date"
+        },
+        {
+          "name": "standards.shared_publicly",
+          "type": "boolean"
+        },
+        {
+          "name": "reciprocity.issues",
+          "type": "boolean"
+        },
+        {
+          "name": "reciprocity.accepts",
+          "type": "boolean"
+        },
+        {
+          "name": "reciprocity.issuer_id",
+          "type": "string"
+        },
+        {
+          "name": "reciprocity.public_keys_url",
+          "type": "string"
+        },
+        {
+          "name": "reciprocity.status_list_url",
+          "type": "string"
+        },
+        {
+          "name": "reciprocity.achievements_aligned",
+          "type": "array"
+        },
+        {
+          "name": "reciprocity.recognised_issuer",
+          "type": "boolean"
+        },
+        {
+          "name": "reciprocity.terms",
+          "type": "string"
+        },
+        {
+          "name": "sources",
+          "type": "array"
+        },
+        {
+          "name": "verification.status",
+          "type": "string"
+        },
+        {
+          "name": "verification.verified_by",
+          "type": "string"
+        },
+        {
+          "name": "verification.verified_on",
+          "type": "date"
+        },
+        {
+          "name": "verification.gaps",
+          "type": "array"
+        }
+      ],
+      "note": "One JSON file per space under data/spaces/ (the listing's download_url gives each record), validated by https://makerspace.network/schema/space/0.1.0. Field names are dotted JSON paths. 21 Connecticut records as of 2026-10-13; schema is multi-state via region_ids."
+    },
+    {
+      "slug": "makerspace-network-achievements",
+      "platform": "manual",
+      "kind": "dataset",
+      "accessUrl": "https://makerspace.network/achievements/index.json",
+      "title": "Makerspace Network achievement definitions",
+      "publisher": "Makerspace Network (makehaven/makerspace-network)",
+      "jurisdiction": "global",
+      "recordDescription": "One versioned, transferable tool-competence definition (e.g. table saw operator) that a space's local badge aligns to via Open Badges 3.0.",
+      "landingPage": "https://makerspace.network",
+      "license": "CC-BY-SA-4.0",
+      "updateFrequency": "as published; versions are immutable",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "integer"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "status",
+          "type": "string"
+        },
+        {
+          "name": "url",
+          "type": "string"
+        },
+        {
+          "name": "summary",
+          "type": "string"
+        },
+        {
+          "name": "capability",
+          "type": "string"
+        },
+        {
+          "name": "hazard_class",
+          "type": "string"
+        },
+        {
+          "name": "published",
+          "type": "date"
+        },
+        {
+          "name": "authors",
+          "type": "array"
+        },
+        {
+          "name": "competencies",
+          "type": "array"
+        },
+        {
+          "name": "excludes",
+          "type": "array"
+        },
+        {
+          "name": "site_specific",
+          "type": "array"
+        },
+        {
+          "name": "brand_deltas",
+          "type": "array"
+        },
+        {
+          "name": "extensions",
+          "type": "array"
+        },
+        {
+          "name": "references",
+          "type": "array"
+        }
+      ],
+      "note": "index.json lists id, version, name, status, url; the full record is at <url>.json (e.g. /achievements/table-saw-operator/v1.json) with the remaining fields. One draft definition as of 2026-10-13."
+    }
+  ],
+  "mappings": [
+    {
+      "source": "makerspace-network-spaces",
+      "concept": "makerspace-operations/makerspace",
+      "role": "record",
+      "fields": [
+        {
+          "from": "id",
+          "to": "identifier"
+        },
+        {
+          "from": "name",
+          "to": "name"
+        },
+        {
+          "from": "legal_name",
+          "to": "legalName"
+        },
+        {
+          "from": "kind",
+          "to": "spaceKind"
+        },
+        {
+          "from": "status",
+          "to": "operatingStatus"
+        },
+        {
+          "from": "summary",
+          "to": "summary"
+        },
+        {
+          "from": "year_founded",
+          "to": "yearFounded"
+        },
+        {
+          "from": "address.street",
+          "to": "streetAddress"
+        },
+        {
+          "from": "address.locality",
+          "to": "locality"
+        },
+        {
+          "from": "address.county",
+          "to": "county"
+        },
+        {
+          "from": "address.region",
+          "to": "region"
+        },
+        {
+          "from": "address.postal_code",
+          "to": "postalCode"
+        },
+        {
+          "from": "address.country",
+          "to": "country"
+        },
+        {
+          "from": "address.latitude",
+          "to": "latitude"
+        },
+        {
+          "from": "address.longitude",
+          "to": "longitude"
+        },
+        {
+          "from": "contact.website",
+          "to": "website"
+        },
+        {
+          "from": "contact.email",
+          "to": "email"
+        },
+        {
+          "from": "contact.phone",
+          "to": "phone"
+        },
+        {
+          "from": "operations.access_model",
+          "to": "accessModel"
+        },
+        {
+          "from": "operations.public_access",
+          "to": "publicAccess"
+        },
+        {
+          "from": "operations.tax_status",
+          "to": "taxStatus"
+        },
+        {
+          "from": "operations.membership_models",
+          "to": "membershipModels"
+        },
+        {
+          "from": "operations.monthly_cost_usd.min",
+          "to": "monthlyCostMin"
+        },
+        {
+          "from": "operations.monthly_cost_usd.max",
+          "to": "monthlyCostMax"
+        },
+        {
+          "from": "operations.day_pass_usd",
+          "to": "dayPassPrice"
+        },
+        {
+          "from": "operations.minor_policy",
+          "to": "minorPolicy"
+        },
+        {
+          "from": "operations.tool_lending",
+          "to": "toolLending"
+        },
+        {
+          "from": "operations.square_feet",
+          "to": "floorArea"
+        },
+        {
+          "from": "operations.staff_fte",
+          "to": "staffFte"
+        },
+        {
+          "from": "operations.hours_note",
+          "to": "hoursNote"
+        },
+        {
+          "from": "capabilities",
+          "to": "capabilities"
+        },
+        {
+          "from": "endpoints.spaceapi",
+          "to": "spaceApiUrl"
+        },
+        {
+          "from": "endpoints.ical",
+          "to": "calendarUrl"
+        },
+        {
+          "from": "reciprocity.issues",
+          "to": "issuesBadges"
+        },
+        {
+          "from": "reciprocity.accepts",
+          "to": "acceptsBadges"
+        },
+        {
+          "from": "reciprocity.issuer_id",
+          "to": "badgeIssuerId"
+        },
+        {
+          "from": "verification.status",
+          "to": "verificationStatus"
+        },
+        {
+          "from": "verification.verified_on",
+          "to": "verifiedOn"
+        }
+      ]
+    },
+    {
+      "source": "makerspace-network-spaces",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "address.locality",
+          "to": "name"
+        },
+        {
+          "from": "address.county",
+          "to": "county"
+        },
+        {
+          "from": "address.region",
+          "to": "state"
+        }
+      ]
+    },
+    {
+      "source": "makerspace-network-achievements",
+      "concept": "makerspace-operations/equipment-badge",
+      "role": "record",
+      "fields": [
+        {
+          "from": "id",
+          "to": "identifier"
+        },
+        {
+          "from": "version",
+          "to": "version"
+        },
+        {
+          "from": "name",
+          "to": "name"
+        },
+        {
+          "from": "summary",
+          "to": "summary"
+        },
+        {
+          "from": "status",
+          "to": "status"
+        },
+        {
+          "from": "capability",
+          "to": "capability"
+        },
+        {
+          "from": "hazard_class",
+          "to": "hazardClass"
+        },
+        {
+          "from": "competencies",
+          "to": "competencies"
+        },
+        {
+          "from": "excludes",
+          "to": "excludes"
+        },
+        {
+          "from": "site_specific",
+          "to": "siteSpecific"
+        },
+        {
+          "from": "url",
+          "to": "alignedAchievement",
+          "conversion": "the definition URL is what a local badge's alignment points at"
+        }
+      ]
+    }
+  ]
+}

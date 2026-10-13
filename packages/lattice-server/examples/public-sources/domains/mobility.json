@@ -1,0 +1,5976 @@
+{
+ "contexts": [
+  {
+   "slug": "public-transit",
+   "title": "Public Transit",
+   "definition": "Scheduled public transportation as GTFS describes it: the agencies that run it, the stops and routes they serve, the trips they schedule, the stop-by-stop times of those trips, and the live positions of the vehicles running them."
+  },
+  {
+   "slug": "shared-mobility",
+   "title": "Shared Mobility",
+   "definition": "Rentable shared vehicles such as dockless bikes, e-bikes and scooters as GBFS feeds publish them: where each available vehicle is, what kind it is, and how far it can go."
+  },
+  {
+   "slug": "street-network",
+   "title": "Street Network",
+   "definition": "The physical road and street system and what sits on it: linear-referenced road segments with traffic volumes, traffic count stations, bridges, bikeways, metered curb parking and electric-vehicle charging sites."
+  },
+  {
+   "slug": "traffic-safety",
+   "title": "Traffic Safety",
+   "definition": "Police-reported motor-vehicle collisions described with the crash-level data elements of the MMUCC guideline: when and where they happened, how severe they were, and the road and environmental conditions."
+  }
+ ],
+ "concepts": [
+  {
+   "context": "public-transit",
+   "conceptSlug": "transit-agency",
+   "prefLabel": "Transit Agency",
+   "altLabels": [
+    "transit operator",
+    "public transport operator",
+    "GTFS agency"
+   ],
+   "definition": "An organization or brand that runs scheduled public transportation service, identified within a GTFS feed by an agency id and named on its routes; one feed can carry several of them.",
+   "conceptKind": "agent",
+   "broaderRoot": "organization",
+   "closeMatch": [
+    "wd:Q15641253"
+   ],
+   "broadMatch": [
+    "wd:Q2127330"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "agencyId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "url",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "timezone",
+      "type": "string",
+      "classification": "public",
+      "description": "IANA timezone of the service"
+     },
+     {
+      "name": "language",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "phone",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "fareUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "email",
+      "type": "string",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://gtfs.org/documentation/schedule/reference/",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "GTFS Schedule agency.txt; present in the CTtransit, Amtrak, Metro-North and Hartford Line feeds (email only in Hartford Line)."
+   }
+  },
+  {
+   "context": "public-transit",
+   "conceptSlug": "transit-stop",
+   "prefLabel": "Transit Stop",
+   "altLabels": [
+    "bus stop",
+    "station",
+    "platform",
+    "GTFS stop"
+   ],
+   "definition": "A place where passengers board or leave scheduled public transport vehicles, such as a bus pole, a rail platform or a whole station grouping platforms, with its coordinates, public code and accessibility.",
+   "conceptKind": "place",
+   "broaderRoot": "location",
+   "closeMatch": [
+    "wd:Q548662"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "stopId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "stopCode",
+      "type": "string",
+      "classification": "public",
+      "description": "Short public code shown to riders"
+     },
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "zoneId",
+      "type": "string",
+      "classification": "public",
+      "description": "Fare zone"
+     },
+     {
+      "name": "url",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "locationType",
+      "type": "integer",
+      "classification": "public",
+      "description": "GTFS location_type: 0 stop/platform, 1 station, 2 entrance/exit, 3 generic node, 4 boarding area"
+     },
+     {
+      "name": "parentStation",
+      "type": "string",
+      "classification": "public",
+      "description": "stopId of the station this stop belongs to"
+     },
+     {
+      "name": "timezone",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "wheelchairBoarding",
+      "type": "integer",
+      "classification": "public",
+      "description": "GTFS 0 unknown, 1 possible, 2 not possible"
+     },
+     {
+      "name": "platformCode",
+      "type": "string",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://gtfs.org/documentation/schedule/reference/",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "GTFS Schedule stops.txt; fields shared by the CTtransit, Amtrak, Metro-North and Hartford Line feeds; GTFS-realtime stop_id references them."
+   }
+  },
+  {
+   "context": "public-transit",
+   "conceptSlug": "transit-route",
+   "prefLabel": "Transit Route",
+   "altLabels": [
+    "bus route",
+    "rail line",
+    "GTFS route"
+   ],
+   "definition": "A named or numbered public transport service that riders recognize, such as bus route 212 or the Shore Line East commuter rail, grouping the scheduled trips one agency runs under that name.",
+   "conceptKind": "entity",
+   "broaderRoot": "thing",
+   "closeMatch": [
+    "wd:Q125209036"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "routeId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "agencyId",
+      "type": "string",
+      "classification": "public",
+      "description": "agency_id of the Transit Agency that runs it"
+     },
+     {
+      "name": "shortName",
+      "type": "string",
+      "classification": "public",
+      "description": "Public route number"
+     },
+     {
+      "name": "longName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "routeType",
+      "type": "integer",
+      "classification": "public",
+      "description": "GTFS route_type: 0 tram, 1 subway, 2 rail, 3 bus, 4 ferry, 5 cable tram, 6 aerial lift, 7 funicular, 11 trolleybus, 12 monorail"
+     },
+     {
+      "name": "url",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "color",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "textColor",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "sortOrder",
+      "type": "integer",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://gtfs.org/documentation/schedule/reference/",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "GTFS Schedule routes.txt, present in all four Connecticut feeds; GTFS-realtime TripDescriptor.route_id references it."
+   }
+  },
+  {
+   "context": "public-transit",
+   "conceptSlug": "transit-trip",
+   "prefLabel": "Transit Trip",
+   "altLabels": [
+    "scheduled trip",
+    "service journey",
+    "train number",
+    "GTFS trip"
+   ],
+   "definition": "One scheduled run of a public transport vehicle along a route, from its first stop to its last, on the service days its calendar names; realtime feeds point at it to report delays and positions.",
+   "conceptKind": "event",
+   "broaderRoot": "event",
+   "broadMatch": [
+    "schema:Trip"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "tripId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "routeId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "serviceId",
+      "type": "string",
+      "classification": "public",
+      "description": "Service calendar the trip runs on"
+     },
+     {
+      "name": "headsign",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "shortName",
+      "type": "string",
+      "classification": "public",
+      "description": "Public trip or train number"
+     },
+     {
+      "name": "directionId",
+      "type": "integer",
+      "classification": "public",
+      "description": "0 or 1"
+     },
+     {
+      "name": "blockId",
+      "type": "string",
+      "classification": "public",
+      "description": "Vehicle block the trip belongs to"
+     },
+     {
+      "name": "shapeId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "wheelchairAccessible",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "bikesAllowed",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "startDate",
+      "type": "date",
+      "classification": "public",
+      "description": "Service date of one run (realtime)"
+     },
+     {
+      "name": "startTime",
+      "type": "string",
+      "classification": "public",
+      "description": "Scheduled start HH:MM:SS of one run (realtime)"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://gtfs.org/documentation/schedule/reference/",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "GTFS Schedule trips.txt (all four CT feeds) plus GTFS-realtime TripDescriptor (trip_id, route_id, direction_id, start_date, start_time)."
+   }
+  },
+  {
+   "context": "public-transit",
+   "conceptSlug": "stop-time",
+   "prefLabel": "Stop Time",
+   "altLabels": [
+    "scheduled stop visit",
+    "stop time update",
+    "timetable entry"
+   ],
+   "definition": "One scheduled visit of a trip to a stop: the planned arrival and departure, the order of the visit along the trip, boarding rules, and, from realtime feeds, the predicted time and delay.",
+   "conceptKind": "event",
+   "broaderRoot": "event",
+   "broadMatch": [
+    "wd:Q221725"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "tripId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "stopId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "stopSequence",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "arrivalTime",
+      "type": "string",
+      "classification": "public",
+      "description": "Scheduled HH:MM:SS on the service day; may pass 24:00:00"
+     },
+     {
+      "name": "departureTime",
+      "type": "string",
+      "classification": "public",
+      "description": "Scheduled HH:MM:SS on the service day; may pass 24:00:00"
+     },
+     {
+      "name": "stopHeadsign",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "pickupType",
+      "type": "integer",
+      "classification": "public",
+      "description": "GTFS 0 regular, 1 none, 2 phone, 3 ask driver"
+     },
+     {
+      "name": "dropOffType",
+      "type": "integer",
+      "classification": "public",
+      "description": "GTFS 0 regular, 1 none, 2 phone, 3 ask driver"
+     },
+     {
+      "name": "shapeDistTraveled",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "timepoint",
+      "type": "integer",
+      "classification": "public",
+      "description": "1 exact, 0 approximate"
+     },
+     {
+      "name": "predictedArrival",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "predictedDeparture",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "delaySeconds",
+      "type": "integer",
+      "classification": "public",
+      "unit": "s"
+     },
+     {
+      "name": "scheduleRelationship",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "SCHEDULED",
+       "SKIPPED",
+       "NO_DATA",
+       "UNSCHEDULED"
+      ]
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://gtfs.org/documentation/schedule/reference/",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "GTFS Schedule stop_times.txt (all four CT feeds) plus GTFS-realtime TripUpdate.StopTimeUpdate / StopTimeEvent (CTtransit TripUpdates feed)."
+   }
+  },
+  {
+   "context": "public-transit",
+   "conceptSlug": "vehicle-position",
+   "prefLabel": "Vehicle Position",
+   "altLabels": [
+    "AVL fix",
+    "bus location",
+    "realtime vehicle position"
+   ],
+   "definition": "A timestamped report of where an in-service transit vehicle is, which trip it is running, how fast and which way it is heading, and how close it is to its next stop.",
+   "conceptKind": "measurement",
+   "broaderRoot": "record",
+   "broadMatch": [
+    "wd:Q2527484"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "vehicleId",
+      "type": "string",
+      "classification": "public",
+      "description": "Internal vehicle id"
+     },
+     {
+      "name": "vehicleLabel",
+      "type": "string",
+      "classification": "public",
+      "description": "Rider-visible vehicle number"
+     },
+     {
+      "name": "licensePlate",
+      "type": "string",
+      "classification": "internal",
+      "description": "Fleet vehicle plate"
+     },
+     {
+      "name": "tripId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "routeId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "directionId",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "tripStartDate",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "bearing",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "speed",
+      "type": "number",
+      "classification": "public",
+      "unit": "m/s"
+     },
+     {
+      "name": "odometer",
+      "type": "number",
+      "classification": "public",
+      "unit": "m"
+     },
+     {
+      "name": "currentStopSequence",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "stopId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "currentStatus",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "INCOMING_AT",
+       "STOPPED_AT",
+       "IN_TRANSIT_TO"
+      ]
+     },
+     {
+      "name": "timestamp",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "congestionLevel",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "UNKNOWN_CONGESTION_LEVEL",
+       "RUNNING_SMOOTHLY",
+       "STOP_AND_GO",
+       "CONGESTION",
+       "SEVERE_CONGESTION"
+      ]
+     },
+     {
+      "name": "occupancyStatus",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "EMPTY",
+       "MANY_SEATS_AVAILABLE",
+       "FEW_SEATS_AVAILABLE",
+       "STANDING_ROOM_ONLY",
+       "CRUSHED_STANDING_ROOM_ONLY",
+       "FULL",
+       "NOT_ACCEPTING_PASSENGERS",
+       "NO_DATA_AVAILABLE",
+       "NOT_BOARDABLE"
+      ]
+     },
+     {
+      "name": "occupancyPercentage",
+      "type": "integer",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://gtfs.org/documentation/realtime/reference/",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "GTFS-realtime VehiclePosition, Position, VehicleDescriptor and TripDescriptor messages; every field confirmed in the live CTtransit VehiclePositions.json feed (2026-10-13)."
+   }
+  },
+  {
+   "context": "shared-mobility",
+   "conceptSlug": "shared-vehicle",
+   "prefLabel": "Shared Vehicle",
+   "altLabels": [
+    "dockless bike",
+    "shared e-scooter",
+    "micromobility vehicle",
+    "free bike"
+   ],
+   "definition": "A bike, e-bike or scooter that a mobility operator offers for short public rental, reported with its current location, availability, vehicle type and remaining range; dockless ones are parked anywhere.",
+   "conceptKind": "entity",
+   "broaderRoot": "physical-object",
+   "broadMatch": [
+    "wd:Q65042203"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "vehicleId",
+      "type": "string",
+      "classification": "public",
+      "description": "Operator id; GBFS requires it to rotate after each trip"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "isReserved",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "isDisabled",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "vehicleTypeId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "formFactor",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "bicycle",
+       "cargo_bicycle",
+       "car",
+       "moped",
+       "scooter",
+       "scooter_standing",
+       "scooter_seated",
+       "other"
+      ]
+     },
+     {
+      "name": "propulsionType",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "human",
+       "electric_assist",
+       "electric",
+       "combustion",
+       "combustion_diesel",
+       "hybrid",
+       "plug_in_hybrid",
+       "hydrogen_fuel_cell"
+      ]
+     },
+     {
+      "name": "currentRangeMeters",
+      "type": "number",
+      "classification": "public",
+      "unit": "m"
+     },
+     {
+      "name": "maxRangeMeters",
+      "type": "number",
+      "classification": "public",
+      "unit": "m"
+     },
+     {
+      "name": "currentFuelPercent",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "pricingPlanId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "stationId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "lastReported",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "rentalUri",
+      "type": "url",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/MobilityData/gbfs/blob/master/gbfs.md",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "GBFS vehicle_status (v3) / free_bike_status (v2.2) plus vehicle_types; confirmed against the live Veo New Haven GBFS 2.2 feed."
+   }
+  },
+  {
+   "context": "street-network",
+   "conceptSlug": "road-segment",
+   "prefLabel": "Road Segment",
+   "altLabels": [
+    "roadway segment",
+    "LRS route segment",
+    "AADT segment",
+    "street segment"
+   ],
+   "definition": "A stretch of public road identified by a linear-referencing route id and a begin and end milepoint, carrying the street name, town and, where counted, its annual average daily traffic.",
+   "conceptKind": "place",
+   "broaderRoot": "location",
+   "closeMatch": [
+    "wd:Q138710236"
+   ],
+   "broadMatch": [
+    "wd:Q34442"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "routeId",
+      "type": "string",
+      "classification": "public",
+      "description": "State LRS route id (CTDOT: town number + local road number for local roads)"
+     },
+     {
+      "name": "beginMilepoint",
+      "type": "number",
+      "classification": "public",
+      "unit": "mi"
+     },
+     {
+      "name": "endMilepoint",
+      "type": "number",
+      "classification": "public",
+      "unit": "mi"
+     },
+     {
+      "name": "streetName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "townName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "townNumber",
+      "type": "string",
+      "classification": "public",
+      "description": "State DOT town number"
+     },
+     {
+      "name": "localRoadNumber",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "routeDirection",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "overlapStatus",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "primary",
+       "secondary"
+      ]
+     },
+     {
+      "name": "snapshotYear",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "annualAverageDailyTraffic",
+      "type": "integer",
+      "classification": "public",
+      "unit": "vehicles/day"
+     },
+     {
+      "name": "trafficYear",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "countStationId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "geometry",
+      "type": "geometry",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://gisportal.dot.ct.gov/server/rest/services/OpenData/CTDOT_Roadway_Basemap/MapServer/7",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "CTDOT Roadway Basemap local roads (ROUTE_ID, BEGIN/END_POINT, TOWN_NUMBER, TOWN_NAME, STREET_NAME) and CTDOT AADT segments (same ROUTE_ID and milepoints plus AADT value, year and station)."
+   }
+  },
+  {
+   "context": "street-network",
+   "conceptSlug": "traffic-count-station",
+   "prefLabel": "Traffic Count Station",
+   "altLabels": [
+    "traffic monitoring station",
+    "count location",
+    "AADT station"
+   ],
+   "definition": "A fixed roadside location where a transportation agency periodically counts vehicles, located by route and milepoint, whose counts produce the annual average daily traffic of nearby road segments.",
+   "conceptKind": "place",
+   "broaderRoot": "location",
+   "broadMatch": [
+    "wd:Q110624382",
+    "wd:Q361151"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "stationId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "stationNumber",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "townNumber",
+      "type": "integer",
+      "classification": "public",
+      "description": "State DOT town number"
+     },
+     {
+      "name": "stateRoute",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "localRoad",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "routeId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "milepoint",
+      "type": "number",
+      "classification": "public",
+      "unit": "mi"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "countDataUrl",
+      "type": "url",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://services1.arcgis.com/FCaUeJ5SOVtImake/arcgis/rest/services/CTDOT_Traffic_Monitoring_Data/FeatureServer/0",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "CTDOT Traffic Count Locations layer; StationID is the key the AADT segments layer cites as AADT_STATION_ID."
+   }
+  },
+  {
+   "context": "street-network",
+   "conceptSlug": "bridge",
+   "prefLabel": "Bridge",
+   "altLabels": [
+    "highway structure",
+    "culvert",
+    "NBI structure",
+    "overpass"
+   ],
+   "definition": "A structure longer than 20 feet carrying a road, railway or path over a waterway, road or other obstacle, inventoried by its structure number with year built, traffic carried, and inspected deck, superstructure, substructure and culvert condition ratings.",
+   "conceptKind": "entity",
+   "broaderRoot": "asset",
+   "closeMatch": [
+    "wd:Q12280"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "structureNumber",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "facilityCarried",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "featureCrossed",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "placeCode",
+      "type": "string",
+      "classification": "public",
+      "description": "FIPS place/county-subdivision code (NBI item 4)"
+     },
+     {
+      "name": "routeNumber",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "milepoint",
+      "type": "number",
+      "classification": "public",
+      "unit": "mi"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "owner",
+      "type": "string",
+      "classification": "public",
+      "description": "NBI item 22 owner code"
+     },
+     {
+      "name": "maintenanceResponsibility",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "yearBuilt",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "yearReconstructed",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "averageDailyTraffic",
+      "type": "integer",
+      "classification": "public",
+      "unit": "vehicles/day"
+     },
+     {
+      "name": "averageDailyTrafficYear",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "deckCondition",
+      "type": "string",
+      "classification": "public",
+      "description": "NBI 0-9 or N"
+     },
+     {
+      "name": "superstructureCondition",
+      "type": "string",
+      "classification": "public",
+      "description": "NBI 0-9 or N"
+     },
+     {
+      "name": "substructureCondition",
+      "type": "string",
+      "classification": "public",
+      "description": "NBI 0-9 or N"
+     },
+     {
+      "name": "culvertCondition",
+      "type": "string",
+      "classification": "public",
+      "description": "NBI 0-9 or N"
+     },
+     {
+      "name": "channelCondition",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "structuralEvaluation",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "deckGeometryEvaluation",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "underclearanceEvaluation",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "waterwayAdequacy",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "approachAlignment",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "scourCritical",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "serviceOn",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "serviceUnder",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "mainSpanMaterial",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "mainSpanDesign",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "mainSpanCount",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "approachSpanCount",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "structureLength",
+      "type": "number",
+      "classification": "public",
+      "unit": "m"
+     },
+     {
+      "name": "deckWidth",
+      "type": "number",
+      "classification": "public",
+      "unit": "m"
+     },
+     {
+      "name": "approachRoadwayWidth",
+      "type": "number",
+      "classification": "public",
+      "unit": "m"
+     },
+     {
+      "name": "highwaySystem",
+      "type": "string",
+      "classification": "public",
+      "description": "On the National Highway System (NBI item 104)"
+     },
+     {
+      "name": "inspectionDate",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "inspectionFrequencyMonths",
+      "type": "integer",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://www.fhwa.dot.gov/bridge/mtguide.pdf",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "FHWA National Bridge Inventory items (Recording and Coding Guide); every field is an NBI item that the CTDOT Bridges layer also carries by item number."
+   }
+  },
+  {
+   "context": "street-network",
+   "conceptSlug": "bikeway",
+   "prefLabel": "Bikeway",
+   "altLabels": [
+    "bike route",
+    "bike lane",
+    "cycle track",
+    "bicycle facility"
+   ],
+   "definition": "A street or path segment designated for cycling, from a signed shared route to a protected lane or off-road trail, with its facility type, whether it exists or is only planned, and how comfortable it is to ride.",
+   "conceptKind": "place",
+   "broaderRoot": "location",
+   "closeMatch": [
+    "wd:Q221722"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "roadNames",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "facilityType",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "status",
+      "type": "string",
+      "classification": "public",
+      "description": "Existing or proposed"
+     },
+     {
+      "name": "comfortRating",
+      "type": "integer",
+      "classification": "public",
+      "description": "1 (most comfortable) to 4, level-of-traffic-stress style"
+     },
+     {
+      "name": "ratingDescription",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "geometry",
+      "type": "geometry",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://gis.newhavenct.gov/server/rest/services/Hosted/Bike_Routes_(View)/FeatureServer/0",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "City of New Haven Bike Routes layer (roadnames, descript, status, rating, description); a single source so far."
+   }
+  },
+  {
+   "context": "street-network",
+   "conceptSlug": "parking-space",
+   "prefLabel": "Parking Space",
+   "altLabels": [
+    "metered parking space",
+    "parking meter post",
+    "curb space"
+   ],
+   "definition": "One marked place to park a vehicle, such as a metered on-street curb space, with its meter and post numbers, block-face zone, pay-by-phone zone, posted rate and coordinates.",
+   "conceptKind": "place",
+   "broaderRoot": "location",
+   "closeMatch": [
+    "wd:Q1433633"
+   ],
+   "broadMatch": [
+    "wd:Q953960"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "spaceId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "meterNumber",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "spaceNumber",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "postNumber",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "payByPhoneZone",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "zone",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "rateSpec",
+      "type": "string",
+      "classification": "public",
+      "description": "Time limit and hourly rate code, e.g. NTL/$1.50"
+     },
+     {
+      "name": "loadingZone",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "loadingZoneInfo",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://gis.newhavenct.gov/server/rest/services/Hosted/Metered_Parking_Spaces_view/FeatureServer/0",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "City of New Haven Metered Parking Spaces layer (facilityid, meternum, spacenum, post_num, promid, zone_, meterspec, lz, pm_lat/pm_long)."
+   }
+  },
+  {
+   "context": "street-network",
+   "conceptSlug": "ev-charging-station",
+   "prefLabel": "EV Charging Station",
+   "altLabels": [
+    "electric vehicle charger",
+    "EVSE site",
+    "charging point"
+   ],
+   "definition": "A site where electric vehicles can plug in to recharge, with its owner, public or private access, fee terms, counts of Level 2 and DC fast ports, and connector type.",
+   "conceptKind": "place",
+   "broaderRoot": "location",
+   "closeMatch": [
+    "wd:Q2140665"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "stationName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "stationCode",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "owner",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "address",
+      "type": "string",
+      "classification": "public",
+      "description": "Site street address"
+     },
+     {
+      "name": "postalCode",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "accessType",
+      "type": "string",
+      "classification": "public",
+      "description": "Public or private"
+     },
+     {
+      "name": "accessAndFees",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "chargingFee",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "parkingFee",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "level2Ports",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "dcFastPorts",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "plannedLevel2Ports",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "connectorType",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public",
+      "unit": "degree"
+     },
+     {
+      "name": "openDate",
+      "type": "date",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://services6.arcgis.com/AWSPcxcHO7OnZlnu/arcgis/rest/services/New_Haven_EV_Charging_Stations/FeatureServer/0",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "City of New Haven EV charging inventory; port counts, connector, access and open date are also the core of the US DOE AFDC station record (ev_level2_evse_num, ev_dc_fast_num, ev_connector_types, access_code, open_date)."
+   }
+  },
+  {
+   "context": "traffic-safety",
+   "conceptSlug": "crash",
+   "prefLabel": "Crash",
+   "altLabels": [
+    "motor vehicle collision",
+    "traffic accident",
+    "collision report"
+   ],
+   "definition": "A police-reported collision involving at least one motor vehicle in transport on a trafficway, recorded with its date, place, severity, first harmful event, manner of collision and light, weather and road conditions.",
+   "conceptKind": "event",
+   "broaderRoot": "event",
+   "closeMatch": [
+    "wd:Q9687"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "crashId",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "reportingAgency",
+      "type": "string",
+      "classification": "public",
+      "description": "Law enforcement agency (MMUCC S2)"
+     },
+     {
+      "name": "crashDate",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "crashTime",
+      "type": "time",
+      "classification": "public"
+     },
+     {
+      "name": "dayOfWeek",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "townName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "county",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "location",
+      "type": "geometry",
+      "classification": "public"
+     },
+     {
+      "name": "roadwayName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "intersectingRoadwayName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "routeClass",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "severity",
+      "type": "string",
+      "classification": "public",
+      "description": "Crash severity on the KABCO scale (fatal, injury, property damage only)"
+     },
+     {
+      "name": "mostSevereInjury",
+      "type": "string",
+      "classification": "public",
+      "description": "KABCO code of the worst injury"
+     },
+     {
+      "name": "firstHarmfulEvent",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "mannerOfCollision",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "atmosphericConditions",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "lightCondition",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "relationToJunction",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "intersectionType",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "schoolBusRelated",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "workZoneRelated",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "roadSurfaceCondition",
+      "type": "string",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://www.nhtsa.gov/mmucc-1",
+    "authoredBy": [
+     "SchemaLattice mobility pilot"
+    ],
+    "sourceNotes": "MMUCC 6th edition crash-level elements (S1-S2, C1-C18) and the UConn Connecticut Crash Data Repository crash layer, whose attribute values follow MMUCC lists. Person and vehicle levels left out: they carry age, sex and injury of identifiable people."
+   }
+  }
+ ],
+ "sources": [
+  {
+   "slug": "cttransit-gtfs",
+   "platform": "manual",
+   "accessUrl": "https://www.cttransit.com/sites/default/files/gtfs/googlect_transit.zip",
+   "title": "CTtransit GTFS schedule (statewide, incl. New Haven division)",
+   "publisher": "CTtransit / Connecticut Department of Transportation",
+   "jurisdiction": "US-CT",
+   "recordDescription": "A GTFS Schedule feed: each stops.txt row is one bus stop, routes.txt one route, trips.txt one scheduled trip and stop_times.txt one scheduled stop visit.",
+   "landingPage": "https://www.cttransit.com/about/developers",
+   "license": "CTtransit GTFS Data Terms of Use (free use with attribution)",
+   "updateFrequency": "each service change",
+   "conformsTo": [
+    "gtfs-schedule"
+   ],
+   "fields": [
+    {
+     "name": "agency.agency_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "agency.agency_name",
+     "type": "Text"
+    },
+    {
+     "name": "agency.agency_url",
+     "type": "URL"
+    },
+    {
+     "name": "agency.agency_timezone",
+     "type": "Timezone"
+    },
+    {
+     "name": "agency.agency_lang",
+     "type": "Language code"
+    },
+    {
+     "name": "agency.agency_phone",
+     "type": "Phone number"
+    },
+    {
+     "name": "agency.agency_fare_url",
+     "type": "URL"
+    },
+    {
+     "name": "calendar.service_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "calendar.monday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.tuesday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.wednesday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.thursday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.friday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.saturday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.sunday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.start_date",
+     "type": "Date"
+    },
+    {
+     "name": "calendar.end_date",
+     "type": "Date"
+    },
+    {
+     "name": "calendar_dates.service_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "calendar_dates.date",
+     "type": "Date"
+    },
+    {
+     "name": "calendar_dates.exception_type",
+     "type": "Enum"
+    },
+    {
+     "name": "routes.route_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "routes.agency_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "routes.route_short_name",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_long_name",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_desc",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_type",
+     "type": "Enum"
+    },
+    {
+     "name": "routes.route_url",
+     "type": "URL"
+    },
+    {
+     "name": "routes.route_color",
+     "type": "Color"
+    },
+    {
+     "name": "routes.route_text_color",
+     "type": "Color"
+    },
+    {
+     "name": "shapes.shape_id",
+     "type": "ID"
+    },
+    {
+     "name": "shapes.shape_pt_sequence",
+     "type": "Non-negative integer"
+    },
+    {
+     "name": "shapes.shape_pt_lat",
+     "type": "Latitude"
+    },
+    {
+     "name": "shapes.shape_pt_lon",
+     "type": "Longitude"
+    },
+    {
+     "name": "shapes.shape_dist_traveled",
+     "type": "Non-negative float"
+    },
+    {
+     "name": "stop_times.trip_id",
+     "type": "Foreign ID referencing `trips.trip_id`"
+    },
+    {
+     "name": "stop_times.stop_sequence",
+     "type": "Non-negative integer"
+    },
+    {
+     "name": "stop_times.stop_id",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "stop_times.arrival_time",
+     "type": "Time"
+    },
+    {
+     "name": "stop_times.departure_time",
+     "type": "Time"
+    },
+    {
+     "name": "stop_times.stop_headsign",
+     "type": "Text"
+    },
+    {
+     "name": "stop_times.pickup_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stop_times.drop_off_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stop_times.shape_dist_traveled",
+     "type": "Non-negative float"
+    },
+    {
+     "name": "stop_times.timepoint",
+     "type": "Enum"
+    },
+    {
+     "name": "stops.stop_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "stops.stop_code",
+     "type": "Text"
+    },
+    {
+     "name": "stops.stop_name",
+     "type": "Text"
+    },
+    {
+     "name": "stops.stop_lat",
+     "type": "Latitude"
+    },
+    {
+     "name": "stops.stop_lon",
+     "type": "Longitude"
+    },
+    {
+     "name": "stops.zone_id",
+     "type": "ID"
+    },
+    {
+     "name": "stops.stop_url",
+     "type": "URL"
+    },
+    {
+     "name": "stops.location_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stops.parent_station",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "stops.stop_timezone",
+     "type": "Timezone"
+    },
+    {
+     "name": "stops.wheelchair_boarding",
+     "type": "Enum"
+    },
+    {
+     "name": "trips.trip_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "trips.route_id",
+     "type": "Foreign ID referencing `routes.route_id`"
+    },
+    {
+     "name": "trips.service_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "trips.trip_headsign",
+     "type": "Text"
+    },
+    {
+     "name": "trips.trip_short_name",
+     "type": "Text"
+    },
+    {
+     "name": "trips.direction_id",
+     "type": "Enum"
+    },
+    {
+     "name": "trips.block_id",
+     "type": "ID"
+    },
+    {
+     "name": "trips.shape_id",
+     "type": "Foreign ID referencing `shapes.shape_id`"
+    },
+    {
+     "name": "trips.wheelchair_accessible",
+     "type": "Enum"
+    },
+    {
+     "name": "trips.bikes_allowed",
+     "type": "Enum"
+    }
+   ],
+   "note": "One zip covers Hartford, New Haven (agency_id 2), Stamford, New Britain, Waterbury-Meriden and CTfastrak. Fields read from the feed files downloaded 2026-10-13; no feed_info.txt."
+  },
+  {
+   "slug": "amtrak-gtfs",
+   "platform": "manual",
+   "accessUrl": "https://content.amtrak.com/content/gtfs/GTFS.zip",
+   "title": "Amtrak GTFS (includes Shore Line East)",
+   "publisher": "Amtrak",
+   "jurisdiction": "US",
+   "recordDescription": "A GTFS Schedule feed for Amtrak intercity, Thruway and Shore Line East service; each stops.txt row is one station keyed by its Amtrak code.",
+   "landingPage": "https://www.cttransit.com/about/developers",
+   "license": "not stated",
+   "updateFrequency": "weekly rolling",
+   "conformsTo": [
+    "gtfs-schedule"
+   ],
+   "fields": [
+    {
+     "name": "agency.agency_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "agency.agency_name",
+     "type": "Text"
+    },
+    {
+     "name": "agency.agency_url",
+     "type": "URL"
+    },
+    {
+     "name": "agency.agency_timezone",
+     "type": "Timezone"
+    },
+    {
+     "name": "agency.agency_lang",
+     "type": "Language code"
+    },
+    {
+     "name": "calendar.service_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "calendar.monday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.tuesday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.wednesday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.thursday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.friday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.saturday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.sunday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.start_date",
+     "type": "Date"
+    },
+    {
+     "name": "calendar.end_date",
+     "type": "Date"
+    },
+    {
+     "name": "feed_info.feed_publisher_name",
+     "type": "Text"
+    },
+    {
+     "name": "feed_info.feed_publisher_url",
+     "type": "URL"
+    },
+    {
+     "name": "feed_info.feed_lang",
+     "type": "Language code"
+    },
+    {
+     "name": "feed_info.default_lang",
+     "type": "Language code"
+    },
+    {
+     "name": "feed_info.feed_start_date",
+     "type": "Date"
+    },
+    {
+     "name": "feed_info.feed_end_date",
+     "type": "Date"
+    },
+    {
+     "name": "feed_info.feed_version",
+     "type": "Text"
+    },
+    {
+     "name": "feed_info.feed_contact_email",
+     "type": "Email"
+    },
+    {
+     "name": "feed_info.feed_contact_url",
+     "type": "URL"
+    },
+    {
+     "name": "routes.route_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "routes.agency_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "routes.route_short_name",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_long_name",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_type",
+     "type": "Enum"
+    },
+    {
+     "name": "routes.route_url",
+     "type": "URL"
+    },
+    {
+     "name": "routes.route_color",
+     "type": "Color"
+    },
+    {
+     "name": "routes.route_text_color",
+     "type": "Color"
+    },
+    {
+     "name": "shapes.shape_id",
+     "type": "ID"
+    },
+    {
+     "name": "shapes.shape_pt_lat",
+     "type": "Latitude"
+    },
+    {
+     "name": "shapes.shape_pt_lon",
+     "type": "Longitude"
+    },
+    {
+     "name": "shapes.shape_pt_sequence",
+     "type": "Non-negative integer"
+    },
+    {
+     "name": "stop_times.trip_id",
+     "type": "Foreign ID referencing `trips.trip_id`"
+    },
+    {
+     "name": "stop_times.arrival_time",
+     "type": "Time"
+    },
+    {
+     "name": "stop_times.departure_time",
+     "type": "Time"
+    },
+    {
+     "name": "stop_times.stop_id",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "stop_times.stop_sequence",
+     "type": "Non-negative integer"
+    },
+    {
+     "name": "stop_times.pickup_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stop_times.drop_off_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stop_times.timepoint",
+     "type": "Enum"
+    },
+    {
+     "name": "stops.stop_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "stops.stop_code",
+     "type": "Text"
+    },
+    {
+     "name": "stops.stop_name",
+     "type": "Text"
+    },
+    {
+     "name": "stops.stop_url",
+     "type": "URL"
+    },
+    {
+     "name": "stops.stop_timezone",
+     "type": "Timezone"
+    },
+    {
+     "name": "stops.stop_lat",
+     "type": "Latitude"
+    },
+    {
+     "name": "stops.stop_lon",
+     "type": "Longitude"
+    },
+    {
+     "name": "trips.route_id",
+     "type": "Foreign ID referencing `routes.route_id`"
+    },
+    {
+     "name": "trips.service_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "trips.trip_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "trips.trip_short_name",
+     "type": "Text"
+    },
+    {
+     "name": "trips.direction_id",
+     "type": "Enum"
+    },
+    {
+     "name": "trips.shape_id",
+     "type": "Foreign ID referencing `shapes.shape_id`"
+    },
+    {
+     "name": "trips.trip_headsign",
+     "type": "Text"
+    }
+   ],
+   "note": "The official Shore Line East feed (agency_id 1230). Station ids (NHV, STS) differ from Metro-North and Hartford Line ids: cross-feed stations join by coordinates or name."
+  },
+  {
+   "slug": "metro-north-gtfs",
+   "platform": "manual",
+   "accessUrl": "https://rrgtfsfeeds.s3.amazonaws.com/gtfsmnr.zip",
+   "title": "MTA Metro-North Railroad GTFS (New Haven Line)",
+   "publisher": "MTA Metro-North Railroad",
+   "jurisdiction": "US",
+   "recordDescription": "A GTFS Schedule feed for Metro-North; each stops.txt row is one station (New Haven Union Station is stop_id 149).",
+   "landingPage": "https://new.mta.info/developers",
+   "license": "MTA developer terms",
+   "updateFrequency": "frequent (rolling)",
+   "conformsTo": [
+    "gtfs-schedule"
+   ],
+   "fields": [
+    {
+     "name": "agency.agency_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "agency.agency_name",
+     "type": "Text"
+    },
+    {
+     "name": "agency.agency_url",
+     "type": "URL"
+    },
+    {
+     "name": "agency.agency_timezone",
+     "type": "Timezone"
+    },
+    {
+     "name": "agency.agency_phone",
+     "type": "Phone number"
+    },
+    {
+     "name": "agency.agency_lang",
+     "type": "Language code"
+    },
+    {
+     "name": "calendar_dates.service_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "calendar_dates.date",
+     "type": "Date"
+    },
+    {
+     "name": "calendar_dates.exception_type",
+     "type": "Enum"
+    },
+    {
+     "name": "notes.note_id",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "notes.note_mark",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "notes.note_title",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "notes.note_desc",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "routes.route_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "routes.agency_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "routes.route_short_name",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_long_name",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_desc",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_type",
+     "type": "Enum"
+    },
+    {
+     "name": "routes.route_url",
+     "type": "URL"
+    },
+    {
+     "name": "routes.route_color",
+     "type": "Color"
+    },
+    {
+     "name": "routes.route_text_color",
+     "type": "Color"
+    },
+    {
+     "name": "shapes.shape_id",
+     "type": "ID"
+    },
+    {
+     "name": "shapes.shape_pt_lat",
+     "type": "Latitude"
+    },
+    {
+     "name": "shapes.shape_pt_lon",
+     "type": "Longitude"
+    },
+    {
+     "name": "shapes.shape_pt_sequence",
+     "type": "Non-negative integer"
+    },
+    {
+     "name": "shapes.shape_dist_traveled",
+     "type": "Non-negative float"
+    },
+    {
+     "name": "stop_times.trip_id",
+     "type": "Foreign ID referencing `trips.trip_id`"
+    },
+    {
+     "name": "stop_times.arrival_time",
+     "type": "Time"
+    },
+    {
+     "name": "stop_times.departure_time",
+     "type": "Time"
+    },
+    {
+     "name": "stop_times.stop_id",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "stop_times.stop_sequence",
+     "type": "Non-negative integer"
+    },
+    {
+     "name": "stop_times.pickup_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stop_times.drop_off_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stop_times.track",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "stop_times.note_id",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "stops.stop_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "stops.stop_code",
+     "type": "Text"
+    },
+    {
+     "name": "stops.stop_name",
+     "type": "Text"
+    },
+    {
+     "name": "stops.stop_desc",
+     "type": "Text"
+    },
+    {
+     "name": "stops.stop_lat",
+     "type": "Latitude"
+    },
+    {
+     "name": "stops.stop_lon",
+     "type": "Longitude"
+    },
+    {
+     "name": "stops.zone_id",
+     "type": "ID"
+    },
+    {
+     "name": "stops.stop_url",
+     "type": "URL"
+    },
+    {
+     "name": "stops.location_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stops.parent_station",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "stops.wheelchair_boarding",
+     "type": "Enum"
+    },
+    {
+     "name": "transfers.from_stop_id",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "transfers.to_stop_id",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "transfers.from_route_id",
+     "type": "Foreign ID referencing `routes.route_id`"
+    },
+    {
+     "name": "transfers.to_route_id",
+     "type": "Foreign ID referencing `routes.route_id`"
+    },
+    {
+     "name": "transfers.from_trip_id",
+     "type": "Foreign ID referencing `trips.trip_id`"
+    },
+    {
+     "name": "transfers.to_trip_id",
+     "type": "Foreign ID referencing `trips.trip_id`"
+    },
+    {
+     "name": "transfers.transfer_type",
+     "type": "Enum"
+    },
+    {
+     "name": "transfers.min_transfer_time",
+     "type": "Non-negative integer"
+    },
+    {
+     "name": "trips.route_id",
+     "type": "Foreign ID referencing `routes.route_id`"
+    },
+    {
+     "name": "trips.service_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "trips.trip_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "trips.trip_headsign",
+     "type": "Text"
+    },
+    {
+     "name": "trips.trip_short_name",
+     "type": "Text"
+    },
+    {
+     "name": "trips.direction_id",
+     "type": "Enum"
+    },
+    {
+     "name": "trips.block_id",
+     "type": "ID"
+    },
+    {
+     "name": "trips.shape_id",
+     "type": "Foreign ID referencing `shapes.shape_id`"
+    },
+    {
+     "name": "trips.wheelchair_accessible",
+     "type": "Enum"
+    },
+    {
+     "name": "trips.peak_offpeak",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    }
+   ],
+   "note": "Uses calendar_dates only; adds non-standard notes.txt, trips.peak_offpeak, stop_times.track and stop_times.note_id."
+  },
+  {
+   "slug": "hartford-line-gtfs",
+   "platform": "manual",
+   "accessUrl": "https://ctrides.com/hlgtfs.zip",
+   "title": "CTrail Hartford Line GTFS",
+   "publisher": "Connecticut Department of Transportation",
+   "jurisdiction": "US-CT",
+   "recordDescription": "A GTFS Schedule feed for New Haven-Hartford-Springfield commuter rail; each stops.txt row is one station.",
+   "landingPage": "https://www.hartfordline.com/fares-schedules/",
+   "license": "not stated",
+   "updateFrequency": "per timetable",
+   "conformsTo": [
+    "gtfs-schedule"
+   ],
+   "fields": [
+    {
+     "name": "agency.agency_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "agency.agency_name",
+     "type": "Text"
+    },
+    {
+     "name": "agency.agency_url",
+     "type": "URL"
+    },
+    {
+     "name": "agency.agency_timezone",
+     "type": "Timezone"
+    },
+    {
+     "name": "agency.agency_lang",
+     "type": "Language code"
+    },
+    {
+     "name": "agency.agency_phone",
+     "type": "Phone number"
+    },
+    {
+     "name": "agency.agency_fare_url",
+     "type": "URL"
+    },
+    {
+     "name": "agency.agency_email",
+     "type": "Email"
+    },
+    {
+     "name": "calendar.service_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "calendar.monday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.tuesday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.wednesday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.thursday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.friday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.saturday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.sunday",
+     "type": "Enum"
+    },
+    {
+     "name": "calendar.start_date",
+     "type": "Date"
+    },
+    {
+     "name": "calendar.end_date",
+     "type": "Date"
+    },
+    {
+     "name": "calendar_dates.service_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "calendar_dates.date",
+     "type": "Date"
+    },
+    {
+     "name": "calendar_dates.exception_type",
+     "type": "Enum"
+    },
+    {
+     "name": "fare_attributes.fare_id",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "fare_attributes.price",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "fare_attributes.currency_type",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "fare_attributes.payment_method",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "fare_attributes.transfers",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "fare_attributes.transfer_duration",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "fare_rules.fare_id",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "fare_rules.route_id",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "fare_rules.origin_id",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "fare_rules.destination_id",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "fare_rules.contains_id",
+     "type": "Text",
+     "description": "Not in the GTFS Schedule core field list: a GTFS fares v1 field or a feed-specific extension"
+    },
+    {
+     "name": "feed_info.feed_publisher_name",
+     "type": "Text"
+    },
+    {
+     "name": "feed_info.feed_publisher_url",
+     "type": "URL"
+    },
+    {
+     "name": "feed_info.feed_lang",
+     "type": "Language code"
+    },
+    {
+     "name": "feed_info.feed_start_date",
+     "type": "Date"
+    },
+    {
+     "name": "feed_info.feed_end_date",
+     "type": "Date"
+    },
+    {
+     "name": "feed_info.feed_version",
+     "type": "Text"
+    },
+    {
+     "name": "frequencies.trip_id",
+     "type": "Foreign ID referencing `trips.trip_id`"
+    },
+    {
+     "name": "frequencies.start_time",
+     "type": "Time"
+    },
+    {
+     "name": "frequencies.end_time",
+     "type": "Time"
+    },
+    {
+     "name": "frequencies.headway_secs",
+     "type": "Positive integer"
+    },
+    {
+     "name": "frequencies.exact_times",
+     "type": "Enum"
+    },
+    {
+     "name": "routes.route_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "routes.agency_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "routes.route_short_name",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_long_name",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_desc",
+     "type": "Text"
+    },
+    {
+     "name": "routes.route_type",
+     "type": "Enum"
+    },
+    {
+     "name": "routes.route_url",
+     "type": "URL"
+    },
+    {
+     "name": "routes.route_color",
+     "type": "Color"
+    },
+    {
+     "name": "routes.route_text_color",
+     "type": "Color"
+    },
+    {
+     "name": "shapes.shape_id",
+     "type": "ID"
+    },
+    {
+     "name": "shapes.shape_pt_lat",
+     "type": "Latitude"
+    },
+    {
+     "name": "shapes.shape_pt_lon",
+     "type": "Longitude"
+    },
+    {
+     "name": "shapes.shape_pt_sequence",
+     "type": "Non-negative integer"
+    },
+    {
+     "name": "shapes.shape_dist_traveled",
+     "type": "Non-negative float"
+    },
+    {
+     "name": "stop_times.trip_id",
+     "type": "Foreign ID referencing `trips.trip_id`"
+    },
+    {
+     "name": "stop_times.arrival_time",
+     "type": "Time"
+    },
+    {
+     "name": "stop_times.departure_time",
+     "type": "Time"
+    },
+    {
+     "name": "stop_times.stop_id",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "stop_times.stop_sequence",
+     "type": "Non-negative integer"
+    },
+    {
+     "name": "stop_times.stop_headsign",
+     "type": "Text"
+    },
+    {
+     "name": "stop_times.pickup_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stop_times.drop_off_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stop_times.shape_dist_traveled",
+     "type": "Non-negative float"
+    },
+    {
+     "name": "stop_times.timepoint",
+     "type": "Enum"
+    },
+    {
+     "name": "stops.stop_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "stops.stop_code",
+     "type": "Text"
+    },
+    {
+     "name": "stops.stop_name",
+     "type": "Text"
+    },
+    {
+     "name": "stops.stop_desc",
+     "type": "Text"
+    },
+    {
+     "name": "stops.stop_lat",
+     "type": "Latitude"
+    },
+    {
+     "name": "stops.stop_lon",
+     "type": "Longitude"
+    },
+    {
+     "name": "stops.zone_id",
+     "type": "ID"
+    },
+    {
+     "name": "stops.stop_url",
+     "type": "URL"
+    },
+    {
+     "name": "stops.location_type",
+     "type": "Enum"
+    },
+    {
+     "name": "stops.parent_station",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "stops.stop_timezone",
+     "type": "Timezone"
+    },
+    {
+     "name": "stops.wheelchair_boarding",
+     "type": "Enum"
+    },
+    {
+     "name": "transfers.from_stop_id",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "transfers.to_stop_id",
+     "type": "Foreign ID referencing `stops.stop_id`"
+    },
+    {
+     "name": "transfers.transfer_type",
+     "type": "Enum"
+    },
+    {
+     "name": "transfers.min_transfer_time",
+     "type": "Non-negative integer"
+    },
+    {
+     "name": "trips.trip_id",
+     "type": "Unique ID"
+    },
+    {
+     "name": "trips.route_id",
+     "type": "Foreign ID referencing `routes.route_id`"
+    },
+    {
+     "name": "trips.service_id",
+     "type": "Foreign ID"
+    },
+    {
+     "name": "trips.trip_headsign",
+     "type": "Text"
+    },
+    {
+     "name": "trips.trip_short_name",
+     "type": "Text"
+    },
+    {
+     "name": "trips.direction_id",
+     "type": "Enum"
+    },
+    {
+     "name": "trips.block_id",
+     "type": "ID"
+    },
+    {
+     "name": "trips.shape_id",
+     "type": "Foreign ID referencing `shapes.shape_id`"
+    },
+    {
+     "name": "trips.wheelchair_accessible",
+     "type": "Enum"
+    },
+    {
+     "name": "trips.bikes_allowed",
+     "type": "Enum"
+    }
+   ],
+   "note": "Includes fares v1 (fare_attributes, fare_rules), frequencies, transfers and feed_info."
+  },
+  {
+   "slug": "cttransit-gtfs-realtime",
+   "platform": "manual",
+   "accessUrl": "https://cttprdtmgtfs.ctttrpcloud.com/TMGTFSRealTimeWebService/Vehicle/VehiclePositions.pb",
+   "title": "CTtransit GTFS-realtime (vehicle positions, trip updates, alerts)",
+   "publisher": "CTtransit / Connecticut Department of Transportation",
+   "jurisdiction": "US-CT",
+   "recordDescription": "One GTFS-realtime FeedEntity: a live bus position, or one trip's predicted stop-time updates.",
+   "landingPage": "https://www.cttransit.com/about/developers",
+   "license": "CTtransit GTFS Data Terms of Use (free use with attribution)",
+   "updateFrequency": "real-time (about 30 s)",
+   "conformsTo": [
+    "gtfs-realtime"
+   ],
+   "fields": [
+    {
+     "name": "header.gtfs_realtime_version",
+     "type": "string"
+    },
+    {
+     "name": "header.incrementality",
+     "type": "integer"
+    },
+    {
+     "name": "header.timestamp",
+     "type": "integer"
+    },
+    {
+     "name": "entity.id",
+     "type": "string"
+    },
+    {
+     "name": "entity.is_deleted",
+     "type": "boolean"
+    },
+    {
+     "name": "entity.vehicle.trip.trip_id",
+     "type": "string"
+    },
+    {
+     "name": "entity.vehicle.trip.start_time",
+     "type": "string"
+    },
+    {
+     "name": "entity.vehicle.trip.start_date",
+     "type": "string"
+    },
+    {
+     "name": "entity.vehicle.trip.schedule_relationship",
+     "type": "integer"
+    },
+    {
+     "name": "entity.vehicle.trip.route_id",
+     "type": "string"
+    },
+    {
+     "name": "entity.vehicle.trip.direction_id",
+     "type": "integer"
+    },
+    {
+     "name": "entity.vehicle.position.latitude",
+     "type": "number"
+    },
+    {
+     "name": "entity.vehicle.position.longitude",
+     "type": "number"
+    },
+    {
+     "name": "entity.vehicle.position.bearing",
+     "type": "integer"
+    },
+    {
+     "name": "entity.vehicle.position.odometer",
+     "type": "integer"
+    },
+    {
+     "name": "entity.vehicle.position.speed",
+     "type": "number"
+    },
+    {
+     "name": "entity.vehicle.current_stop_sequence",
+     "type": "integer"
+    },
+    {
+     "name": "entity.vehicle.current_status",
+     "type": "integer"
+    },
+    {
+     "name": "entity.vehicle.timestamp",
+     "type": "integer"
+    },
+    {
+     "name": "entity.vehicle.congestion_level",
+     "type": "integer"
+    },
+    {
+     "name": "entity.vehicle.stop_id",
+     "type": "string"
+    },
+    {
+     "name": "entity.vehicle.vehicle.id",
+     "type": "string"
+    },
+    {
+     "name": "entity.vehicle.vehicle.label",
+     "type": "string"
+    },
+    {
+     "name": "entity.vehicle.vehicle.license_plate",
+     "type": "string"
+    },
+    {
+     "name": "entity.vehicle.occupancy_status",
+     "type": "integer"
+    },
+    {
+     "name": "entity.vehicle.occupancy_percentage",
+     "type": "integer"
+    },
+    {
+     "name": "entity.trip_update.trip.trip_id",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip.start_time",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip.start_date",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip.schedule_relationship",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip.route_id",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip.direction_id",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.stop_sequence",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.arrival.time",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.arrival.uncertainty",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.arrival.schedule_time",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.departure.time",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.departure.uncertainty",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.departure.schedule_time",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.stop_id",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.schedule_relationship",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.stop_time_properties.assigned_stop_id",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.stop_time_properties.stop_headsign.translation.text",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.stop_time_properties.stop_headsign.translation.language",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.stop_time_properties.pickup_type",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.stop_time_properties.drop_off_type",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.stop_time_properties.shape_dist_traveled",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.stop_time_update.departure_occupancy_status",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.vehicle.id",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.vehicle.label",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.vehicle.license_plate",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.timestamp",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip_properties.trip_id",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip_properties.start_date",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip_properties.start_time",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip_properties.shape_id",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip_properties.route_id",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip_properties.trip_headsign.translation.text",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip_properties.trip_headsign.translation.language",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip_properties.trip_short_name.translation.text",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip_properties.trip_short_name.translation.language",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.trip_properties.block_id",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.vehicle_properties.wheelchair_accessible",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.vehicle_properties.bikes_allowed",
+     "type": "integer",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    },
+    {
+     "name": "entity.trip_update.replaced_by_trip_id",
+     "type": "string",
+     "description": "From the sibling TripUpdates feed (TripUpdate/TripUpdates.json)"
+    }
+   ],
+   "note": "No key. Field names are paths in the JSON rendering (replace .pb with .json); trip updates at TripUpdate/TripUpdates.pb, alerts at Alert/Alerts.pb. Statewide: filter route_id by agency 2 for New Haven."
+  },
+  {
+   "slug": "veo-new-haven-gbfs",
+   "platform": "manual",
+   "accessUrl": "https://cluster-prod.veoride.com/api/shares/name/nhv/gbfs",
+   "title": "Veo New Haven micromobility GBFS feed",
+   "publisher": "VeoRide Inc. (city-permitted operator)",
+   "jurisdiction": "US-CT/new-haven",
+   "recordDescription": "One free_bike_status row is one currently available dockless e-bike or scooter with its position, vehicle type and range.",
+   "landingPage": "https://www.veoride.com",
+   "license": "not stated",
+   "updateFrequency": "real-time (ttl 0)",
+   "conformsTo": [
+    "gbfs"
+   ],
+   "fields": [
+    {
+     "name": "system_information.system_id",
+     "type": "string"
+    },
+    {
+     "name": "system_information.language",
+     "type": "string"
+    },
+    {
+     "name": "system_information.name",
+     "type": "string"
+    },
+    {
+     "name": "system_information.url",
+     "type": "string"
+    },
+    {
+     "name": "system_information.phone_number",
+     "type": "string"
+    },
+    {
+     "name": "system_information.email",
+     "type": "string"
+    },
+    {
+     "name": "system_information.timezone",
+     "type": "string"
+    },
+    {
+     "name": "system_information.rental_apps.android.store_uri",
+     "type": "string"
+    },
+    {
+     "name": "system_information.rental_apps.android.discovery_uri",
+     "type": "string"
+    },
+    {
+     "name": "system_information.rental_apps.ios.store_uri",
+     "type": "string"
+    },
+    {
+     "name": "system_information.rental_apps.ios.discovery_uri",
+     "type": "string"
+    },
+    {
+     "name": "free_bike_status.bike_id",
+     "type": "string"
+    },
+    {
+     "name": "free_bike_status.lat",
+     "type": "number"
+    },
+    {
+     "name": "free_bike_status.lon",
+     "type": "number"
+    },
+    {
+     "name": "free_bike_status.is_reserved",
+     "type": "boolean"
+    },
+    {
+     "name": "free_bike_status.is_disabled",
+     "type": "boolean"
+    },
+    {
+     "name": "free_bike_status.rental_uris.android",
+     "type": "string"
+    },
+    {
+     "name": "free_bike_status.rental_uris.ios",
+     "type": "string"
+    },
+    {
+     "name": "free_bike_status.vehicle_type_id",
+     "type": "string"
+    },
+    {
+     "name": "free_bike_status.pricing_plan_id",
+     "type": "string"
+    },
+    {
+     "name": "free_bike_status.current_range_meters",
+     "type": "integer"
+    },
+    {
+     "name": "vehicle_types.vehicle_type_id",
+     "type": "string"
+    },
+    {
+     "name": "vehicle_types.form_factor",
+     "type": "string"
+    },
+    {
+     "name": "vehicle_types.propulsion_type",
+     "type": "string"
+    },
+    {
+     "name": "vehicle_types.max_range_meters",
+     "type": "integer"
+    },
+    {
+     "name": "system_pricing_plans.plan_id",
+     "type": "string"
+    },
+    {
+     "name": "system_pricing_plans.name",
+     "type": "string"
+    },
+    {
+     "name": "system_pricing_plans.currency",
+     "type": "string"
+    },
+    {
+     "name": "system_pricing_plans.price",
+     "type": "number"
+    },
+    {
+     "name": "system_pricing_plans.is_taxable",
+     "type": "boolean"
+    },
+    {
+     "name": "system_pricing_plans.description",
+     "type": "string"
+    },
+    {
+     "name": "system_pricing_plans.per_min_pricing.start",
+     "type": "integer"
+    },
+    {
+     "name": "system_pricing_plans.per_min_pricing.rate",
+     "type": "number"
+    },
+    {
+     "name": "system_pricing_plans.per_min_pricing.interval",
+     "type": "integer"
+    }
+   ],
+   "note": "GBFS 2.2, no key; dockless, so no station_information. bike_id rotates. Listed in MobilityData systems.csv as veo-nhv."
+  },
+  {
+   "slug": "ctdot-local-roads",
+   "accessUrl": "https://gisportal.dot.ct.gov/server/rest/services/OpenData/CTDOT_Roadway_Basemap/MapServer/7",
+   "title": "CTDOT Roadway Basemap: Local Roads",
+   "publisher": "Connecticut Department of Transportation",
+   "jurisdiction": "US-CT",
+   "recordDescription": "One local-road LRS route segment (polyline) with its CTDOT route id, milepoints, town and street name.",
+   "landingPage": "https://geodata.ct.gov/datasets/CTDOT::local-roads-2",
+   "license": "CTDOT open data disclaimer (informational use; no formal open license stated)",
+   "updateFrequency": "annual snapshot",
+   "note": "TOWN_NUMBER is CTDOT's own town numbering (New Haven 092), not the OPM tax code (93)."
+  },
+  {
+   "slug": "ctdot-aadt-segments",
+   "accessUrl": "https://services1.arcgis.com/FCaUeJ5SOVtImake/arcgis/rest/services/CTDOT_Traffic_Monitoring_Data/FeatureServer/1",
+   "title": "CTDOT Annual Average Daily Traffic (AADT) segments",
+   "publisher": "Connecticut Department of Transportation",
+   "jurisdiction": "US-CT",
+   "recordDescription": "One road segment (route id and milepoint range) with its latest AADT value and the count station it came from.",
+   "landingPage": "https://geodata.ct.gov/datasets/CTDOT::traffic-count-locations",
+   "license": "CTDOT open data disclaimer (informational use; no formal open license stated)",
+   "updateFrequency": "annual"
+  },
+  {
+   "slug": "ctdot-traffic-count-locations",
+   "accessUrl": "https://services1.arcgis.com/FCaUeJ5SOVtImake/arcgis/rest/services/CTDOT_Traffic_Monitoring_Data/FeatureServer/0",
+   "title": "CTDOT Traffic Count Locations",
+   "publisher": "Connecticut Department of Transportation",
+   "jurisdiction": "US-CT",
+   "recordDescription": "One traffic count station (point) on a state route or local road, with a link to its hourly count history.",
+   "landingPage": "https://geodata.ct.gov/datasets/CTDOT::traffic-count-locations",
+   "license": "CTDOT open data disclaimer (informational use; no formal open license stated)",
+   "updateFrequency": "annual",
+   "note": "TownNumber is empty in practice; the CTDOT town number appears in the StationID prefix and in HourlyCountLink (town=92 for New Haven)."
+  },
+  {
+   "slug": "ctdot-bridges",
+   "accessUrl": "https://services1.arcgis.com/FCaUeJ5SOVtImake/arcgis/rest/services/CTDOT_Bridges/FeatureServer/0",
+   "title": "CTDOT Bridges (National Bridge Inventory)",
+   "publisher": "Connecticut Department of Transportation",
+   "jurisdiction": "US-CT",
+   "recordDescription": "One bridge or culvert over 20 ft (polygon) with its NBI inventory items and condition ratings.",
+   "landingPage": "https://geodata.ct.gov/datasets/CTDOT::ctdot-bridges",
+   "license": "CTDOT open data disclaimer (informational use; no formal open license stated)",
+   "updateFrequency": "periodic",
+   "conformsTo": [
+    "fhwa-nbi"
+   ],
+   "note": "Fields are NBI items named by item number, with coded ratings given as 'code - description' and lengths in feet (NBI submits metres)."
+  },
+  {
+   "slug": "ct-crash-repository-crashes",
+   "accessUrl": "https://gis.cti.uconn.edu/arcgis/rest/services/Crash_Dashboards/ConnecticutCrash/FeatureServer/0",
+   "title": "Connecticut Crash Data Repository: crashes (2015 to present)",
+   "publisher": "UConn Connecticut Transportation Institute / CTDOT",
+   "jurisdiction": "US-CT",
+   "recordDescription": "One police-reported motor-vehicle crash (point) with MMUCC crash-level attributes.",
+   "landingPage": "https://www.ctcrash.uconn.edu/",
+   "license": "CTDOT/UConn disclaimer (informational use; subject to 23 USC 407)",
+   "updateFrequency": "near-daily",
+   "conformsTo": [
+    "mmucc-6"
+   ],
+   "note": "Crash-level values checked against MMUCC attribute lists (type of intersection, light condition, manner of collision, school-bus-related, relation to junction). Person (layer 1) and Vehicle (layer 2) layers not listed here."
+  },
+  {
+   "slug": "new-haven-metered-parking",
+   "accessUrl": "https://gis.newhavenct.gov/server/rest/services/Hosted/Metered_Parking_Spaces_view/FeatureServer/0",
+   "title": "New Haven Metered Parking Spaces",
+   "publisher": "City of New Haven, Transportation, Traffic and Parking",
+   "jurisdiction": "US-CT/new-haven",
+   "recordDescription": "One metered on-street parking space with meter id, rate code and meter zone.",
+   "license": "not stated",
+   "updateFrequency": "occasional"
+  },
+  {
+   "slug": "new-haven-bike-routes",
+   "accessUrl": "https://gis.newhavenct.gov/server/rest/services/Hosted/Bike_Routes_(View)/FeatureServer/0",
+   "title": "New Haven Bike Routes",
+   "publisher": "City of New Haven",
+   "jurisdiction": "US-CT/new-haven",
+   "recordDescription": "One bikeway segment with road name, facility type, existing or proposed status and a 1-4 comfort rating.",
+   "license": "not stated",
+   "updateFrequency": "occasional"
+  },
+  {
+   "slug": "new-haven-ev-charging",
+   "accessUrl": "https://services6.arcgis.com/AWSPcxcHO7OnZlnu/arcgis/rest/services/New_Haven_EV_Charging_Stations/FeatureServer/0",
+   "title": "New Haven EV Charging Stations (city inventory)",
+   "publisher": "City of New Haven",
+   "jurisdiction": "US-CT/new-haven",
+   "recordDescription": "One EV charging site with owner, access and fee terms and counts of Level 2 and DC fast ports.",
+   "license": "not stated",
+   "updateFrequency": "static (last edit 2023)",
+   "note": "24 rows, last edited 2023; the US DOE AFDC station locator is more complete."
+  }
+ ],
+ "mappings": [
+  {
+   "source": "gtfs-schedule",
+   "concept": "public-transit/transit-agency",
+   "role": "record",
+   "fields": [
+    {
+     "from": "agency.agency_id",
+     "to": "agencyId"
+    },
+    {
+     "from": "agency.agency_name",
+     "to": "name"
+    },
+    {
+     "from": "agency.agency_url",
+     "to": "url"
+    },
+    {
+     "from": "agency.agency_timezone",
+     "to": "timezone"
+    },
+    {
+     "from": "agency.agency_lang",
+     "to": "language"
+    },
+    {
+     "from": "agency.agency_phone",
+     "to": "phone"
+    },
+    {
+     "from": "agency.agency_fare_url",
+     "to": "fareUrl"
+    },
+    {
+     "from": "agency.agency_email",
+     "to": "email"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-schedule",
+   "concept": "public-transit/transit-stop",
+   "role": "record",
+   "fields": [
+    {
+     "from": "stops.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "stops.stop_code",
+     "to": "stopCode"
+    },
+    {
+     "from": "stops.stop_name",
+     "to": "name"
+    },
+    {
+     "from": "stops.stop_desc",
+     "to": "description"
+    },
+    {
+     "from": "stops.stop_lat",
+     "to": "latitude"
+    },
+    {
+     "from": "stops.stop_lon",
+     "to": "longitude"
+    },
+    {
+     "from": "stops.zone_id",
+     "to": "zoneId"
+    },
+    {
+     "from": "stops.stop_url",
+     "to": "url"
+    },
+    {
+     "from": "stops.location_type",
+     "to": "locationType"
+    },
+    {
+     "from": "stops.parent_station",
+     "to": "parentStation"
+    },
+    {
+     "from": "stops.stop_timezone",
+     "to": "timezone"
+    },
+    {
+     "from": "stops.wheelchair_boarding",
+     "to": "wheelchairBoarding"
+    },
+    {
+     "from": "stops.platform_code",
+     "to": "platformCode"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-schedule",
+   "concept": "public-transit/transit-route",
+   "role": "record",
+   "fields": [
+    {
+     "from": "routes.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "routes.agency_id",
+     "to": "agencyId"
+    },
+    {
+     "from": "routes.route_short_name",
+     "to": "shortName"
+    },
+    {
+     "from": "routes.route_long_name",
+     "to": "longName"
+    },
+    {
+     "from": "routes.route_desc",
+     "to": "description"
+    },
+    {
+     "from": "routes.route_type",
+     "to": "routeType"
+    },
+    {
+     "from": "routes.route_url",
+     "to": "url"
+    },
+    {
+     "from": "routes.route_color",
+     "to": "color"
+    },
+    {
+     "from": "routes.route_text_color",
+     "to": "textColor"
+    },
+    {
+     "from": "routes.route_sort_order",
+     "to": "sortOrder"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-schedule",
+   "concept": "public-transit/transit-trip",
+   "role": "record",
+   "fields": [
+    {
+     "from": "trips.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "trips.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "trips.service_id",
+     "to": "serviceId"
+    },
+    {
+     "from": "trips.trip_headsign",
+     "to": "headsign"
+    },
+    {
+     "from": "trips.trip_short_name",
+     "to": "shortName"
+    },
+    {
+     "from": "trips.direction_id",
+     "to": "directionId"
+    },
+    {
+     "from": "trips.block_id",
+     "to": "blockId"
+    },
+    {
+     "from": "trips.shape_id",
+     "to": "shapeId"
+    },
+    {
+     "from": "trips.wheelchair_accessible",
+     "to": "wheelchairAccessible"
+    },
+    {
+     "from": "trips.bikes_allowed",
+     "to": "bikesAllowed"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-schedule",
+   "concept": "public-transit/stop-time",
+   "role": "record",
+   "fields": [
+    {
+     "from": "stop_times.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "stop_times.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "stop_times.stop_sequence",
+     "to": "stopSequence"
+    },
+    {
+     "from": "stop_times.arrival_time",
+     "to": "arrivalTime"
+    },
+    {
+     "from": "stop_times.departure_time",
+     "to": "departureTime"
+    },
+    {
+     "from": "stop_times.stop_headsign",
+     "to": "stopHeadsign"
+    },
+    {
+     "from": "stop_times.pickup_type",
+     "to": "pickupType"
+    },
+    {
+     "from": "stop_times.drop_off_type",
+     "to": "dropOffType"
+    },
+    {
+     "from": "stop_times.shape_dist_traveled",
+     "to": "shapeDistTraveled"
+    },
+    {
+     "from": "stop_times.timepoint",
+     "to": "timepoint"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-schedule",
+   "concept": "public-transit/transit-agency",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "routes.agency_id",
+     "to": "agencyId"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-schedule",
+   "concept": "public-transit/transit-route",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "trips.route_id",
+     "to": "routeId"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-schedule",
+   "concept": "public-transit/transit-trip",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "stop_times.trip_id",
+     "to": "tripId"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-schedule",
+   "concept": "public-transit/transit-stop",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "stop_times.stop_id",
+     "to": "stopId"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs",
+   "concept": "public-transit/transit-agency",
+   "role": "record",
+   "fields": [
+    {
+     "from": "agency.agency_id",
+     "to": "agencyId"
+    },
+    {
+     "from": "agency.agency_name",
+     "to": "name"
+    },
+    {
+     "from": "agency.agency_url",
+     "to": "url"
+    },
+    {
+     "from": "agency.agency_timezone",
+     "to": "timezone"
+    },
+    {
+     "from": "agency.agency_lang",
+     "to": "language"
+    },
+    {
+     "from": "agency.agency_phone",
+     "to": "phone"
+    },
+    {
+     "from": "agency.agency_fare_url",
+     "to": "fareUrl"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs",
+   "concept": "public-transit/transit-stop",
+   "role": "record",
+   "fields": [
+    {
+     "from": "stops.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "stops.stop_code",
+     "to": "stopCode"
+    },
+    {
+     "from": "stops.stop_name",
+     "to": "name"
+    },
+    {
+     "from": "stops.stop_lat",
+     "to": "latitude"
+    },
+    {
+     "from": "stops.stop_lon",
+     "to": "longitude"
+    },
+    {
+     "from": "stops.zone_id",
+     "to": "zoneId"
+    },
+    {
+     "from": "stops.stop_url",
+     "to": "url"
+    },
+    {
+     "from": "stops.location_type",
+     "to": "locationType"
+    },
+    {
+     "from": "stops.parent_station",
+     "to": "parentStation"
+    },
+    {
+     "from": "stops.stop_timezone",
+     "to": "timezone"
+    },
+    {
+     "from": "stops.wheelchair_boarding",
+     "to": "wheelchairBoarding"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs",
+   "concept": "public-transit/transit-route",
+   "role": "record",
+   "fields": [
+    {
+     "from": "routes.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "routes.agency_id",
+     "to": "agencyId"
+    },
+    {
+     "from": "routes.route_short_name",
+     "to": "shortName"
+    },
+    {
+     "from": "routes.route_long_name",
+     "to": "longName"
+    },
+    {
+     "from": "routes.route_desc",
+     "to": "description"
+    },
+    {
+     "from": "routes.route_type",
+     "to": "routeType"
+    },
+    {
+     "from": "routes.route_url",
+     "to": "url"
+    },
+    {
+     "from": "routes.route_color",
+     "to": "color"
+    },
+    {
+     "from": "routes.route_text_color",
+     "to": "textColor"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs",
+   "concept": "public-transit/transit-trip",
+   "role": "record",
+   "fields": [
+    {
+     "from": "trips.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "trips.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "trips.service_id",
+     "to": "serviceId"
+    },
+    {
+     "from": "trips.trip_headsign",
+     "to": "headsign"
+    },
+    {
+     "from": "trips.trip_short_name",
+     "to": "shortName"
+    },
+    {
+     "from": "trips.direction_id",
+     "to": "directionId"
+    },
+    {
+     "from": "trips.block_id",
+     "to": "blockId"
+    },
+    {
+     "from": "trips.shape_id",
+     "to": "shapeId"
+    },
+    {
+     "from": "trips.wheelchair_accessible",
+     "to": "wheelchairAccessible"
+    },
+    {
+     "from": "trips.bikes_allowed",
+     "to": "bikesAllowed"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs",
+   "concept": "public-transit/stop-time",
+   "role": "record",
+   "fields": [
+    {
+     "from": "stop_times.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "stop_times.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "stop_times.stop_sequence",
+     "to": "stopSequence"
+    },
+    {
+     "from": "stop_times.arrival_time",
+     "to": "arrivalTime"
+    },
+    {
+     "from": "stop_times.departure_time",
+     "to": "departureTime"
+    },
+    {
+     "from": "stop_times.stop_headsign",
+     "to": "stopHeadsign"
+    },
+    {
+     "from": "stop_times.pickup_type",
+     "to": "pickupType"
+    },
+    {
+     "from": "stop_times.drop_off_type",
+     "to": "dropOffType"
+    },
+    {
+     "from": "stop_times.shape_dist_traveled",
+     "to": "shapeDistTraveled"
+    },
+    {
+     "from": "stop_times.timepoint",
+     "to": "timepoint"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs",
+   "concept": "public-transit/transit-agency",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "routes.agency_id",
+     "to": "agencyId"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs",
+   "concept": "public-transit/transit-route",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "trips.route_id",
+     "to": "routeId"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs",
+   "concept": "public-transit/transit-trip",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "stop_times.trip_id",
+     "to": "tripId"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs",
+   "concept": "public-transit/transit-stop",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "stop_times.stop_id",
+     "to": "stopId"
+    }
+   ]
+  },
+  {
+   "source": "amtrak-gtfs",
+   "concept": "public-transit/transit-agency",
+   "role": "record",
+   "fields": [
+    {
+     "from": "agency.agency_id",
+     "to": "agencyId"
+    },
+    {
+     "from": "agency.agency_name",
+     "to": "name"
+    },
+    {
+     "from": "agency.agency_url",
+     "to": "url"
+    },
+    {
+     "from": "agency.agency_timezone",
+     "to": "timezone"
+    },
+    {
+     "from": "agency.agency_lang",
+     "to": "language"
+    }
+   ]
+  },
+  {
+   "source": "amtrak-gtfs",
+   "concept": "public-transit/transit-stop",
+   "role": "record",
+   "fields": [
+    {
+     "from": "stops.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "stops.stop_code",
+     "to": "stopCode"
+    },
+    {
+     "from": "stops.stop_name",
+     "to": "name"
+    },
+    {
+     "from": "stops.stop_lat",
+     "to": "latitude"
+    },
+    {
+     "from": "stops.stop_lon",
+     "to": "longitude"
+    },
+    {
+     "from": "stops.stop_url",
+     "to": "url"
+    },
+    {
+     "from": "stops.stop_timezone",
+     "to": "timezone"
+    }
+   ]
+  },
+  {
+   "source": "amtrak-gtfs",
+   "concept": "public-transit/transit-route",
+   "role": "record",
+   "fields": [
+    {
+     "from": "routes.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "routes.agency_id",
+     "to": "agencyId"
+    },
+    {
+     "from": "routes.route_short_name",
+     "to": "shortName"
+    },
+    {
+     "from": "routes.route_long_name",
+     "to": "longName"
+    },
+    {
+     "from": "routes.route_type",
+     "to": "routeType"
+    },
+    {
+     "from": "routes.route_url",
+     "to": "url"
+    },
+    {
+     "from": "routes.route_color",
+     "to": "color"
+    },
+    {
+     "from": "routes.route_text_color",
+     "to": "textColor"
+    }
+   ]
+  },
+  {
+   "source": "amtrak-gtfs",
+   "concept": "public-transit/transit-trip",
+   "role": "record",
+   "fields": [
+    {
+     "from": "trips.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "trips.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "trips.service_id",
+     "to": "serviceId"
+    },
+    {
+     "from": "trips.trip_headsign",
+     "to": "headsign"
+    },
+    {
+     "from": "trips.trip_short_name",
+     "to": "shortName"
+    },
+    {
+     "from": "trips.direction_id",
+     "to": "directionId"
+    },
+    {
+     "from": "trips.shape_id",
+     "to": "shapeId"
+    }
+   ]
+  },
+  {
+   "source": "amtrak-gtfs",
+   "concept": "public-transit/stop-time",
+   "role": "record",
+   "fields": [
+    {
+     "from": "stop_times.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "stop_times.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "stop_times.stop_sequence",
+     "to": "stopSequence"
+    },
+    {
+     "from": "stop_times.arrival_time",
+     "to": "arrivalTime"
+    },
+    {
+     "from": "stop_times.departure_time",
+     "to": "departureTime"
+    },
+    {
+     "from": "stop_times.pickup_type",
+     "to": "pickupType"
+    },
+    {
+     "from": "stop_times.drop_off_type",
+     "to": "dropOffType"
+    },
+    {
+     "from": "stop_times.timepoint",
+     "to": "timepoint"
+    }
+   ]
+  },
+  {
+   "source": "amtrak-gtfs",
+   "concept": "public-transit/transit-agency",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "routes.agency_id",
+     "to": "agencyId"
+    }
+   ]
+  },
+  {
+   "source": "amtrak-gtfs",
+   "concept": "public-transit/transit-route",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "trips.route_id",
+     "to": "routeId"
+    }
+   ]
+  },
+  {
+   "source": "amtrak-gtfs",
+   "concept": "public-transit/transit-trip",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "stop_times.trip_id",
+     "to": "tripId"
+    }
+   ]
+  },
+  {
+   "source": "amtrak-gtfs",
+   "concept": "public-transit/transit-stop",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "stop_times.stop_id",
+     "to": "stopId"
+    }
+   ]
+  },
+  {
+   "source": "metro-north-gtfs",
+   "concept": "public-transit/transit-agency",
+   "role": "record",
+   "fields": [
+    {
+     "from": "agency.agency_id",
+     "to": "agencyId"
+    },
+    {
+     "from": "agency.agency_name",
+     "to": "name"
+    },
+    {
+     "from": "agency.agency_url",
+     "to": "url"
+    },
+    {
+     "from": "agency.agency_timezone",
+     "to": "timezone"
+    },
+    {
+     "from": "agency.agency_lang",
+     "to": "language"
+    },
+    {
+     "from": "agency.agency_phone",
+     "to": "phone"
+    }
+   ]
+  },
+  {
+   "source": "metro-north-gtfs",
+   "concept": "public-transit/transit-stop",
+   "role": "record",
+   "fields": [
+    {
+     "from": "stops.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "stops.stop_code",
+     "to": "stopCode"
+    },
+    {
+     "from": "stops.stop_name",
+     "to": "name"
+    },
+    {
+     "from": "stops.stop_desc",
+     "to": "description"
+    },
+    {
+     "from": "stops.stop_lat",
+     "to": "latitude"
+    },
+    {
+     "from": "stops.stop_lon",
+     "to": "longitude"
+    },
+    {
+     "from": "stops.zone_id",
+     "to": "zoneId"
+    },
+    {
+     "from": "stops.stop_url",
+     "to": "url"
+    },
+    {
+     "from": "stops.location_type",
+     "to": "locationType"
+    },
+    {
+     "from": "stops.parent_station",
+     "to": "parentStation"
+    },
+    {
+     "from": "stops.wheelchair_boarding",
+     "to": "wheelchairBoarding"
+    }
+   ]
+  },
+  {
+   "source": "metro-north-gtfs",
+   "concept": "public-transit/transit-route",
+   "role": "record",
+   "fields": [
+    {
+     "from": "routes.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "routes.agency_id",
+     "to": "agencyId"
+    },
+    {
+     "from": "routes.route_short_name",
+     "to": "shortName"
+    },
+    {
+     "from": "routes.route_long_name",
+     "to": "longName"
+    },
+    {
+     "from": "routes.route_desc",
+     "to": "description"
+    },
+    {
+     "from": "routes.route_type",
+     "to": "routeType"
+    },
+    {
+     "from": "routes.route_url",
+     "to": "url"
+    },
+    {
+     "from": "routes.route_color",
+     "to": "color"
+    },
+    {
+     "from": "routes.route_text_color",
+     "to": "textColor"
+    }
+   ]
+  },
+  {
+   "source": "metro-north-gtfs",
+   "concept": "public-transit/transit-trip",
+   "role": "record",
+   "fields": [
+    {
+     "from": "trips.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "trips.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "trips.service_id",
+     "to": "serviceId"
+    },
+    {
+     "from": "trips.trip_headsign",
+     "to": "headsign"
+    },
+    {
+     "from": "trips.trip_short_name",
+     "to": "shortName"
+    },
+    {
+     "from": "trips.direction_id",
+     "to": "directionId"
+    },
+    {
+     "from": "trips.block_id",
+     "to": "blockId"
+    },
+    {
+     "from": "trips.shape_id",
+     "to": "shapeId"
+    },
+    {
+     "from": "trips.wheelchair_accessible",
+     "to": "wheelchairAccessible"
+    }
+   ]
+  },
+  {
+   "source": "metro-north-gtfs",
+   "concept": "public-transit/stop-time",
+   "role": "record",
+   "fields": [
+    {
+     "from": "stop_times.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "stop_times.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "stop_times.stop_sequence",
+     "to": "stopSequence"
+    },
+    {
+     "from": "stop_times.arrival_time",
+     "to": "arrivalTime"
+    },
+    {
+     "from": "stop_times.departure_time",
+     "to": "departureTime"
+    },
+    {
+     "from": "stop_times.pickup_type",
+     "to": "pickupType"
+    },
+    {
+     "from": "stop_times.drop_off_type",
+     "to": "dropOffType"
+    }
+   ]
+  },
+  {
+   "source": "metro-north-gtfs",
+   "concept": "public-transit/transit-agency",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "routes.agency_id",
+     "to": "agencyId"
+    }
+   ]
+  },
+  {
+   "source": "metro-north-gtfs",
+   "concept": "public-transit/transit-route",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "trips.route_id",
+     "to": "routeId"
+    }
+   ]
+  },
+  {
+   "source": "metro-north-gtfs",
+   "concept": "public-transit/transit-trip",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "stop_times.trip_id",
+     "to": "tripId"
+    }
+   ]
+  },
+  {
+   "source": "metro-north-gtfs",
+   "concept": "public-transit/transit-stop",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "stop_times.stop_id",
+     "to": "stopId"
+    }
+   ]
+  },
+  {
+   "source": "hartford-line-gtfs",
+   "concept": "public-transit/transit-agency",
+   "role": "record",
+   "fields": [
+    {
+     "from": "agency.agency_id",
+     "to": "agencyId"
+    },
+    {
+     "from": "agency.agency_name",
+     "to": "name"
+    },
+    {
+     "from": "agency.agency_url",
+     "to": "url"
+    },
+    {
+     "from": "agency.agency_timezone",
+     "to": "timezone"
+    },
+    {
+     "from": "agency.agency_lang",
+     "to": "language"
+    },
+    {
+     "from": "agency.agency_phone",
+     "to": "phone"
+    },
+    {
+     "from": "agency.agency_fare_url",
+     "to": "fareUrl"
+    },
+    {
+     "from": "agency.agency_email",
+     "to": "email"
+    }
+   ]
+  },
+  {
+   "source": "hartford-line-gtfs",
+   "concept": "public-transit/transit-stop",
+   "role": "record",
+   "fields": [
+    {
+     "from": "stops.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "stops.stop_code",
+     "to": "stopCode"
+    },
+    {
+     "from": "stops.stop_name",
+     "to": "name"
+    },
+    {
+     "from": "stops.stop_desc",
+     "to": "description"
+    },
+    {
+     "from": "stops.stop_lat",
+     "to": "latitude"
+    },
+    {
+     "from": "stops.stop_lon",
+     "to": "longitude"
+    },
+    {
+     "from": "stops.zone_id",
+     "to": "zoneId"
+    },
+    {
+     "from": "stops.stop_url",
+     "to": "url"
+    },
+    {
+     "from": "stops.location_type",
+     "to": "locationType"
+    },
+    {
+     "from": "stops.parent_station",
+     "to": "parentStation"
+    },
+    {
+     "from": "stops.stop_timezone",
+     "to": "timezone"
+    },
+    {
+     "from": "stops.wheelchair_boarding",
+     "to": "wheelchairBoarding"
+    }
+   ]
+  },
+  {
+   "source": "hartford-line-gtfs",
+   "concept": "public-transit/transit-route",
+   "role": "record",
+   "fields": [
+    {
+     "from": "routes.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "routes.agency_id",
+     "to": "agencyId"
+    },
+    {
+     "from": "routes.route_short_name",
+     "to": "shortName"
+    },
+    {
+     "from": "routes.route_long_name",
+     "to": "longName"
+    },
+    {
+     "from": "routes.route_desc",
+     "to": "description"
+    },
+    {
+     "from": "routes.route_type",
+     "to": "routeType"
+    },
+    {
+     "from": "routes.route_url",
+     "to": "url"
+    },
+    {
+     "from": "routes.route_color",
+     "to": "color"
+    },
+    {
+     "from": "routes.route_text_color",
+     "to": "textColor"
+    }
+   ]
+  },
+  {
+   "source": "hartford-line-gtfs",
+   "concept": "public-transit/transit-trip",
+   "role": "record",
+   "fields": [
+    {
+     "from": "trips.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "trips.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "trips.service_id",
+     "to": "serviceId"
+    },
+    {
+     "from": "trips.trip_headsign",
+     "to": "headsign"
+    },
+    {
+     "from": "trips.trip_short_name",
+     "to": "shortName"
+    },
+    {
+     "from": "trips.direction_id",
+     "to": "directionId"
+    },
+    {
+     "from": "trips.block_id",
+     "to": "blockId"
+    },
+    {
+     "from": "trips.shape_id",
+     "to": "shapeId"
+    },
+    {
+     "from": "trips.wheelchair_accessible",
+     "to": "wheelchairAccessible"
+    },
+    {
+     "from": "trips.bikes_allowed",
+     "to": "bikesAllowed"
+    }
+   ]
+  },
+  {
+   "source": "hartford-line-gtfs",
+   "concept": "public-transit/stop-time",
+   "role": "record",
+   "fields": [
+    {
+     "from": "stop_times.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "stop_times.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "stop_times.stop_sequence",
+     "to": "stopSequence"
+    },
+    {
+     "from": "stop_times.arrival_time",
+     "to": "arrivalTime"
+    },
+    {
+     "from": "stop_times.departure_time",
+     "to": "departureTime"
+    },
+    {
+     "from": "stop_times.stop_headsign",
+     "to": "stopHeadsign"
+    },
+    {
+     "from": "stop_times.pickup_type",
+     "to": "pickupType"
+    },
+    {
+     "from": "stop_times.drop_off_type",
+     "to": "dropOffType"
+    },
+    {
+     "from": "stop_times.shape_dist_traveled",
+     "to": "shapeDistTraveled"
+    },
+    {
+     "from": "stop_times.timepoint",
+     "to": "timepoint"
+    }
+   ]
+  },
+  {
+   "source": "hartford-line-gtfs",
+   "concept": "public-transit/transit-agency",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "routes.agency_id",
+     "to": "agencyId"
+    }
+   ]
+  },
+  {
+   "source": "hartford-line-gtfs",
+   "concept": "public-transit/transit-route",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "trips.route_id",
+     "to": "routeId"
+    }
+   ]
+  },
+  {
+   "source": "hartford-line-gtfs",
+   "concept": "public-transit/transit-trip",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "stop_times.trip_id",
+     "to": "tripId"
+    }
+   ]
+  },
+  {
+   "source": "hartford-line-gtfs",
+   "concept": "public-transit/transit-stop",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "stop_times.stop_id",
+     "to": "stopId"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-realtime",
+   "concept": "public-transit/vehicle-position",
+   "role": "record",
+   "fields": [
+    {
+     "from": "VehicleDescriptor.id",
+     "to": "vehicleId"
+    },
+    {
+     "from": "VehicleDescriptor.label",
+     "to": "vehicleLabel"
+    },
+    {
+     "from": "VehicleDescriptor.license_plate",
+     "to": "licensePlate"
+    },
+    {
+     "from": "Position.latitude",
+     "to": "latitude"
+    },
+    {
+     "from": "Position.longitude",
+     "to": "longitude"
+    },
+    {
+     "from": "Position.bearing",
+     "to": "bearing"
+    },
+    {
+     "from": "Position.speed",
+     "to": "speed"
+    },
+    {
+     "from": "Position.odometer",
+     "to": "odometer"
+    },
+    {
+     "from": "VehiclePosition.current_stop_sequence",
+     "to": "currentStopSequence"
+    },
+    {
+     "from": "VehiclePosition.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "VehiclePosition.current_status",
+     "to": "currentStatus"
+    },
+    {
+     "from": "VehiclePosition.timestamp",
+     "to": "timestamp",
+     "conversion": "POSIX seconds"
+    },
+    {
+     "from": "VehiclePosition.congestion_level",
+     "to": "congestionLevel"
+    },
+    {
+     "from": "VehiclePosition.occupancy_status",
+     "to": "occupancyStatus"
+    },
+    {
+     "from": "VehiclePosition.occupancy_percentage",
+     "to": "occupancyPercentage"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-realtime",
+   "concept": "public-transit/stop-time",
+   "role": "record",
+   "fields": [
+    {
+     "from": "TripUpdate.StopTimeUpdate.stop_sequence",
+     "to": "stopSequence"
+    },
+    {
+     "from": "TripUpdate.StopTimeUpdate.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "TripUpdate.StopTimeUpdate.arrival",
+     "to": "predictedArrival",
+     "conversion": "the arrival StopTimeEvent's time (POSIX seconds)"
+    },
+    {
+     "from": "TripUpdate.StopTimeUpdate.departure",
+     "to": "predictedDeparture",
+     "conversion": "the departure StopTimeEvent's time (POSIX seconds)"
+    },
+    {
+     "from": "TripUpdate.StopTimeEvent.delay",
+     "to": "delaySeconds"
+    },
+    {
+     "from": "TripUpdate.StopTimeUpdate.schedule_relationship",
+     "to": "scheduleRelationship"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-realtime",
+   "concept": "public-transit/transit-trip",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "TripDescriptor.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "TripDescriptor.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "TripDescriptor.direction_id",
+     "to": "directionId"
+    },
+    {
+     "from": "TripDescriptor.start_date",
+     "to": "startDate",
+     "conversion": "YYYYMMDD"
+    },
+    {
+     "from": "TripDescriptor.start_time",
+     "to": "startTime"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-realtime",
+   "concept": "public-transit/transit-route",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "TripDescriptor.route_id",
+     "to": "routeId"
+    }
+   ]
+  },
+  {
+   "source": "gtfs-realtime",
+   "concept": "public-transit/transit-stop",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "VehiclePosition.stop_id",
+     "to": "stopId"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs-realtime",
+   "concept": "public-transit/vehicle-position",
+   "role": "record",
+   "fields": [
+    {
+     "from": "entity.vehicle.vehicle.id",
+     "to": "vehicleId"
+    },
+    {
+     "from": "entity.vehicle.vehicle.label",
+     "to": "vehicleLabel"
+    },
+    {
+     "from": "entity.vehicle.vehicle.license_plate",
+     "to": "licensePlate"
+    },
+    {
+     "from": "entity.vehicle.trip.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "entity.vehicle.trip.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "entity.vehicle.trip.direction_id",
+     "to": "directionId"
+    },
+    {
+     "from": "entity.vehicle.trip.start_date",
+     "to": "tripStartDate",
+     "conversion": "YYYYMMDD"
+    },
+    {
+     "from": "entity.vehicle.position.latitude",
+     "to": "latitude"
+    },
+    {
+     "from": "entity.vehicle.position.longitude",
+     "to": "longitude"
+    },
+    {
+     "from": "entity.vehicle.position.bearing",
+     "to": "bearing"
+    },
+    {
+     "from": "entity.vehicle.position.speed",
+     "to": "speed"
+    },
+    {
+     "from": "entity.vehicle.position.odometer",
+     "to": "odometer"
+    },
+    {
+     "from": "entity.vehicle.current_stop_sequence",
+     "to": "currentStopSequence"
+    },
+    {
+     "from": "entity.vehicle.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "entity.vehicle.current_status",
+     "to": "currentStatus",
+     "conversion": "integer enum: 0 INCOMING_AT, 1 STOPPED_AT, 2 IN_TRANSIT_TO"
+    },
+    {
+     "from": "entity.vehicle.timestamp",
+     "to": "timestamp",
+     "conversion": "POSIX seconds"
+    },
+    {
+     "from": "entity.vehicle.congestion_level",
+     "to": "congestionLevel",
+     "conversion": "integer enum in GTFS-rt order (0 UNKNOWN_CONGESTION_LEVEL ... 4 SEVERE_CONGESTION)"
+    },
+    {
+     "from": "entity.vehicle.occupancy_status",
+     "to": "occupancyStatus",
+     "conversion": "integer enum in GTFS-rt order (0 EMPTY ... 8 NOT_BOARDABLE)"
+    },
+    {
+     "from": "entity.vehicle.occupancy_percentage",
+     "to": "occupancyPercentage"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs-realtime",
+   "concept": "public-transit/stop-time",
+   "role": "record",
+   "fields": [
+    {
+     "from": "entity.trip_update.trip.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "entity.trip_update.stop_time_update.stop_sequence",
+     "to": "stopSequence"
+    },
+    {
+     "from": "entity.trip_update.stop_time_update.stop_id",
+     "to": "stopId"
+    },
+    {
+     "from": "entity.trip_update.stop_time_update.arrival.time",
+     "to": "predictedArrival",
+     "conversion": "POSIX seconds"
+    },
+    {
+     "from": "entity.trip_update.stop_time_update.departure.time",
+     "to": "predictedDeparture",
+     "conversion": "POSIX seconds"
+    },
+    {
+     "from": "entity.trip_update.stop_time_update.schedule_relationship",
+     "to": "scheduleRelationship",
+     "conversion": "integer enum: 0 SCHEDULED, 1 SKIPPED, 2 NO_DATA, 3 UNSCHEDULED"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs-realtime",
+   "concept": "public-transit/transit-trip",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "entity.vehicle.trip.trip_id",
+     "to": "tripId"
+    },
+    {
+     "from": "entity.vehicle.trip.route_id",
+     "to": "routeId"
+    },
+    {
+     "from": "entity.vehicle.trip.start_date",
+     "to": "startDate",
+     "conversion": "YYYYMMDD"
+    },
+    {
+     "from": "entity.vehicle.trip.start_time",
+     "to": "startTime"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs-realtime",
+   "concept": "public-transit/transit-route",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "entity.vehicle.trip.route_id",
+     "to": "routeId"
+    }
+   ]
+  },
+  {
+   "source": "cttransit-gtfs-realtime",
+   "concept": "public-transit/transit-stop",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "entity.vehicle.stop_id",
+     "to": "stopId"
+    }
+   ]
+  },
+  {
+   "source": "gbfs",
+   "concept": "shared-mobility/shared-vehicle",
+   "role": "record",
+   "fields": [
+    {
+     "from": "vehicle_status.vehicle_id",
+     "to": "vehicleId"
+    },
+    {
+     "from": "vehicle_status.lat",
+     "to": "latitude"
+    },
+    {
+     "from": "vehicle_status.lon",
+     "to": "longitude"
+    },
+    {
+     "from": "vehicle_status.is_reserved",
+     "to": "isReserved"
+    },
+    {
+     "from": "vehicle_status.is_disabled",
+     "to": "isDisabled"
+    },
+    {
+     "from": "vehicle_status.vehicle_type_id",
+     "to": "vehicleTypeId"
+    },
+    {
+     "from": "vehicle_status.current_range_meters",
+     "to": "currentRangeMeters"
+    },
+    {
+     "from": "vehicle_status.current_fuel_percent",
+     "to": "currentFuelPercent",
+     "conversion": "fraction 0-1"
+    },
+    {
+     "from": "vehicle_status.pricing_plan_id",
+     "to": "pricingPlanId"
+    },
+    {
+     "from": "vehicle_status.station_id",
+     "to": "stationId"
+    },
+    {
+     "from": "vehicle_status.last_reported",
+     "to": "lastReported",
+     "conversion": "POSIX seconds"
+    },
+    {
+     "from": "vehicle_status.rental_uris",
+     "to": "rentalUri",
+     "conversion": "object of android/ios/web deep links"
+    },
+    {
+     "from": "vehicle_types.form_factor",
+     "to": "formFactor",
+     "conversion": "joined from vehicle_types by vehicle_type_id"
+    },
+    {
+     "from": "vehicle_types.propulsion_type",
+     "to": "propulsionType",
+     "conversion": "joined from vehicle_types by vehicle_type_id"
+    },
+    {
+     "from": "vehicle_types.max_range_meters",
+     "to": "maxRangeMeters",
+     "conversion": "joined from vehicle_types by vehicle_type_id"
+    }
+   ]
+  },
+  {
+   "source": "veo-new-haven-gbfs",
+   "concept": "shared-mobility/shared-vehicle",
+   "role": "record",
+   "fields": [
+    {
+     "from": "free_bike_status.bike_id",
+     "to": "vehicleId",
+     "conversion": "rotating id (GBFS 2.x bike_id)"
+    },
+    {
+     "from": "free_bike_status.lat",
+     "to": "latitude"
+    },
+    {
+     "from": "free_bike_status.lon",
+     "to": "longitude"
+    },
+    {
+     "from": "free_bike_status.is_reserved",
+     "to": "isReserved"
+    },
+    {
+     "from": "free_bike_status.is_disabled",
+     "to": "isDisabled"
+    },
+    {
+     "from": "free_bike_status.vehicle_type_id",
+     "to": "vehicleTypeId"
+    },
+    {
+     "from": "free_bike_status.pricing_plan_id",
+     "to": "pricingPlanId"
+    },
+    {
+     "from": "free_bike_status.current_range_meters",
+     "to": "currentRangeMeters"
+    },
+    {
+     "from": "free_bike_status.rental_uris.android",
+     "to": "rentalUri",
+     "conversion": "Android deep link; an iOS one is beside it"
+    },
+    {
+     "from": "vehicle_types.form_factor",
+     "to": "formFactor",
+     "conversion": "joined from vehicle_types by vehicle_type_id"
+    },
+    {
+     "from": "vehicle_types.propulsion_type",
+     "to": "propulsionType",
+     "conversion": "joined from vehicle_types by vehicle_type_id"
+    },
+    {
+     "from": "vehicle_types.max_range_meters",
+     "to": "maxRangeMeters",
+     "conversion": "joined from vehicle_types by vehicle_type_id"
+    }
+   ]
+  },
+  {
+   "source": "ctdot-local-roads",
+   "concept": "street-network/road-segment",
+   "role": "record",
+   "fields": [
+    {
+     "from": "ROUTE_ID",
+     "to": "routeId"
+    },
+    {
+     "from": "BEGIN_POINT",
+     "to": "beginMilepoint"
+    },
+    {
+     "from": "END_POINT",
+     "to": "endMilepoint"
+    },
+    {
+     "from": "TOWN_NUMBER",
+     "to": "townNumber",
+     "conversion": "CTDOT's own town numbering (New Haven 092), not the OPM tax code"
+    },
+    {
+     "from": "TOWN_NAME",
+     "to": "townName"
+    },
+    {
+     "from": "LOCL_ROAD_NUMBER",
+     "to": "localRoadNumber"
+    },
+    {
+     "from": "STREET_NAME",
+     "to": "streetName"
+    },
+    {
+     "from": "ROUTE_DIRECTION",
+     "to": "routeDirection",
+     "conversion": "L log direction, R reverse"
+    },
+    {
+     "from": "HPRM_PRI_SEC",
+     "to": "overlapStatus",
+     "conversion": "PRI primary, SEC secondary"
+    },
+    {
+     "from": "YEAR",
+     "to": "snapshotYear"
+    }
+   ]
+  },
+  {
+   "source": "ctdot-local-roads",
+   "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "TOWN_NAME",
+     "to": "name",
+     "conversion": "upper case"
+    },
+    {
+     "from": "TOWN_NUMBER",
+     "to": "localCode",
+     "conversion": "CTDOT town number, NOT the OPM tax code: equal for 001-035 and 123-169, tax = DOT+1 for 036-121, DOT 122 (Deep River, filed as Saybrook) = tax 036"
+    }
+   ]
+  },
+  {
+   "source": "ctdot-aadt-segments",
+   "concept": "street-network/road-segment",
+   "role": "record",
+   "fields": [
+    {
+     "from": "ROUTE_ID",
+     "to": "routeId"
+    },
+    {
+     "from": "BEGIN_POINT",
+     "to": "beginMilepoint"
+    },
+    {
+     "from": "END_POINT",
+     "to": "endMilepoint"
+    },
+    {
+     "from": "AADT_AADT_VALUE",
+     "to": "annualAverageDailyTraffic"
+    },
+    {
+     "from": "AADT_AADT_YEAR",
+     "to": "trafficYear"
+    },
+    {
+     "from": "AADT_STATION_ID",
+     "to": "countStationId"
+    },
+    {
+     "from": "RTOP_PRI_SEC",
+     "to": "overlapStatus",
+     "conversion": "PRI primary, SEC secondary"
+    },
+    {
+     "from": "YEAR",
+     "to": "snapshotYear"
+    }
+   ]
+  },
+  {
+   "source": "ctdot-aadt-segments",
+   "concept": "street-network/traffic-count-station",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "AADT_STATION_ID",
+     "to": "stationId",
+     "conversion": "upper case (NWHV-649); match StationID case-insensitively"
+    }
+   ]
+  },
+  {
+   "source": "ctdot-traffic-count-locations",
+   "concept": "street-network/traffic-count-station",
+   "role": "record",
+   "fields": [
+    {
+     "from": "StationID",
+     "to": "stationId"
+    },
+    {
+     "from": "StationNumber",
+     "to": "stationNumber"
+    },
+    {
+     "from": "TownNumber",
+     "to": "townNumber",
+     "conversion": "CTDOT town number (not the OPM tax code); empty in practice"
+    },
+    {
+     "from": "StateRoute",
+     "to": "stateRoute"
+    },
+    {
+     "from": "LocalRoad",
+     "to": "localRoad"
+    },
+    {
+     "from": "LRSID",
+     "to": "routeId",
+     "conversion": "often blank"
+    },
+    {
+     "from": "Milepoint",
+     "to": "milepoint"
+    },
+    {
+     "from": "Latitude",
+     "to": "latitude"
+    },
+    {
+     "from": "Longitude",
+     "to": "longitude"
+    },
+    {
+     "from": "HourlyCountLink",
+     "to": "countDataUrl"
+    }
+   ]
+  },
+  {
+   "source": "ctdot-bridges",
+   "concept": "street-network/bridge",
+   "role": "record",
+   "fields": [
+    {
+     "from": "BridgeStructureNumber",
+     "to": "structureNumber"
+    },
+    {
+     "from": "FacilityCarried_NBI7",
+     "to": "facilityCarried"
+    },
+    {
+     "from": "FeatureCrossed_NBI6A",
+     "to": "featureCrossed"
+    },
+    {
+     "from": "Town_NBI4",
+     "to": "placeCode",
+     "conversion": "5-digit code before ' - ', e.g. '52070 - NEW HAVEN'"
+    },
+    {
+     "from": "RouteNumber_NBI5D",
+     "to": "routeNumber"
+    },
+    {
+     "from": "Milepoint_NBI11",
+     "to": "milepoint",
+     "conversion": "miles (NBI item 11 is kilometrepoint)"
+    },
+    {
+     "from": "OwnerValue_Description",
+     "to": "owner",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "MaintenanceValue_Description",
+     "to": "maintenanceResponsibility",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "YearBuilt_NBI27",
+     "to": "yearBuilt"
+    },
+    {
+     "from": "YearReconstructed_NBI106",
+     "to": "yearReconstructed"
+    },
+    {
+     "from": "AverageDailyTraffic_NBI29",
+     "to": "averageDailyTraffic"
+    },
+    {
+     "from": "YearofAvgDailyTraffic_NBI30",
+     "to": "averageDailyTrafficYear"
+    },
+    {
+     "from": "DeckConditionRating_Descrn",
+     "to": "deckCondition",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "SuperSTRConditionRating_Descrn",
+     "to": "superstructureCondition",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "SubSTRConditionRating_Descrn",
+     "to": "substructureCondition",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "CulvertConditionRating_Descrn",
+     "to": "culvertCondition",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "ChannelProtectionRating_Descrn",
+     "to": "channelCondition",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "StructureEvaluation_Descrn",
+     "to": "structuralEvaluation",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "DeckGeometryRating_Descrn",
+     "to": "deckGeometryEvaluation",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "UnderClearanceRating_Descrn",
+     "to": "underclearanceEvaluation",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "WaterwayAdequacy_Descrn",
+     "to": "waterwayAdequacy",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "ApproachRdwyAlignment_Descrn",
+     "to": "approachAlignment",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "ScourCriticalRating_Descrn",
+     "to": "scourCritical",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "ServiceOnBridgeDescription",
+     "to": "serviceOn",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "ServiceUnderBridgeDescription",
+     "to": "serviceUnder",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "MainSpanMaterialDescription",
+     "to": "mainSpanMaterial",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "MainSpanDesignDescription",
+     "to": "mainSpanDesign",
+     "conversion": "'code - description': the code is before ' - '"
+    },
+    {
+     "from": "MainSpan_NBI45",
+     "to": "mainSpanCount"
+    },
+    {
+     "from": "ApproachSpans_NBI46",
+     "to": "approachSpanCount"
+    },
+    {
+     "from": "StructureLength_NBI49",
+     "to": "structureLength",
+     "conversion": "feet; x 0.3048 for metres"
+    },
+    {
+     "from": "DeckWidthOut2OutFT_NBI52",
+     "to": "deckWidth",
+     "conversion": "feet; x 0.3048 for metres"
+    },
+    {
+     "from": "ApproachRoadwayWidthFT_NBI32",
+     "to": "approachRoadwayWidth",
+     "conversion": "feet; x 0.3048 for metres"
+    },
+    {
+     "from": "NHS_Description",
+     "to": "highwaySystem",
+     "conversion": "Yes/No"
+    },
+    {
+     "from": "InspectionDate_NBI90",
+     "to": "inspectionDate",
+     "conversion": "full date (NBI codes MMYY)"
+    },
+    {
+     "from": "InspectionFrquency_NBI91",
+     "to": "inspectionFrequencyMonths"
+    }
+   ]
+  },
+  {
+   "source": "ctdot-bridges",
+   "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "Town_NBI4",
+     "to": "fipsCode",
+     "conversion": "digits before ' - ' ('52070 - NEW HAVEN'): 5-digit county-subdivision FIPS code; Municipality fipsCode is '09' + 3-digit county + these 5 digits"
+    }
+   ]
+  },
+  {
+   "source": "fhwa-nbi",
+   "concept": "street-network/bridge",
+   "role": "record",
+   "fields": [
+    {
+     "from": "STRUCTURE_NUMBER_008",
+     "to": "structureNumber"
+    },
+    {
+     "from": "FACILITY_CARRIED_007",
+     "to": "facilityCarried"
+    },
+    {
+     "from": "FEATURES_DESC_006A",
+     "to": "featureCrossed"
+    },
+    {
+     "from": "PLACE_CODE_004",
+     "to": "placeCode"
+    },
+    {
+     "from": "ROUTE_NUMBER_005D",
+     "to": "routeNumber"
+    },
+    {
+     "from": "KILOPOINT_011",
+     "to": "milepoint",
+     "conversion": "kilometres to 3 decimals; / 1.609344 for miles"
+    },
+    {
+     "from": "LAT_016",
+     "to": "latitude",
+     "conversion": "DDMMSSss degrees-minutes-seconds"
+    },
+    {
+     "from": "LONG_017",
+     "to": "longitude",
+     "conversion": "DDDMMSSss degrees-minutes-seconds, west"
+    },
+    {
+     "from": "OWNER_022",
+     "to": "owner"
+    },
+    {
+     "from": "MAINTENANCE_021",
+     "to": "maintenanceResponsibility"
+    },
+    {
+     "from": "YEAR_BUILT_027",
+     "to": "yearBuilt"
+    },
+    {
+     "from": "YEAR_RECONSTRUCTED_106",
+     "to": "yearReconstructed"
+    },
+    {
+     "from": "ADT_029",
+     "to": "averageDailyTraffic"
+    },
+    {
+     "from": "YEAR_ADT_030",
+     "to": "averageDailyTrafficYear"
+    },
+    {
+     "from": "DECK_COND_058",
+     "to": "deckCondition"
+    },
+    {
+     "from": "SUPERSTRUCTURE_COND_059",
+     "to": "superstructureCondition"
+    },
+    {
+     "from": "SUBSTRUCTURE_COND_060",
+     "to": "substructureCondition"
+    },
+    {
+     "from": "CULVERT_COND_062",
+     "to": "culvertCondition"
+    },
+    {
+     "from": "CHANNEL_COND_061",
+     "to": "channelCondition"
+    },
+    {
+     "from": "STRUCTURAL_EVAL_067",
+     "to": "structuralEvaluation"
+    },
+    {
+     "from": "DECK_GEOMETRY_EVAL_068",
+     "to": "deckGeometryEvaluation"
+    },
+    {
+     "from": "UNDCLRENCE_EVAL_069",
+     "to": "underclearanceEvaluation"
+    },
+    {
+     "from": "WATERWAY_EVAL_071",
+     "to": "waterwayAdequacy"
+    },
+    {
+     "from": "APPR_ROAD_EVAL_072",
+     "to": "approachAlignment"
+    },
+    {
+     "from": "SCOUR_CRITICAL_113",
+     "to": "scourCritical"
+    },
+    {
+     "from": "SERVICE_ON_042A",
+     "to": "serviceOn"
+    },
+    {
+     "from": "SERVICE_UND_042B",
+     "to": "serviceUnder"
+    },
+    {
+     "from": "STRUCTURE_KIND_043A",
+     "to": "mainSpanMaterial"
+    },
+    {
+     "from": "STRUCTURE_TYPE_043B",
+     "to": "mainSpanDesign"
+    },
+    {
+     "from": "MAIN_UNIT_SPANS_045",
+     "to": "mainSpanCount"
+    },
+    {
+     "from": "APPR_SPANS_046",
+     "to": "approachSpanCount"
+    },
+    {
+     "from": "STRUCTURE_LEN_MT_049",
+     "to": "structureLength",
+     "conversion": "metres to 0.1"
+    },
+    {
+     "from": "DECK_WIDTH_MT_052",
+     "to": "deckWidth",
+     "conversion": "metres to 0.1"
+    },
+    {
+     "from": "APPR_WIDTH_MT_032",
+     "to": "approachRoadwayWidth",
+     "conversion": "metres to 0.1"
+    },
+    {
+     "from": "HIGHWAY_SYSTEM_104",
+     "to": "highwaySystem",
+     "conversion": "1 on NHS, 0 not"
+    },
+    {
+     "from": "DATE_OF_INSPECT_090",
+     "to": "inspectionDate",
+     "conversion": "MMYY"
+    },
+    {
+     "from": "INSPECT_FREQ_MONTHS_091",
+     "to": "inspectionFrequencyMonths"
+    }
+   ]
+  },
+  {
+   "source": "fhwa-nbi",
+   "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "PLACE_CODE_004",
+     "to": "fipsCode",
+     "conversion": "5-digit county-subdivision FIPS code; Municipality fipsCode is '09' + 3-digit county + these 5 digits"
+    }
+   ]
+  },
+  {
+   "source": "new-haven-bike-routes",
+   "concept": "street-network/bikeway",
+   "role": "record",
+   "fields": [
+    {
+     "from": "roadnames",
+     "to": "roadNames"
+    },
+    {
+     "from": "descript",
+     "to": "facilityType"
+    },
+    {
+     "from": "status",
+     "to": "status"
+    },
+    {
+     "from": "rating",
+     "to": "comfortRating",
+     "conversion": "text '1'-'4'"
+    },
+    {
+     "from": "description",
+     "to": "ratingDescription"
+    }
+   ]
+  },
+  {
+   "source": "new-haven-metered-parking",
+   "concept": "street-network/parking-space",
+   "role": "record",
+   "fields": [
+    {
+     "from": "facilityid",
+     "to": "spaceId"
+    },
+    {
+     "from": "meternum",
+     "to": "meterNumber"
+    },
+    {
+     "from": "spacenum",
+     "to": "spaceNumber"
+    },
+    {
+     "from": "post_num",
+     "to": "postNumber"
+    },
+    {
+     "from": "promid",
+     "to": "payByPhoneZone"
+    },
+    {
+     "from": "zone_",
+     "to": "zone"
+    },
+    {
+     "from": "meterspec",
+     "to": "rateSpec"
+    },
+    {
+     "from": "lz",
+     "to": "loadingZone",
+     "conversion": "Y/N"
+    },
+    {
+     "from": "lz_info",
+     "to": "loadingZoneInfo"
+    },
+    {
+     "from": "pm_lat",
+     "to": "latitude"
+    },
+    {
+     "from": "pm_long",
+     "to": "longitude"
+    }
+   ]
+  },
+  {
+   "source": "new-haven-ev-charging",
+   "concept": "street-network/ev-charging-station",
+   "role": "record",
+   "fields": [
+    {
+     "from": "Station_Na",
+     "to": "stationName"
+    },
+    {
+     "from": "Station__1",
+     "to": "stationCode"
+    },
+    {
+     "from": "Owner",
+     "to": "owner"
+    },
+    {
+     "from": "Address",
+     "to": "address"
+    },
+    {
+     "from": "Zipcode",
+     "to": "postalCode",
+     "conversion": "stored as a number: left-pad to 5 digits (6511 -> 06511)"
+    },
+    {
+     "from": "Accessibil",
+     "to": "accessType"
+    },
+    {
+     "from": "Accessabil",
+     "to": "accessAndFees"
+    },
+    {
+     "from": "Charging",
+     "to": "chargingFee"
+    },
+    {
+     "from": "Parking",
+     "to": "parkingFee"
+    },
+    {
+     "from": "L2_Spaces",
+     "to": "level2Ports"
+    },
+    {
+     "from": "L3_Spaces",
+     "to": "dcFastPorts",
+     "conversion": "the city calls DC fast charging 'L3'"
+    },
+    {
+     "from": "Proposed_L",
+     "to": "plannedLevel2Ports"
+    },
+    {
+     "from": "EV_Connect",
+     "to": "connectorType"
+    },
+    {
+     "from": "Latitude",
+     "to": "latitude"
+    },
+    {
+     "from": "Longitude",
+     "to": "longitude"
+    },
+    {
+     "from": "Open_Date",
+     "to": "openDate"
+    }
+   ]
+  },
+  {
+   "source": "ct-crash-repository-crashes",
+   "concept": "traffic-safety/crash",
+   "role": "record",
+   "fields": [
+    {
+     "from": "CrashID",
+     "to": "crashId"
+    },
+    {
+     "from": "LawEnforcementAgencyName",
+     "to": "reportingAgency"
+    },
+    {
+     "from": "CrashDate",
+     "to": "crashDate"
+    },
+    {
+     "from": "CrashTimeHour",
+     "to": "crashTime",
+     "conversion": "hour of day only (0-23); minutes not published"
+    },
+    {
+     "from": "DayofWeek",
+     "to": "dayOfWeek"
+    },
+    {
+     "from": "CrashTownName",
+     "to": "townName"
+    },
+    {
+     "from": "NameOfRoadway",
+     "to": "roadwayName"
+    },
+    {
+     "from": "NameOfIntersectingRoadway",
+     "to": "intersectingRoadwayName"
+    },
+    {
+     "from": "RouteClass",
+     "to": "routeClass"
+    },
+    {
+     "from": "CrashSeverity",
+     "to": "severity",
+     "conversion": "KABCO collapsed to fatal / injury of any type / property damage only"
+    },
+    {
+     "from": "MostSevereInjury",
+     "to": "mostSevereInjury"
+    },
+    {
+     "from": "FirstHarmfulEvent",
+     "to": "firstHarmfulEvent"
+    },
+    {
+     "from": "MannerOfCrashCollisionImpact",
+     "to": "mannerOfCollision"
+    },
+    {
+     "from": "WeatherCondition",
+     "to": "atmosphericConditions",
+     "conversion": "single value (MMUCC allows several)"
+    },
+    {
+     "from": "LightCondition",
+     "to": "lightCondition"
+    },
+    {
+     "from": "CrashSpecificLocation",
+     "to": "relationToJunction"
+    },
+    {
+     "from": "TypeOfIntersection",
+     "to": "intersectionType"
+    },
+    {
+     "from": "SchoolBusRelated",
+     "to": "schoolBusRelated"
+    },
+    {
+     "from": "IsCrashRelatedToAWorkZone",
+     "to": "workZoneRelated"
+    },
+    {
+     "from": "TrafficSurfaceCondition",
+     "to": "roadSurfaceCondition",
+     "conversion": "crash-level here; MMUCC records it per vehicle (V30)"
+    }
+   ]
+  },
+  {
+   "source": "ct-crash-repository-crashes",
+   "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "CrashTownName",
+     "to": "name"
+    }
+   ]
+  },
+  {
+   "source": "mmucc-6",
+   "concept": "traffic-safety/crash",
+   "role": "record",
+   "fields": [
+    {
+     "from": "S1 State Unique Crash ID",
+     "to": "crashId"
+    },
+    {
+     "from": "S2 Agency (Police Jurisdiction)",
+     "to": "reportingAgency"
+    },
+    {
+     "from": "C1 Crash Date",
+     "to": "crashDate"
+    },
+    {
+     "from": "C2 Crash Time",
+     "to": "crashTime"
+    },
+    {
+     "from": "C5 County or Equivalent",
+     "to": "county"
+    },
+    {
+     "from": "C6 Global Position (Latitude, Longitude)",
+     "to": "location"
+    },
+    {
+     "from": "C7 First Harmful Event",
+     "to": "firstHarmfulEvent"
+    },
+    {
+     "from": "C9 Manner of Collision of the First Harmful Event",
+     "to": "mannerOfCollision"
+    },
+    {
+     "from": "C10 Atmospheric Conditions",
+     "to": "atmosphericConditions"
+    },
+    {
+     "from": "C11 Light Condition",
+     "to": "lightCondition"
+    },
+    {
+     "from": "C12 Relation to Junction",
+     "to": "relationToJunction",
+     "conversion": "the 'relation to junction' subfield"
+    },
+    {
+     "from": "C13 Type of Intersection",
+     "to": "intersectionType"
+    },
+    {
+     "from": "C14 School-Bus-Related",
+     "to": "schoolBusRelated"
+    },
+    {
+     "from": "C15 Work Zone",
+     "to": "workZoneRelated",
+     "conversion": "the 'crash in work zone' subfield"
+    },
+    {
+     "from": "C18 Route Number or Road Name",
+     "to": "roadwayName"
+    },
+    {
+     "from": "V30 Roadway Surface Condition",
+     "to": "roadSurfaceCondition",
+     "conversion": "recorded per vehicle in MMUCC"
+    }
+   ]
+  }
+ ]
+}

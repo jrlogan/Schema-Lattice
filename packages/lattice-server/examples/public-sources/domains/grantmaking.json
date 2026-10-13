@@ -1,0 +1,2090 @@
+{
+  "contexts": [
+    {
+      "slug": "grantmaking",
+      "title": "Grantmaking",
+      "definition": "Vocabulary for giving and seeking grants, for any funder (private or community foundation, corporate program, government agency) and any grantee: who funds, what they solicit, the applications that answer, and the awards made and paid."
+    }
+  ],
+  "concepts": [
+    {
+      "context": "grantmaking",
+      "conceptSlug": "funder",
+      "prefLabel": "Funder",
+      "altLabels": [
+        "Grantmaker",
+        "Funding Organization",
+        "Grantor",
+        "Funding Agency"
+      ],
+      "definition": "An organization that gives money to other organizations or individuals for a public or charitable purpose without buying anything in return: a private or community foundation, corporate giving program, or government agency making grants.",
+      "conceptKind": "agent",
+      "broaderRoot": "organization",
+      "closeMatch": [
+        "wd:Q5509032"
+      ],
+      "broadMatch": [
+        "wd:Q106905641"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "public",
+            "description": "Stable identifier: a 360Giving org-id (e.g. GB-CHC-…), a Grants.gov agency code, or a tax/registration-based id."
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "organizationType",
+            "type": "string",
+            "classification": "public",
+            "description": "Kind of grantmaker, e.g. private foundation, community foundation, corporate, government agency."
+          },
+          {
+            "name": "registrationNumber",
+            "type": "string",
+            "classification": "public",
+            "description": "Charity, company or tax registration number (UK charity number, US EIN)."
+          },
+          {
+            "name": "url",
+            "type": "url",
+            "classification": "public"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "public",
+            "description": "Mission or area of work."
+          },
+          {
+            "name": "fundingPriorities",
+            "type": "array",
+            "classification": "public",
+            "description": "Causes or areas the grantmaker says it funds."
+          },
+          {
+            "name": "addressLocality",
+            "type": "string",
+            "classification": "public",
+            "description": "City or town of the organization's address."
+          },
+          {
+            "name": "addressRegion",
+            "type": "string",
+            "classification": "public",
+            "description": "County, state or region of the organization's address."
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://raw.githubusercontent.com/ThreeSixtyGiving/standard/main/schema/360-giving-schema.json",
+        "authoredBy": [
+          "SchemaLattice grantmaking pilot"
+        ],
+        "sourceNotes": "360Giving Organization (fundingOrganization: id, name, organisationType, charityNumber/companyNumber, url, description, addressLocality, addressRegion); Grants.gov search2/fetchOpportunity agency (agencyCode, agency/agencyName); the user's Grant-Researcher Funder (name, baseUrl, mission, fundingPriorities, ProPublica EIN/city/state) and Grant-Collab's shared funder registry (name, URL, focus)."
+      }
+    },
+    {
+      "context": "grantmaking",
+      "conceptSlug": "funding-opportunity",
+      "prefLabel": "Funding Opportunity",
+      "altLabels": [
+        "Grant Opportunity",
+        "Funding Opportunity Announcement",
+        "Request for Proposals",
+        "Grant Cycle",
+        "Call for Applications",
+        "Solicitation"
+      ],
+      "definition": "A published invitation from a grantmaker to apply for grants: what it will fund, who is eligible, the application window and deadline, and the range and total of awards. One grant round or solicitation, not the awards that result from it.",
+      "conceptKind": "entity",
+      "broaderRoot": "record",
+      "closeMatch": [
+        "wd:Q5509026"
+      ],
+      "coRefersRationale": "Not the same referent as Tender Notice (https://schemalattice.com/c/public-procurement/tender-notice@b8c9b14895ae): a tender calls for bids to sell goods or services to a government buyer, while this invites proposals for assistance the funder does not consume. Grants.gov itself labels procurement contracts as a separate funding instrument.",
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "public",
+            "description": "System identifier of the opportunity (e.g. Grants.gov opportunity id)."
+          },
+          {
+            "name": "opportunityNumber",
+            "type": "string",
+            "classification": "public",
+            "description": "The funder's own number for the solicitation."
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "funder",
+            "type": "reference",
+            "classification": "public",
+            "description": "The grantmaker offering it (grantmaking Funder), by its identifier."
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "forecasted",
+              "posted",
+              "closed",
+              "archived"
+            ]
+          },
+          {
+            "name": "openDate",
+            "type": "date",
+            "classification": "public",
+            "description": "When applications open or the notice was posted."
+          },
+          {
+            "name": "closeDate",
+            "type": "date",
+            "classification": "public",
+            "description": "Application deadline; empty for rolling opportunities."
+          },
+          {
+            "name": "awardFloor",
+            "type": "number",
+            "classification": "public",
+            "description": "Smallest award offered.",
+            "unit": "currency"
+          },
+          {
+            "name": "awardCeiling",
+            "type": "number",
+            "classification": "public",
+            "description": "Largest award offered.",
+            "unit": "currency"
+          },
+          {
+            "name": "estimatedTotalFunding",
+            "type": "number",
+            "classification": "public",
+            "description": "Total money available across all awards.",
+            "unit": "currency"
+          },
+          {
+            "name": "applicantEligibility",
+            "type": "string",
+            "classification": "public",
+            "description": "Free-text statement of who may apply."
+          },
+          {
+            "name": "applicantTypes",
+            "type": "array",
+            "classification": "public",
+            "description": "Eligible applicant categories, e.g. 501(c)(3) nonprofits, city governments, individuals (Grants.gov eligibility codes where used)."
+          },
+          {
+            "name": "geographicEligibility",
+            "type": "string",
+            "classification": "public",
+            "description": "Where applicants must be based or the work must take place."
+          },
+          {
+            "name": "fundingInstrument",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "grant",
+              "cooperative-agreement",
+              "procurement-contract",
+              "other"
+            ]
+          },
+          {
+            "name": "fundingCategories",
+            "type": "array",
+            "classification": "public",
+            "description": "Topic categories of the funded activity."
+          },
+          {
+            "name": "grantProgrammeCode",
+            "type": "string",
+            "classification": "public",
+            "description": "Code of the funding programme it belongs to (US Assistance Listing/CFDA number on Grants.gov)."
+          },
+          {
+            "name": "grantProgrammeTitle",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "url",
+            "type": "url",
+            "classification": "public",
+            "description": "Full announcement or application page."
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://www.grants.gov/api/common/fetchopportunity",
+        "authoredBy": [
+          "SchemaLattice grantmaking pilot"
+        ],
+        "sourceNotes": "Grants.gov search2 hits and fetchOpportunity synopsis (number, title, agency, posting/response dates, oppStatus, awardFloor/Ceiling, estimatedFunding, applicantEligibilityDesc, applicantTypes, fundingInstruments, fundingActivityCategories, cfdas, fundingDescLinkUrl); the user's Grant-Researcher Opportunity (grantTitle, funderId, summary, deadline, applicantEligibility, applicantTypes, geographicEligibility, applicationUrl), NHSWRA-grants Cycle (name, description, opensAt, closesAt, fundingCents, minCents, maxCents, geography) and Governance-Dance shared grant (title, funder, deadline, summary); 360Giving grantProgramme (code, title)."
+      }
+    },
+    {
+      "context": "grantmaking",
+      "conceptSlug": "grant-application",
+      "prefLabel": "Grant Application",
+      "altLabels": [
+        "Grant Proposal",
+        "Funding Request",
+        "Application"
+      ],
+      "definition": "A request an organization submits in answer to a solicitation, asking a grantmaker for a stated amount for a described project: the applicant and contact, answers to the funder's questions, budget, planned dates, and where it stands from draft through decision.",
+      "conceptKind": "entity",
+      "broaderRoot": "record",
+      "broadMatch": [
+        "wd:Q3918409"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "title",
+            "type": "string",
+            "classification": "public",
+            "description": "Project title."
+          },
+          {
+            "name": "opportunity",
+            "type": "reference",
+            "classification": "public",
+            "description": "The solicitation applied to (grantmaking Funding Opportunity)."
+          },
+          {
+            "name": "applicantOrganization",
+            "type": "reference",
+            "classification": "public",
+            "description": "The applying organization.",
+            "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+          },
+          {
+            "name": "applicantType",
+            "type": "string",
+            "classification": "public",
+            "description": "Kind of applicant, e.g. nonprofit, school, community group."
+          },
+          {
+            "name": "fiscalSponsor",
+            "type": "string",
+            "classification": "internal",
+            "description": "Sponsoring organization when the applicant is not itself eligible."
+          },
+          {
+            "name": "contactName",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "contactEmail",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "contactPhone",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "amountRequested",
+            "type": "number",
+            "classification": "public",
+            "unit": "currency"
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "classification": "public",
+            "description": "ISO 4217 code."
+          },
+          {
+            "name": "budgetLines",
+            "type": "array",
+            "classification": "confidential",
+            "description": "Itemized budget.",
+            "fields": [
+              {
+                "name": "item",
+                "type": "string",
+                "classification": "confidential"
+              },
+              {
+                "name": "amount",
+                "type": "number",
+                "classification": "confidential"
+              }
+            ]
+          },
+          {
+            "name": "responses",
+            "type": "array",
+            "classification": "confidential",
+            "description": "The funder's questions and the applicant's answers.",
+            "fields": [
+              {
+                "name": "question",
+                "type": "string",
+                "classification": "public"
+              },
+              {
+                "name": "answer",
+                "type": "string",
+                "classification": "confidential"
+              }
+            ]
+          },
+          {
+            "name": "plannedStartDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "plannedEndDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "draft",
+              "submitted",
+              "eligible",
+              "ineligible",
+              "under-review",
+              "recommended",
+              "awarded",
+              "declined"
+            ]
+          },
+          {
+            "name": "submittedAt",
+            "type": "datetime",
+            "classification": "internal"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://raw.githubusercontent.com/ThreeSixtyGiving/standard/main/schema/360-giving-schema.json",
+        "authoredBy": [
+          "SchemaLattice grantmaking pilot"
+        ],
+        "sourceNotes": "The user's NHSWRA-grants draftSchema/Application (title, organization, organizationType, sponsor, contact, email, phone, requestedCents, budget, answers, startsOn, endsOn, status, submittedAt) and Grant-Researcher GrantDraft/Opportunity (title, opportunityId, questions/answers, amountRequested, submitted/awarded/declined); 360Giving amountAppliedFor, currency, plannedDates, applicationTransaction.transactionDate."
+      }
+    },
+    {
+      "context": "grantmaking",
+      "conceptSlug": "grant-award",
+      "prefLabel": "Grant Award",
+      "altLabels": [
+        "Grant",
+        "Award",
+        "Monetary Grant"
+      ],
+      "definition": "A grantmaker's decision to give a recipient a set amount, non-repayable, for a stated purpose over a period: who gave, who received, how much was applied for, awarded and paid out, when, and under which programme. The record 360Giving calls a grant.",
+      "conceptKind": "event",
+      "broaderRoot": "transaction",
+      "closeMatch": [
+        "wd:Q230788",
+        "schema:MonetaryGrant"
+      ],
+      "coRefersRationale": "Not the same referent as public-procurement Contract Award (https://schemalattice.com/c/public-procurement/contract-award@c67c49cbff51): a contract award buys goods or services for the buyer through competitive bidding and the buyer receives what is delivered, while a grant transfers money to a recipient for its own public-benefit purpose with no purchase. Same shape (amount, date, parties), different obligation.",
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "public",
+            "description": "Globally unique grant id (360Giving: publisher prefix plus internal id)."
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "public",
+            "description": "What the money is for."
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "classification": "public",
+            "description": "ISO 4217 code."
+          },
+          {
+            "name": "amountAppliedFor",
+            "type": "number",
+            "classification": "public",
+            "unit": "currency"
+          },
+          {
+            "name": "amountAwarded",
+            "type": "number",
+            "classification": "public",
+            "unit": "currency"
+          },
+          {
+            "name": "amountDisbursed",
+            "type": "number",
+            "classification": "public",
+            "description": "Paid to date.",
+            "unit": "currency"
+          },
+          {
+            "name": "awardDate",
+            "type": "date",
+            "classification": "public",
+            "description": "When the decision to award was made."
+          },
+          {
+            "name": "plannedStartDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "plannedEndDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "plannedDurationMonths",
+            "type": "number",
+            "classification": "public",
+            "unit": "month"
+          },
+          {
+            "name": "fundingOrganization",
+            "type": "reference",
+            "classification": "public",
+            "description": "The grantmaker (grantmaking Funder), by identifier."
+          },
+          {
+            "name": "recipientOrganization",
+            "type": "reference",
+            "classification": "public",
+            "description": "Receiving organization, by identifier.",
+            "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+          },
+          {
+            "name": "recipientIndividual",
+            "type": "string",
+            "classification": "personal-identity",
+            "description": "Receiving person, when the grant is to an individual."
+          },
+          {
+            "name": "application",
+            "type": "reference",
+            "classification": "public",
+            "description": "The application it answers (grantmaking Grant Application)."
+          },
+          {
+            "name": "grantProgramme",
+            "type": "object",
+            "classification": "public",
+            "description": "Programme it was made under.",
+            "fields": [
+              {
+                "name": "code",
+                "type": "string",
+                "classification": "public"
+              },
+              {
+                "name": "title",
+                "type": "string",
+                "classification": "public"
+              }
+            ]
+          },
+          {
+            "name": "fromOpenCall",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Made through an open call for applications."
+          },
+          {
+            "name": "beneficiaryLocation",
+            "type": "array",
+            "classification": "public",
+            "description": "Where the beneficiaries are.",
+            "fields": [
+              {
+                "name": "name",
+                "type": "string",
+                "classification": "public"
+              },
+              {
+                "name": "geoCode",
+                "type": "string",
+                "classification": "public"
+              },
+              {
+                "name": "geoCodeType",
+                "type": "string",
+                "classification": "public"
+              },
+              {
+                "name": "countryCode",
+                "type": "string",
+                "classification": "public"
+              }
+            ]
+          },
+          {
+            "name": "disbursements",
+            "type": "array",
+            "classification": "public",
+            "description": "Payments made under the grant.",
+            "fields": [
+              {
+                "name": "date",
+                "type": "date",
+                "classification": "public"
+              },
+              {
+                "name": "amount",
+                "type": "number",
+                "classification": "public"
+              }
+            ]
+          },
+          {
+            "name": "reportDueDate",
+            "type": "date",
+            "classification": "internal",
+            "description": "When the grantee's progress or final report is due."
+          },
+          {
+            "name": "url",
+            "type": "url",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://raw.githubusercontent.com/ThreeSixtyGiving/standard/main/schema/360-giving-schema.json",
+        "authoredBy": [
+          "SchemaLattice grantmaking pilot"
+        ],
+        "sourceNotes": "360Giving grant (id, title, description, currency, amountAppliedFor, amountAwarded, amountDisbursed, awardDate, plannedDates, fundingOrganization, recipientOrganization, recipientIndividual, grantProgramme, fromOpenCall, beneficiaryLocation, disbursementTransaction, url); the user's NHSWRA-grants awardSchema (amountCents, initialDate/initialCents, finalDate/finalCents, reportDue) and Grant-Researcher outcome (amountAwarded, outcomeAt, report step dates)."
+      }
+    }
+  ],
+  "sources": [
+    {
+      "slug": "360giving-data-standard",
+      "kind": "standard",
+      "platform": "manual",
+      "accessUrl": "https://raw.githubusercontent.com/ThreeSixtyGiving/standard/main/schema/360-giving-schema.json",
+      "title": "360Giving Data Standard",
+      "publisher": "360Giving",
+      "jurisdiction": "global",
+      "recordDescription": "One grant: who gave how much to which organisation or individual, when, for what, under which programme, with planned dates, beneficiary locations and payment transactions.",
+      "landingPage": "https://standard.threesixtygiving.org/",
+      "license": "CC BY 4.0",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "The unique identifier for this grant. Made up of your 360Giving prefix, and an identifier from your records. See the [360Giving Grant identifier guidance](https://standard.threesixtygiving.org/en/latest/technical/identifiers/#grant-identifier) for details."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "label": "Title",
+          "description": "A title for this grant activity. This should be under 140 characters long."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "label": "Description",
+          "description": "A short description of this grant activity."
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "label": "currency"
+        },
+        {
+          "name": "amountAppliedFor",
+          "type": "number",
+          "label": "Amount Applied For",
+          "description": "Total amount applied for in numbers (do not include commas or currency symbols such as £). If you have provided detailed transaction information on a separate table, this should equal the sum of all the application transactions for this grant."
+        },
+        {
+          "name": "amountAwarded",
+          "type": "number",
+          "label": "Amount Awarded",
+          "description": "Total amount awarded in numbers (do not include commas or currency symbols such as £). If you have provided detailed transaction information on a separate table, this should equal the sum of all the award transactions for this grant."
+        },
+        {
+          "name": "amountDisbursed",
+          "type": "number",
+          "label": "Amount Disbursed",
+          "description": "Total amount disbursed (paid) to this grantee when this record was last updated (in numbers: do not include commas or currency symbols such as £)). If you have provided detailed transaction information on a separate table, this should equal the sum of all the disbursement transactions for this grant."
+        },
+        {
+          "name": "awardDate",
+          "type": "string",
+          "label": "Award Date",
+          "description": "When the decision to award this grant was made. The date must be written as YYYY-MM-DD, or in full date-time format."
+        },
+        {
+          "name": "url",
+          "type": "string",
+          "label": "URL",
+          "description": "A URL (Web Address) where further information about this grant can be found. This could point to the website of the recipient organisation, or might link to further details on the funders website."
+        },
+        {
+          "name": "plannedDates.title",
+          "type": "string",
+          "label": "Title",
+          "description": "The title of this event"
+        },
+        {
+          "name": "plannedDates.startDate",
+          "type": "string",
+          "label": "Start Date",
+          "description": "All events should have a start date. Dates must be in YYYY-MM-DD or date-time format. If the month or day are not available, these may be omitted."
+        },
+        {
+          "name": "plannedDates.endDate",
+          "type": "string",
+          "label": "End Date",
+          "description": "An end date for the grant. Dates must be in YYYY-MM-DD or date-time format. If the month or day are not available, these may be omitted."
+        },
+        {
+          "name": "plannedDates.duration",
+          "type": "number",
+          "label": "Duration (months)",
+          "description": "The duration of the grant, in months. Must be in number format."
+        },
+        {
+          "name": "plannedDates.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this event"
+        },
+        {
+          "name": "plannedDates.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was information about this event last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "actualDates.title",
+          "type": "string",
+          "label": "Title",
+          "description": "The title of this event"
+        },
+        {
+          "name": "actualDates.startDate",
+          "type": "string",
+          "label": "Start Date",
+          "description": "All events should have a start date. Dates must be in YYYY-MM-DD or date-time format. If the month or day are not available, these may be omitted."
+        },
+        {
+          "name": "actualDates.endDate",
+          "type": "string",
+          "label": "End Date",
+          "description": "An end date for the grant. Dates must be in YYYY-MM-DD or date-time format. If the month or day are not available, these may be omitted."
+        },
+        {
+          "name": "actualDates.duration",
+          "type": "number",
+          "label": "Duration (months)",
+          "description": "The duration of the grant, in months. Must be in number format."
+        },
+        {
+          "name": "actualDates.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this event"
+        },
+        {
+          "name": "actualDates.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was information about this event last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "recipientIndividual.id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "A unique identifier which identifies the person in the dataset"
+        },
+        {
+          "name": "recipientIndividual.name",
+          "type": "string",
+          "label": "Name",
+          "description": "The Person's full name or a generic name such as \"Individual Recipient\""
+        },
+        {
+          "name": "toIndividualsDetails.primaryGrantReason",
+          "type": "string",
+          "label": "Primary Grant Reason",
+          "description": "A code referring to the reason(s) for a grant to an individual. The value for this field should be drawn from the Grant to Individuals Reason codelist"
+        },
+        {
+          "name": "toIndividualsDetails.secondaryGrantReason",
+          "type": "string",
+          "label": "Secondary Grant Reason",
+          "description": "A code referring to the reason(s) for a grant to an individual. The value for this field should be drawn from the Grant to Individuals Reason codelist"
+        },
+        {
+          "name": "toIndividualsDetails.grantPurpose",
+          "type": "array",
+          "label": "Grant Purpose",
+          "description": "A code referring to the purpose(s) for a grant to an individual. The value(s) for this field should be drawn from the Grant to Individuals Purpose codelist"
+        },
+        {
+          "name": "recipientOrganization.id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "A globally unique identifier for this organisation. This is important to enable data on funders and recipients to be linked up across different grant-makers. The [Organisation Identifier Standard](https://standard.threesixtygiving.org/en/latest/technical/identifiers/#organisation-identifier) guidance explains how to create this ID, based either on the known company or charity number, or upon iden…"
+        },
+        {
+          "name": "recipientOrganization.name",
+          "type": "string",
+          "label": "Name",
+          "description": "Organisation name"
+        },
+        {
+          "name": "recipientOrganization.department",
+          "type": "string",
+          "label": "Department",
+          "description": "The department or sub-unit of this organisation making or receiving the grant."
+        },
+        {
+          "name": "recipientOrganization.contactName",
+          "type": "string",
+          "label": "Contact Name",
+          "description": "The contact person at this organisation."
+        },
+        {
+          "name": "recipientOrganization.charityNumber",
+          "type": "string",
+          "label": "Charity Number",
+          "description": "Registered charity number, if applicable."
+        },
+        {
+          "name": "recipientOrganization.companyNumber",
+          "type": "string",
+          "label": "Company Number",
+          "description": "Registered UK company number, if applicable."
+        },
+        {
+          "name": "recipientOrganization.streetAddress",
+          "type": "string",
+          "label": "Street Address",
+          "description": "Organisation address building number and street name."
+        },
+        {
+          "name": "recipientOrganization.addressLocality",
+          "type": "string",
+          "label": "City",
+          "description": "Organisation address city or town."
+        },
+        {
+          "name": "recipientOrganization.addressRegion",
+          "type": "string",
+          "label": "County",
+          "description": "Organisation address county"
+        },
+        {
+          "name": "recipientOrganization.addressCountry",
+          "type": "string",
+          "label": "Country",
+          "description": "Organisation address country"
+        },
+        {
+          "name": "recipientOrganization.postalCode",
+          "type": "string",
+          "label": "Postal Code",
+          "description": "Organisation address postal code."
+        },
+        {
+          "name": "recipientOrganization.telephone",
+          "type": "string",
+          "label": "Phone Number",
+          "description": "Contact phone number."
+        },
+        {
+          "name": "recipientOrganization.alternateName",
+          "type": "string",
+          "label": "Alternate Name",
+          "description": "An alternative name for this organisation (e.g. trading name)"
+        },
+        {
+          "name": "recipientOrganization.email",
+          "type": "string",
+          "label": "Email",
+          "description": "The email address for this organisation."
+        },
+        {
+          "name": "recipientOrganization.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A short description of this organisation and its area of work"
+        },
+        {
+          "name": "recipientOrganization.organisationType",
+          "type": "string",
+          "label": "Organisation Type",
+          "description": "A description of this organisation"
+        },
+        {
+          "name": "recipientOrganization.url",
+          "type": "string",
+          "label": "Web Address",
+          "description": "A web address for the Organisation"
+        },
+        {
+          "name": "recipientOrganization.location.id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "Location identifier"
+        },
+        {
+          "name": "recipientOrganization.location.name",
+          "type": "string",
+          "label": "Name",
+          "description": "A name for this location."
+        },
+        {
+          "name": "recipientOrganization.location.countryCode",
+          "type": "string",
+          "label": "Country Code",
+          "description": "The 2-character ISO Country Code of the location of this activity. Taken from [ISO-3166-1-alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)"
+        },
+        {
+          "name": "recipientOrganization.location.latitude",
+          "type": "number",
+          "label": "Latitude",
+          "description": "The latitude of a point location. Using [WGS 84](https://en.wikipedia.org/wiki/World_Geodetic_System) standard, for example 51.501502"
+        },
+        {
+          "name": "recipientOrganization.location.longitude",
+          "type": "number",
+          "label": "Longitude",
+          "description": "The longitude of a point location. Using [WGS 84](https://en.wikipedia.org/wiki/World_Geodetic_System) standard, for example -0.175269"
+        },
+        {
+          "name": "recipientOrganization.location.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this location. This could include details of the element of the activity that takes place here."
+        },
+        {
+          "name": "recipientOrganization.location.geoCode",
+          "type": "string",
+          "label": "Geographic Code",
+          "description": "A code referring to a geographical area, drawn from an established gazetteer such as the [ONS Register of Geographic Codes](https://en.wikipedia.org/wiki/ONS_coding_system) in the UK. For example, the code for a local authority ward, or parliamentary constituency."
+        },
+        {
+          "name": "recipientOrganization.location.geoCodeType",
+          "type": "string",
+          "label": "Geographic Code Type",
+          "description": "The type of Geographic Code (geoCode) used (e.g. Ward, Parliamentary Constituency etc.). This value for this field should be drawn from the [codelist of geographic code types](https://github.com/ThreeSixtyGiving/standard/tree/master/codelists/geoCodeType.csv)."
+        },
+        {
+          "name": "recipientOrganization.location.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was this location information last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "recipientOrganization.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was the organisation information for this grant last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "beneficiaryLocation.id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "Location identifier"
+        },
+        {
+          "name": "beneficiaryLocation.name",
+          "type": "string",
+          "label": "Name",
+          "description": "A name for this location."
+        },
+        {
+          "name": "beneficiaryLocation.countryCode",
+          "type": "string",
+          "label": "Country Code",
+          "description": "The 2-character ISO Country Code of the location of this activity. Taken from [ISO-3166-1-alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)"
+        },
+        {
+          "name": "beneficiaryLocation.latitude",
+          "type": "number",
+          "label": "Latitude",
+          "description": "The latitude of a point location. Using [WGS 84](https://en.wikipedia.org/wiki/World_Geodetic_System) standard, for example 51.501502"
+        },
+        {
+          "name": "beneficiaryLocation.longitude",
+          "type": "number",
+          "label": "Longitude",
+          "description": "The longitude of a point location. Using [WGS 84](https://en.wikipedia.org/wiki/World_Geodetic_System) standard, for example -0.175269"
+        },
+        {
+          "name": "beneficiaryLocation.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this location. This could include details of the element of the activity that takes place here."
+        },
+        {
+          "name": "beneficiaryLocation.geoCode",
+          "type": "string",
+          "label": "Geographic Code",
+          "description": "A code referring to a geographical area, drawn from an established gazetteer such as the [ONS Register of Geographic Codes](https://en.wikipedia.org/wiki/ONS_coding_system) in the UK. For example, the code for a local authority ward, or parliamentary constituency."
+        },
+        {
+          "name": "beneficiaryLocation.geoCodeType",
+          "type": "string",
+          "label": "Geographic Code Type",
+          "description": "The type of Geographic Code (geoCode) used (e.g. Ward, Parliamentary Constituency etc.). This value for this field should be drawn from the [codelist of geographic code types](https://github.com/ThreeSixtyGiving/standard/tree/master/codelists/geoCodeType.csv)."
+        },
+        {
+          "name": "beneficiaryLocation.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was this location information last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "fundingOrganization.id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "A globally unique identifier for this organisation. This is important to enable data on funders and recipients to be linked up across different grant-makers. The [Organisation Identifier Standard](https://standard.threesixtygiving.org/en/latest/technical/identifiers/#organisation-identifier) guidance explains how to create this ID, based either on the known company or charity number, or upon iden…"
+        },
+        {
+          "name": "fundingOrganization.name",
+          "type": "string",
+          "label": "Name",
+          "description": "Organisation name"
+        },
+        {
+          "name": "fundingOrganization.department",
+          "type": "string",
+          "label": "Department",
+          "description": "The department or sub-unit of this organisation making or receiving the grant."
+        },
+        {
+          "name": "fundingOrganization.contactName",
+          "type": "string",
+          "label": "Contact Name",
+          "description": "The contact person at this organisation."
+        },
+        {
+          "name": "fundingOrganization.charityNumber",
+          "type": "string",
+          "label": "Charity Number",
+          "description": "Registered charity number, if applicable."
+        },
+        {
+          "name": "fundingOrganization.companyNumber",
+          "type": "string",
+          "label": "Company Number",
+          "description": "Registered UK company number, if applicable."
+        },
+        {
+          "name": "fundingOrganization.streetAddress",
+          "type": "string",
+          "label": "Street Address",
+          "description": "Organisation address building number and street name."
+        },
+        {
+          "name": "fundingOrganization.addressLocality",
+          "type": "string",
+          "label": "City",
+          "description": "Organisation address city or town."
+        },
+        {
+          "name": "fundingOrganization.addressRegion",
+          "type": "string",
+          "label": "County",
+          "description": "Organisation address county"
+        },
+        {
+          "name": "fundingOrganization.addressCountry",
+          "type": "string",
+          "label": "Country",
+          "description": "Organisation address country"
+        },
+        {
+          "name": "fundingOrganization.postalCode",
+          "type": "string",
+          "label": "Postal Code",
+          "description": "Organisation address postal code."
+        },
+        {
+          "name": "fundingOrganization.telephone",
+          "type": "string",
+          "label": "Phone Number",
+          "description": "Contact phone number."
+        },
+        {
+          "name": "fundingOrganization.alternateName",
+          "type": "string",
+          "label": "Alternate Name",
+          "description": "An alternative name for this organisation (e.g. trading name)"
+        },
+        {
+          "name": "fundingOrganization.email",
+          "type": "string",
+          "label": "Email",
+          "description": "The email address for this organisation."
+        },
+        {
+          "name": "fundingOrganization.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A short description of this organisation and its area of work"
+        },
+        {
+          "name": "fundingOrganization.organisationType",
+          "type": "string",
+          "label": "Organisation Type",
+          "description": "A description of this organisation"
+        },
+        {
+          "name": "fundingOrganization.url",
+          "type": "string",
+          "label": "Web Address",
+          "description": "A web address for the Organisation"
+        },
+        {
+          "name": "fundingOrganization.location.id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "Location identifier"
+        },
+        {
+          "name": "fundingOrganization.location.name",
+          "type": "string",
+          "label": "Name",
+          "description": "A name for this location."
+        },
+        {
+          "name": "fundingOrganization.location.countryCode",
+          "type": "string",
+          "label": "Country Code",
+          "description": "The 2-character ISO Country Code of the location of this activity. Taken from [ISO-3166-1-alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)"
+        },
+        {
+          "name": "fundingOrganization.location.latitude",
+          "type": "number",
+          "label": "Latitude",
+          "description": "The latitude of a point location. Using [WGS 84](https://en.wikipedia.org/wiki/World_Geodetic_System) standard, for example 51.501502"
+        },
+        {
+          "name": "fundingOrganization.location.longitude",
+          "type": "number",
+          "label": "Longitude",
+          "description": "The longitude of a point location. Using [WGS 84](https://en.wikipedia.org/wiki/World_Geodetic_System) standard, for example -0.175269"
+        },
+        {
+          "name": "fundingOrganization.location.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this location. This could include details of the element of the activity that takes place here."
+        },
+        {
+          "name": "fundingOrganization.location.geoCode",
+          "type": "string",
+          "label": "Geographic Code",
+          "description": "A code referring to a geographical area, drawn from an established gazetteer such as the [ONS Register of Geographic Codes](https://en.wikipedia.org/wiki/ONS_coding_system) in the UK. For example, the code for a local authority ward, or parliamentary constituency."
+        },
+        {
+          "name": "fundingOrganization.location.geoCodeType",
+          "type": "string",
+          "label": "Geographic Code Type",
+          "description": "The type of Geographic Code (geoCode) used (e.g. Ward, Parliamentary Constituency etc.). This value for this field should be drawn from the [codelist of geographic code types](https://github.com/ThreeSixtyGiving/standard/tree/master/codelists/geoCodeType.csv)."
+        },
+        {
+          "name": "fundingOrganization.location.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was this location information last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "fundingOrganization.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was the organisation information for this grant last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "grantProgramme.code",
+          "type": "string",
+          "label": "Code",
+          "description": "An identifier for this grant programme."
+        },
+        {
+          "name": "grantProgramme.title",
+          "type": "string",
+          "label": "Title",
+          "description": "The title of this grant programme."
+        },
+        {
+          "name": "grantProgramme.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this grant programme."
+        },
+        {
+          "name": "grantProgramme.url",
+          "type": "string",
+          "label": "URL",
+          "description": "A web link to more details of this grant programme."
+        },
+        {
+          "name": "grantProgramme.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was the link between this grant and its grant programme last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "fromOpenCall",
+          "type": "string",
+          "label": "From An Open Call?",
+          "description": "Was this grant made as the result of an open call for applications? Values must be 'Yes' or 'No'"
+        },
+        {
+          "name": "fundingType.vocabulary",
+          "type": "string",
+          "label": "Vocabulary",
+          "description": "A vocabulary used for this classification."
+        },
+        {
+          "name": "fundingType.code",
+          "type": "string",
+          "label": "Code",
+          "description": "A codelist value in the chosen vocabulary."
+        },
+        {
+          "name": "fundingType.title",
+          "type": "string",
+          "label": "Title",
+          "description": "The title of this classification."
+        },
+        {
+          "name": "fundingType.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this classification."
+        },
+        {
+          "name": "fundingType.url",
+          "type": "string",
+          "label": "URL",
+          "description": "A web link to more details of this classification."
+        },
+        {
+          "name": "fundingType.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was this grant classification information last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "classifications.vocabulary",
+          "type": "string",
+          "label": "Vocabulary",
+          "description": "A vocabulary used for this classification."
+        },
+        {
+          "name": "classifications.code",
+          "type": "string",
+          "label": "Code",
+          "description": "A codelist value in the chosen vocabulary."
+        },
+        {
+          "name": "classifications.title",
+          "type": "string",
+          "label": "Title",
+          "description": "The title of this classification."
+        },
+        {
+          "name": "classifications.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this classification."
+        },
+        {
+          "name": "classifications.url",
+          "type": "string",
+          "label": "URL",
+          "description": "A web link to more details of this classification."
+        },
+        {
+          "name": "classifications.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was this grant classification information last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "relatedDocument.id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "An identifier for this document."
+        },
+        {
+          "name": "relatedDocument.title",
+          "type": "string",
+          "label": "Title",
+          "description": "The document title"
+        },
+        {
+          "name": "relatedDocument.url",
+          "type": "string",
+          "label": "Web Address",
+          "description": "The URL of the document."
+        },
+        {
+          "name": "relatedDocument.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of the document"
+        },
+        {
+          "name": "relatedDocument.documentType",
+          "type": "string",
+          "label": "Document Type",
+          "description": "A document category. For example, 'Application Form', 'Photo' or 'Project Report'. In future, 360Giving will provide a codelist of document types."
+        },
+        {
+          "name": "relatedDocument.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "What was this information last modified? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "applicationTransaction.id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "Identifier"
+        },
+        {
+          "name": "applicationTransaction.transactionDate",
+          "type": "string",
+          "label": "Transaction Date",
+          "description": "When did this transaction take place? The date should be written as YYYY-MM-DD, or in full date-time format."
+        },
+        {
+          "name": "applicationTransaction.currency",
+          "type": "string"
+        },
+        {
+          "name": "applicationTransaction.value",
+          "type": "number",
+          "label": "Value",
+          "description": "The total value of this transaction."
+        },
+        {
+          "name": "applicationTransaction.valueDate",
+          "type": "string",
+          "label": "Value Date",
+          "description": "The date that this value was set (to allow historical currency conversion). The date should be written as YYYY-MM-DD, or in full date-time format."
+        },
+        {
+          "name": "applicationTransaction.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this transaction."
+        },
+        {
+          "name": "applicationTransaction.provider",
+          "type": "string",
+          "label": "Provider",
+          "description": "The organisation identifier of the provider of transaction funds."
+        },
+        {
+          "name": "applicationTransaction.recipient",
+          "type": "string",
+          "label": "Recipient",
+          "description": "The organisation identifier of the recipient of transaction funds."
+        },
+        {
+          "name": "applicationTransaction.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was information about this transaction last updated? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "commitmentTransaction.id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "Identifier"
+        },
+        {
+          "name": "commitmentTransaction.transactionDate",
+          "type": "string",
+          "label": "Transaction Date",
+          "description": "When did this transaction take place? The date should be written as YYYY-MM-DD, or in full date-time format."
+        },
+        {
+          "name": "commitmentTransaction.currency",
+          "type": "string"
+        },
+        {
+          "name": "commitmentTransaction.value",
+          "type": "number",
+          "label": "Value",
+          "description": "The total value of this transaction."
+        },
+        {
+          "name": "commitmentTransaction.valueDate",
+          "type": "string",
+          "label": "Value Date",
+          "description": "The date that this value was set (to allow historical currency conversion). The date should be written as YYYY-MM-DD, or in full date-time format."
+        },
+        {
+          "name": "commitmentTransaction.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this transaction."
+        },
+        {
+          "name": "commitmentTransaction.provider",
+          "type": "string",
+          "label": "Provider",
+          "description": "The organisation identifier of the provider of transaction funds."
+        },
+        {
+          "name": "commitmentTransaction.recipient",
+          "type": "string",
+          "label": "Recipient",
+          "description": "The organisation identifier of the recipient of transaction funds."
+        },
+        {
+          "name": "commitmentTransaction.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was information about this transaction last updated? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "disbursementTransaction.id",
+          "type": "string",
+          "label": "Identifier",
+          "description": "Identifier"
+        },
+        {
+          "name": "disbursementTransaction.transactionDate",
+          "type": "string",
+          "label": "Transaction Date",
+          "description": "When did this transaction take place? The date should be written as YYYY-MM-DD, or in full date-time format."
+        },
+        {
+          "name": "disbursementTransaction.currency",
+          "type": "string"
+        },
+        {
+          "name": "disbursementTransaction.value",
+          "type": "number",
+          "label": "Value",
+          "description": "The total value of this transaction."
+        },
+        {
+          "name": "disbursementTransaction.valueDate",
+          "type": "string",
+          "label": "Value Date",
+          "description": "The date that this value was set (to allow historical currency conversion). The date should be written as YYYY-MM-DD, or in full date-time format."
+        },
+        {
+          "name": "disbursementTransaction.description",
+          "type": "string",
+          "label": "Description",
+          "description": "A description of this transaction."
+        },
+        {
+          "name": "disbursementTransaction.provider",
+          "type": "string",
+          "label": "Provider",
+          "description": "The organisation identifier of the provider of transaction funds."
+        },
+        {
+          "name": "disbursementTransaction.recipient",
+          "type": "string",
+          "label": "Recipient",
+          "description": "The organisation identifier of the recipient of transaction funds."
+        },
+        {
+          "name": "disbursementTransaction.dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was information about this transaction last updated? A full date-time should be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "relatedActivity",
+          "type": "array",
+          "label": "Related Activity",
+          "description": "The identifiers of any related activities (e.g. other grants given as part of a multi-grant project)"
+        },
+        {
+          "name": "dateModified",
+          "type": "string",
+          "label": "Last Modified",
+          "description": "When was information on this grant last updated? A full date-time format must be given. Usually this can be generated automatically by the software managing or exporting this data."
+        },
+        {
+          "name": "dataSource",
+          "type": "string",
+          "label": "Data Source",
+          "description": "A web link pointing to the source of this data. This may be an original 360Giving data file, a file from which the data was converted, or an organisation website."
+        },
+        {
+          "name": "regrantType",
+          "type": "string",
+          "label": "For Regrant Type",
+          "description": "A code referring to the type of regranting process that this grant represents. The value for this field should be drawn from the Regrant Type codelist"
+        },
+        {
+          "name": "locationScope",
+          "type": "string",
+          "label": "Location Scope",
+          "description": "A code referring to the location scope applicable to this grant. The value for this field should be drawn from the Location Scope codelist."
+        }
+      ],
+      "note": "Fields are JSON paths in the 1.4.3 JSON schema (arrays flattened: recipientOrganization.id is the id of each recipient organisation). Used by UK funders publishing to GrantNav; its Organization, Location and Transaction shapes are reused across recipient, funder and payments."
+    },
+    {
+      "slug": "grants-gov-search2",
+      "kind": "dataset",
+      "platform": "manual",
+      "accessUrl": "https://api.grants.gov/v1/api/search2",
+      "title": "Grants.gov opportunity search (search2 API)",
+      "publisher": "Grants.gov, U.S. Department of Health and Human Services",
+      "jurisdiction": "US",
+      "recordDescription": "One U.S. federal funding opportunity listing (forecast or synopsis) as returned in search2's oppHits: number, title, agency, open and close dates, status and Assistance Listing numbers.",
+      "landingPage": "https://www.grants.gov/api/common/search2",
+      "updateFrequency": "continuous",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Grants.gov internal opportunity id (opportunityId in fetchOpportunity)."
+        },
+        {
+          "name": "number",
+          "type": "string",
+          "description": "The agency's funding opportunity number."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Opportunity title (HTML entities encoded)."
+        },
+        {
+          "name": "agencyCode",
+          "type": "string",
+          "description": "Grants.gov agency code of the posting agency, e.g. NSF or DOS-CPV (sub-agency after the hyphen)."
+        },
+        {
+          "name": "agency",
+          "type": "string",
+          "description": "Posting agency name."
+        },
+        {
+          "name": "openDate",
+          "type": "string",
+          "description": "Posted date, MM/DD/YYYY."
+        },
+        {
+          "name": "closeDate",
+          "type": "string",
+          "description": "Application close date, MM/DD/YYYY; empty when none is set."
+        },
+        {
+          "name": "oppStatus",
+          "type": "string",
+          "description": "forecasted, posted, closed or archived."
+        },
+        {
+          "name": "docType",
+          "type": "string",
+          "description": "synopsis or forecast."
+        },
+        {
+          "name": "cfdaList",
+          "type": "array",
+          "description": "Assistance Listing (CFDA) numbers the opportunity funds under."
+        }
+      ],
+      "note": "POST JSON, no key (e.g. {\"rows\":25,\"keyword\":\"community\",\"oppStatuses\":\"posted\"}). Fields are each data.oppHits[] item. Verified 2026-10-13: errorcode 0, 417 posted hits for 'community'. Detail per opportunity is grants-gov-fetch-opportunity."
+    },
+    {
+      "slug": "grants-gov-fetch-opportunity",
+      "kind": "dataset",
+      "platform": "manual",
+      "accessUrl": "https://api.grants.gov/v1/api/fetchOpportunity",
+      "title": "Grants.gov opportunity detail (fetchOpportunity API)",
+      "publisher": "Grants.gov, U.S. Department of Health and Human Services",
+      "jurisdiction": "US",
+      "recordDescription": "One U.S. federal funding opportunity in full: synopsis, award floor and ceiling, estimated funding, eligible applicant types, funding instrument and category, Assistance Listings and application packages.",
+      "landingPage": "https://www.grants.gov/api/common/fetchopportunity",
+      "updateFrequency": "continuous",
+      "fields": [
+        {
+          "name": "id",
+          "type": "integer",
+          "description": "Grants.gov internal opportunity id."
+        },
+        {
+          "name": "revision",
+          "type": "integer",
+          "description": "Revision number of the opportunity record."
+        },
+        {
+          "name": "opportunityNumber",
+          "type": "string",
+          "description": "The agency's funding opportunity number."
+        },
+        {
+          "name": "opportunityTitle",
+          "type": "string",
+          "description": "Opportunity title."
+        },
+        {
+          "name": "owningAgencyCode",
+          "type": "string",
+          "description": "Agency code of the owning agency."
+        },
+        {
+          "name": "opportunityCategory.category",
+          "type": "string",
+          "description": "Category code: D discretionary, M mandatory, C continuation, E earmark, O other."
+        },
+        {
+          "name": "opportunityCategory.description",
+          "type": "string",
+          "description": "Category name."
+        },
+        {
+          "name": "docType",
+          "type": "string",
+          "description": "synopsis or forecast."
+        },
+        {
+          "name": "ost",
+          "type": "string",
+          "description": "Opportunity status, e.g. POSTED, FORECASTED, CLOSED, ARCHIVED."
+        },
+        {
+          "name": "synopsis.agencyCode",
+          "type": "string",
+          "description": "Agency code."
+        },
+        {
+          "name": "synopsis.agencyName",
+          "type": "string",
+          "description": "Agency name."
+        },
+        {
+          "name": "synopsis.agencyContactName",
+          "type": "string",
+          "description": "Agency contact name (often an office, sometimes a person)."
+        },
+        {
+          "name": "synopsis.agencyContactEmail",
+          "type": "string",
+          "description": "Agency contact email."
+        },
+        {
+          "name": "synopsis.agencyContactPhone",
+          "type": "string",
+          "description": "Agency contact phone."
+        },
+        {
+          "name": "synopsis.synopsisDesc",
+          "type": "string",
+          "description": "Synopsis description (HTML)."
+        },
+        {
+          "name": "synopsis.postingDate",
+          "type": "string",
+          "description": "Posting date, e.g. 'Jun 06, 2025 12:00:00 AM EDT'."
+        },
+        {
+          "name": "synopsis.responseDate",
+          "type": "string",
+          "description": "Application due date, same format; absent when none."
+        },
+        {
+          "name": "synopsis.archiveDate",
+          "type": "string",
+          "description": "Date the opportunity is archived."
+        },
+        {
+          "name": "synopsis.costSharing",
+          "type": "boolean",
+          "description": "Whether cost sharing or matching is required."
+        },
+        {
+          "name": "synopsis.numberOfAwards",
+          "type": "string",
+          "description": "Expected number of awards."
+        },
+        {
+          "name": "synopsis.estimatedFunding",
+          "type": "string",
+          "description": "Estimated total program funding, dollars."
+        },
+        {
+          "name": "synopsis.awardCeiling",
+          "type": "string",
+          "description": "Largest award, dollars."
+        },
+        {
+          "name": "synopsis.awardFloor",
+          "type": "string",
+          "description": "Smallest award, dollars."
+        },
+        {
+          "name": "synopsis.applicantEligibilityDesc",
+          "type": "string",
+          "description": "Additional information on eligibility (free text)."
+        },
+        {
+          "name": "synopsis.applicantTypes.id",
+          "type": "string",
+          "description": "Eligible applicant type codes (00 state governments … 12 501(c)(3) nonprofits … 99 unrestricted)."
+        },
+        {
+          "name": "synopsis.applicantTypes.description",
+          "type": "string",
+          "description": "Eligible applicant type names."
+        },
+        {
+          "name": "synopsis.fundingInstruments.id",
+          "type": "string",
+          "description": "Funding instrument codes: G grant, CA cooperative agreement, PC procurement contract, O other."
+        },
+        {
+          "name": "synopsis.fundingInstruments.description",
+          "type": "string",
+          "description": "Funding instrument names."
+        },
+        {
+          "name": "synopsis.fundingActivityCategories.id",
+          "type": "string",
+          "description": "Category of funding activity codes, e.g. CD community development, ED education."
+        },
+        {
+          "name": "synopsis.fundingActivityCategories.description",
+          "type": "string",
+          "description": "Category of funding activity names."
+        },
+        {
+          "name": "synopsis.fundingDescLinkUrl",
+          "type": "string",
+          "description": "Link to the full announcement."
+        },
+        {
+          "name": "synopsis.lastUpdatedDate",
+          "type": "string",
+          "description": "When the synopsis was last updated."
+        },
+        {
+          "name": "topAgencyDetails.agencyCode",
+          "type": "string",
+          "description": "Top-level (department) agency code."
+        },
+        {
+          "name": "topAgencyDetails.agencyName",
+          "type": "string",
+          "description": "Top-level (department) agency name."
+        },
+        {
+          "name": "cfdas.cfdaNumber",
+          "type": "string",
+          "description": "Assistance Listing (CFDA) number."
+        },
+        {
+          "name": "cfdas.programTitle",
+          "type": "string",
+          "description": "Assistance Listing program title."
+        },
+        {
+          "name": "opportunityPkgs.packageId",
+          "type": "string",
+          "description": "Application package id."
+        },
+        {
+          "name": "opportunityPkgs.openingDate",
+          "type": "string",
+          "description": "Application package opening date, YYYY-MM-DD."
+        },
+        {
+          "name": "opportunityPkgs.closingDate",
+          "type": "string",
+          "description": "Application package closing date, YYYY-MM-DD."
+        },
+        {
+          "name": "opportunityPkgs.expectedApplicationCount",
+          "type": "integer",
+          "description": "Applications the agency expects to receive."
+        }
+      ],
+      "note": "POST JSON {\"opportunityId\": <search2 id>}, no key. Fields are paths under data (arrays flattened, history and attachment arrays omitted). Verified 2026-10-13 against opportunity 359325."
+    }
+  ],
+  "mappings": [
+    {
+      "source": "360giving-data-standard",
+      "concept": "grantmaking/grant-award",
+      "role": "record",
+      "fields": [
+        {
+          "from": "id",
+          "to": "identifier"
+        },
+        {
+          "from": "title",
+          "to": "title"
+        },
+        {
+          "from": "description",
+          "to": "description"
+        },
+        {
+          "from": "currency",
+          "to": "currency"
+        },
+        {
+          "from": "amountAppliedFor",
+          "to": "amountAppliedFor"
+        },
+        {
+          "from": "amountAwarded",
+          "to": "amountAwarded"
+        },
+        {
+          "from": "amountDisbursed",
+          "to": "amountDisbursed"
+        },
+        {
+          "from": "awardDate",
+          "to": "awardDate"
+        },
+        {
+          "from": "url",
+          "to": "url"
+        },
+        {
+          "from": "plannedDates.startDate",
+          "to": "plannedStartDate"
+        },
+        {
+          "from": "plannedDates.endDate",
+          "to": "plannedEndDate"
+        },
+        {
+          "from": "plannedDates.duration",
+          "to": "plannedDurationMonths"
+        },
+        {
+          "from": "fundingOrganization.id",
+          "to": "fundingOrganization"
+        },
+        {
+          "from": "recipientOrganization.id",
+          "to": "recipientOrganization"
+        },
+        {
+          "from": "recipientIndividual.name",
+          "to": "recipientIndividual"
+        },
+        {
+          "from": "grantProgramme.code",
+          "to": "grantProgramme.code"
+        },
+        {
+          "from": "grantProgramme.title",
+          "to": "grantProgramme.title"
+        },
+        {
+          "from": "fromOpenCall",
+          "to": "fromOpenCall",
+          "conversion": "'Yes' → true, 'No' → false"
+        },
+        {
+          "from": "beneficiaryLocation.name",
+          "to": "beneficiaryLocation.name"
+        },
+        {
+          "from": "beneficiaryLocation.geoCode",
+          "to": "beneficiaryLocation.geoCode"
+        },
+        {
+          "from": "beneficiaryLocation.geoCodeType",
+          "to": "beneficiaryLocation.geoCodeType"
+        },
+        {
+          "from": "beneficiaryLocation.countryCode",
+          "to": "beneficiaryLocation.countryCode"
+        },
+        {
+          "from": "disbursementTransaction.transactionDate",
+          "to": "disbursements.date"
+        },
+        {
+          "from": "disbursementTransaction.value",
+          "to": "disbursements.amount"
+        }
+      ]
+    },
+    {
+      "source": "360giving-data-standard",
+      "concept": "grantmaking/funder",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "fundingOrganization.id",
+          "to": "identifier"
+        },
+        {
+          "from": "fundingOrganization.name",
+          "to": "name"
+        },
+        {
+          "from": "fundingOrganization.organisationType",
+          "to": "organizationType"
+        },
+        {
+          "from": "fundingOrganization.charityNumber",
+          "to": "registrationNumber",
+          "conversion": "UK charity number; companyNumber when there is none"
+        },
+        {
+          "from": "fundingOrganization.url",
+          "to": "url"
+        },
+        {
+          "from": "fundingOrganization.description",
+          "to": "description"
+        },
+        {
+          "from": "fundingOrganization.addressLocality",
+          "to": "addressLocality"
+        },
+        {
+          "from": "fundingOrganization.addressRegion",
+          "to": "addressRegion"
+        }
+      ]
+    },
+    {
+      "source": "360giving-data-standard",
+      "concept": "grantmaking/grant-application",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "amountAppliedFor",
+          "to": "amountRequested"
+        },
+        {
+          "from": "currency",
+          "to": "currency"
+        },
+        {
+          "from": "applicationTransaction.transactionDate",
+          "to": "submittedAt",
+          "conversion": "date the application was made"
+        }
+      ]
+    },
+    {
+      "source": "grants-gov-search2",
+      "concept": "grantmaking/funding-opportunity",
+      "role": "record",
+      "fields": [
+        {
+          "from": "id",
+          "to": "identifier"
+        },
+        {
+          "from": "number",
+          "to": "opportunityNumber"
+        },
+        {
+          "from": "title",
+          "to": "title",
+          "conversion": "decode HTML entities"
+        },
+        {
+          "from": "agencyCode",
+          "to": "funder"
+        },
+        {
+          "from": "openDate",
+          "to": "openDate",
+          "conversion": "MM/DD/YYYY → YYYY-MM-DD"
+        },
+        {
+          "from": "closeDate",
+          "to": "closeDate",
+          "conversion": "MM/DD/YYYY → YYYY-MM-DD; empty means no deadline set"
+        },
+        {
+          "from": "oppStatus",
+          "to": "status"
+        },
+        {
+          "from": "cfdaList",
+          "to": "grantProgrammeCode",
+          "conversion": "one opportunity may list several"
+        }
+      ]
+    },
+    {
+      "source": "grants-gov-search2",
+      "concept": "grantmaking/funder",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "agencyCode",
+          "to": "identifier"
+        },
+        {
+          "from": "agency",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "grants-gov-fetch-opportunity",
+      "concept": "grantmaking/funding-opportunity",
+      "role": "record",
+      "fields": [
+        {
+          "from": "id",
+          "to": "identifier"
+        },
+        {
+          "from": "opportunityNumber",
+          "to": "opportunityNumber"
+        },
+        {
+          "from": "opportunityTitle",
+          "to": "title"
+        },
+        {
+          "from": "owningAgencyCode",
+          "to": "funder"
+        },
+        {
+          "from": "synopsis.synopsisDesc",
+          "to": "description",
+          "conversion": "strip HTML"
+        },
+        {
+          "from": "ost",
+          "to": "status",
+          "conversion": "lower-case"
+        },
+        {
+          "from": "synopsis.postingDate",
+          "to": "openDate",
+          "conversion": "'Mon DD, YYYY hh:mm:ss AM TZ' → date"
+        },
+        {
+          "from": "synopsis.responseDate",
+          "to": "closeDate",
+          "conversion": "'Mon DD, YYYY hh:mm:ss AM TZ' → date"
+        },
+        {
+          "from": "synopsis.awardFloor",
+          "to": "awardFloor",
+          "conversion": "string dollars → number"
+        },
+        {
+          "from": "synopsis.awardCeiling",
+          "to": "awardCeiling",
+          "conversion": "string dollars → number"
+        },
+        {
+          "from": "synopsis.estimatedFunding",
+          "to": "estimatedTotalFunding",
+          "conversion": "string dollars → number"
+        },
+        {
+          "from": "synopsis.applicantEligibilityDesc",
+          "to": "applicantEligibility"
+        },
+        {
+          "from": "synopsis.applicantTypes.id",
+          "to": "applicantTypes",
+          "conversion": "Grants.gov eligibility codes"
+        },
+        {
+          "from": "synopsis.fundingInstruments.id",
+          "to": "fundingInstrument",
+          "conversion": "G → grant, CA → cooperative-agreement, PC → procurement-contract, O → other"
+        },
+        {
+          "from": "synopsis.fundingActivityCategories.id",
+          "to": "fundingCategories"
+        },
+        {
+          "from": "cfdas.cfdaNumber",
+          "to": "grantProgrammeCode"
+        },
+        {
+          "from": "cfdas.programTitle",
+          "to": "grantProgrammeTitle"
+        },
+        {
+          "from": "synopsis.fundingDescLinkUrl",
+          "to": "url"
+        }
+      ]
+    },
+    {
+      "source": "grants-gov-fetch-opportunity",
+      "concept": "grantmaking/funder",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "synopsis.agencyCode",
+          "to": "identifier"
+        },
+        {
+          "from": "synopsis.agencyName",
+          "to": "name"
+        }
+      ]
+    }
+  ]
+}

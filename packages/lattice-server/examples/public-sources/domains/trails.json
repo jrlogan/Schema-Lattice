@@ -1,0 +1,930 @@
+{
+ "contexts": [
+  {
+   "slug": "trail-stewardship",
+   "title": "Trail Stewardship",
+   "definition": "Vocabulary for volunteer groups that care for trails and greenways: the trails and segments they look after, who adopted which stretch, what condition it is in, and where else the trail is listed."
+  }
+ ],
+ "concepts": [
+  {
+   "context": "trail-stewardship",
+   "conceptSlug": "trail-system",
+   "prefLabel": "Trail System",
+   "altLabels": [
+    "trail network",
+    "greenway",
+    "named trail"
+   ],
+   "definition": "A named trail or trail network that people know as one place, such as a rail trail, a greenway or a preserve's trail network, made up of physical segments and listed by its manager and by trail finders.",
+   "conceptKind": "entity",
+   "broaderRoot": "location",
+   "closeMatch": [
+    "wd:Q2143825"
+   ],
+   "coRefersRationale": "Nothing in the catalog describes a named trail; OpenTrails named_trails and OSM route relations are the outside equivalents but have no approved prefix.",
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "systemType",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "routeType",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "difficulty",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "towns",
+      "type": "array",
+      "classification": "public",
+      "itemType": "string"
+     },
+     {
+      "name": "owner",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "manager",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "segments",
+      "type": "array",
+      "classification": "public",
+      "itemType": "reference"
+     },
+     {
+      "name": "externalListings",
+      "type": "array",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://media.clear.uconn.edu/projects/GISNetwork/CT_GIS_Trails_Data_Standard_012021.xlsx",
+    "authoredBy": [
+     "SchemaLattice trail stewardship pilot"
+    ],
+    "sourceNotes": "Trail Team's app model and the CT GIS Trails Data Standard 2021 (Trail_System, Trail_System_Type, Route_Type, Trail_Difficulty, Owner, Manager)."
+   }
+  },
+  {
+   "context": "trail-stewardship",
+   "conceptSlug": "trail-segment",
+   "prefLabel": "Trail Segment",
+   "altLabels": [
+    "trail section",
+    "trail line"
+   ],
+   "definition": "One physical stretch of a trail that a volunteer group can walk, map and look after, with its route, length, blaze, surface, allowed uses and build status, and the group that maintains it.",
+   "conceptKind": "entity",
+   "broaderRoot": "location",
+   "closeMatch": [
+    "wd:Q628179"
+   ],
+   "coRefersRationale": "The state's view of the same ground is the CT Trails 2021 standard, registered as a source and mapped onto this concept rather than copied as a second concept.",
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "trailSystem",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "path",
+      "type": "geometry",
+      "classification": "public"
+     },
+     {
+      "name": "lengthMeters",
+      "type": "number",
+      "classification": "public",
+      "unit": "m"
+     },
+     {
+      "name": "blaze",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "surface",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "allowedUses",
+      "type": "array",
+      "classification": "public",
+      "itemType": "string"
+     },
+     {
+      "name": "adaAccess",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "buildStatus",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "town",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "maintainer",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "sourceRef",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "surveyedOn",
+      "type": "date",
+      "classification": "public"
+     }
+    ],
+    "lifecycle": {
+     "field": "buildStatus",
+     "initial": "envisioned",
+     "states": [
+      {
+       "name": "envisioned"
+      },
+      {
+       "name": "designed"
+      },
+      {
+       "name": "under-construction"
+      },
+      {
+       "name": "passable"
+      },
+      {
+       "name": "open"
+      },
+      {
+       "name": "decommissioned",
+       "terminal": true
+      }
+     ],
+     "transitions": [
+      {
+       "from": "envisioned",
+       "to": "designed",
+       "on": "design-approved"
+      },
+      {
+       "from": "designed",
+       "to": "under-construction",
+       "on": "build-started"
+      },
+      {
+       "from": "under-construction",
+       "to": "passable",
+       "on": "rough-opened"
+      },
+      {
+       "from": "under-construction",
+       "to": "open",
+       "on": "build-finished"
+      },
+      {
+       "from": "passable",
+       "to": "open",
+       "on": "build-finished"
+      },
+      {
+       "from": "open",
+       "to": "decommissioned",
+       "on": "closed-for-good"
+      }
+     ]
+    }
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://media.clear.uconn.edu/projects/GISNetwork/CT_GIS_Trails_Data_Standard_012021.xlsx",
+    "authoredBy": [
+     "SchemaLattice trail stewardship pilot"
+    ],
+    "sourceNotes": "Trail Team's app model, the trail data pilot (examples/trail-data-pilot.md) and the CT GIS Trails Data Standard 2021 Trail Line class."
+   }
+  },
+  {
+   "context": "trail-stewardship",
+   "conceptSlug": "trail-point",
+   "prefLabel": "Trail Point",
+   "altLabels": [
+    "trailhead",
+    "point of interest"
+   ],
+   "definition": "A fixed spot along a trail that visitors or volunteers need to find: a trailhead, a parking area, a bridge, a kiosk, an overlook or a gate, with its type and practical notes such as how many cars fit.",
+   "conceptKind": "place",
+   "broaderRoot": "location",
+   "closeMatch": [
+    "wd:Q7832815"
+   ],
+   "coRefersRationale": "CT's standard folds trailheads and points of interest into one point class; this follows it.",
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "type",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "segment",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "notes",
+      "type": "string",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://media.clear.uconn.edu/projects/GISNetwork/CT_GIS_Trails_Data_Standard_012021.xlsx",
+    "authoredBy": [
+     "SchemaLattice trail stewardship pilot"
+    ],
+    "sourceNotes": "CT GIS Trails Data Standard 2021 Trail Point class (POI_Type, POI_Name, Lat, Long, Notes) and Trail Team's app."
+   }
+  },
+  {
+   "context": "trail-stewardship",
+   "conceptSlug": "segment-adoption",
+   "prefLabel": "Segment Adoption",
+   "altLabels": [
+    "adopt-a-trail"
+   ],
+   "definition": "A volunteer group's standing commitment to look after one or more trail segments for a period: who adopted them, what upkeep they promised, how often, and whether the commitment is still being kept.",
+   "conceptKind": "workflow",
+   "broaderRoot": "workflow",
+   "closeMatch": [
+    "wd:Q4684557"
+   ],
+   "broadMatch": [
+    "wd:Q188844"
+   ],
+   "coRefersRationale": "No trail standard models adoption; FTDS stops at a single Primary Trail Maintainer value.",
+   "structure": {
+    "kind": "workflow",
+    "fields": [
+     {
+      "name": "adopter",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "segments",
+      "type": "array",
+      "classification": "public",
+      "itemType": "reference"
+     },
+     {
+      "name": "duties",
+      "type": "array",
+      "classification": "public",
+      "itemType": "string"
+     },
+     {
+      "name": "visitsPerYear",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "contact",
+      "type": "reference",
+      "classification": "internal"
+     },
+     {
+      "name": "startedOn",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "status",
+      "type": "string",
+      "classification": "public"
+     }
+    ],
+    "lifecycle": {
+     "field": "status",
+     "initial": "proposed",
+     "states": [
+      {
+       "name": "proposed"
+      },
+      {
+       "name": "active"
+      },
+      {
+       "name": "lapsed"
+      },
+      {
+       "name": "ended",
+       "terminal": true
+      }
+     ],
+     "transitions": [
+      {
+       "from": "proposed",
+       "to": "active",
+       "on": "adoption-approved"
+      },
+      {
+       "from": "active",
+       "to": "lapsed",
+       "on": "no-visit-logged"
+      },
+      {
+       "from": "lapsed",
+       "to": "active",
+       "on": "visit-logged"
+      },
+      {
+       "from": "active",
+       "to": "ended",
+       "on": "adoption-released"
+      },
+      {
+       "from": "lapsed",
+       "to": "ended",
+       "on": "adoption-released"
+      }
+     ]
+    }
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail stewardship pilot"
+    ],
+    "sourceNotes": "Trail Team's adoption model (examples/trail-team-bounty-pilot.md)."
+   }
+  },
+  {
+   "context": "trail-stewardship",
+   "conceptSlug": "condition-report",
+   "prefLabel": "Condition Report",
+   "altLabels": [
+    "trail report",
+    "trail condition"
+   ],
+   "definition": "A dated observation of a trail segment's state by someone who walked it \u2014 open, has an issue, or closed \u2014 with surface conditions and photos, kept separate from the segment's intended design so each visit adds history.",
+   "conceptKind": "event",
+   "broaderRoot": "event",
+   "closeMatch": [
+    "wd:Q66314461"
+   ],
+   "coRefersRationale": "CT's 2021 standard removed its Trail Condition field; FTDS keeps a single condition value; Trailforks-style reports are closed.",
+   "structure": {
+    "kind": "event",
+    "fields": [
+     {
+      "name": "segment",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "observedAt",
+      "type": "datetime",
+      "classification": "public",
+      "provenance": "self-reported"
+     },
+     {
+      "name": "status",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "surfaceCondition",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "photos",
+      "type": "array",
+      "classification": "public",
+      "itemType": "binary",
+      "provenance": "device-captured"
+     },
+     {
+      "name": "observer",
+      "type": "reference",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail stewardship pilot"
+    ],
+    "sourceNotes": "Trail Team's condition reports (examples/trail-team-bounty-pilot.md)."
+   }
+  }
+ ],
+ "sources": [
+  {
+   "slug": "ct-trails-2021",
+   "kind": "standard",
+   "platform": "manual",
+   "accessUrl": "https://media.clear.uconn.edu/projects/GISNetwork/CT_GIS_Trails_Data_Standard_012021.xlsx",
+   "title": "CT GIS Trails Data Standard (2021)",
+   "publisher": "Connecticut GIS Network / UConn CLEAR",
+   "jurisdiction": "US-CT",
+   "recordDescription": "Connecticut's statewide standard for trail data: a trail line class (one trail or trail segment with uses, surface, difficulty, status, owner, manager) and a trail point class (trailheads and points of interest).",
+   "landingPage": "https://ctgis.uconn.edu/standards/",
+   "license": "not stated",
+   "updateFrequency": "version 2021",
+   "fields": [
+    {
+     "name": "TrailLine.TrailID",
+     "type": "Text",
+     "label": "Trail UID",
+     "description": "Domain: UID"
+    },
+    {
+     "name": "TrailLine.Trail_System",
+     "type": "Text",
+     "label": "Trail System",
+     "description": "Trail System"
+    },
+    {
+     "name": "TrailLine.Trail_System_Type",
+     "type": "Text",
+     "label": "Trail System Type",
+     "description": "Trail system type Domain: Trail_System_Type"
+    },
+    {
+     "name": "TrailLine.Trail_Name",
+     "type": "Text",
+     "label": "Name",
+     "description": "The name that the trail or trail segment is officially or legally known by."
+    },
+    {
+     "name": "TrailLine.Blaze",
+     "type": "Text",
+     "description": "Blaze colors for trail system"
+    },
+    {
+     "name": "TrailLine.Notes",
+     "type": "Text",
+     "description": "Any notable comments on the trail"
+    },
+    {
+     "name": "TrailLine.ADA_Access",
+     "type": "Text",
+     "label": "ADA Access",
+     "description": "Accessibility guideline compliance status per National Park Services for trail segments that are designed for pedestrian use."
+    },
+    {
+     "name": "TrailLine.Designated_Use",
+     "type": "Text",
+     "label": "Designated Use",
+     "description": "Domain: Designated_Use"
+    },
+    {
+     "name": "TrailLine.Pedestrian",
+     "type": "Text",
+     "label": "Pedestrian_Uses",
+     "description": "Yes, No, Unknown if open to foot traffic; Hiking/walking/running/snowshoeing Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.Mtn_Bike",
+     "type": "Text",
+     "label": "Mountain Biking",
+     "description": "Mountain Biking allowed Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.Road_Bike",
+     "type": "Text",
+     "label": "Road Biking",
+     "description": "Road, gravel and mixed terrain biking allowed Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.XC_Ski",
+     "type": "Text",
+     "label": "XC-skiing",
+     "description": "Dedicated Cross country skiing allowed Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.Snowmobile",
+     "type": "Text",
+     "label": "Snowmobiling",
+     "description": "Snowmobiling allowed Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.ATV",
+     "type": "Text",
+     "label": "ATVs",
+     "description": "All terrain vehicles allowed Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.Motor_Bike",
+     "type": "Text",
+     "label": "Dirt Bike/Motorcycle",
+     "description": "Ditrbikes/motorcycles allowed Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.Equestrian",
+     "type": "Text",
+     "label": "Horseback Riding",
+     "description": "Horseback Riding Allowed Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.Paddle",
+     "type": "Text",
+     "label": "Water Trail",
+     "description": "Paddling  Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.Public_Access",
+     "type": "Text",
+     "label": "Public Access",
+     "description": "Public Access Allowed Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.Trail_Difficulty",
+     "type": "Text",
+     "label": "Trail Difficulty",
+     "description": "Trail Difficulty Rating Domain: Difficulty_Rating"
+    },
+    {
+     "name": "TrailLine.Route_Type",
+     "type": "Text",
+     "label": "Route Type",
+     "description": "Type of route (Connector, through, loop etc.) Domain: Route_Type"
+    },
+    {
+     "name": "TrailLine.Surface",
+     "type": "Text",
+     "description": "The predominant surface type the user would expect to encounter on the trail or trail segment.  Domain: Trail_Surface"
+    },
+    {
+     "name": "TrailLine.Tread_Width",
+     "type": "Double",
+     "label": "Tread Width (ft)",
+     "description": "Width of trail tread in feet"
+    },
+    {
+     "name": "TrailLine.Distance_Miles",
+     "type": "Double",
+     "label": "Miles",
+     "description": "Length in miles (GIS Calculated)"
+    },
+    {
+     "name": "TrailLine.Distance_Feet",
+     "type": "Double",
+     "label": "Feet",
+     "description": "Length in feet (GIS Calculated)"
+    },
+    {
+     "name": "TrailLine.Min_Elev",
+     "type": "Double",
+     "label": "Minimum Elevation",
+     "description": "Minimum Elevation on trail segment"
+    },
+    {
+     "name": "TrailLine.Max_Elev",
+     "type": "Double",
+     "label": "Maximum Elevation",
+     "description": "Maximum Elevation on trail segment"
+    },
+    {
+     "name": "TrailLine.Avg_Grade",
+     "type": "Double",
+     "label": "Average Grade(%)",
+     "description": "Average slope of trail segment in %"
+    },
+    {
+     "name": "TrailLine.Trail_Status",
+     "type": "Text",
+     "label": "Trail Status",
+     "description": "Current physical state of being of trail or trail segment. Domain: Trail_Status"
+    },
+    {
+     "name": "TrailLine.Town",
+     "type": "Text",
+     "description": "Town Majority of Trail is in"
+    },
+    {
+     "name": "TrailLine.Owner",
+     "type": "Text",
+     "label": "Owner, Planning Manager",
+     "description": "Land  Owner or Planning Manager; Orgnaization Name and Contact"
+    },
+    {
+     "name": "TrailLine.Manager",
+     "type": "Text",
+     "label": "Trail Manager",
+     "description": "Trail Manager: Organization Name ;  Contact"
+    },
+    {
+     "name": "TrailLine.Source",
+     "type": "Text",
+     "label": "Original Data Source",
+     "description": "Origin of trail data"
+    },
+    {
+     "name": "TrailLine.Fee",
+     "type": "Text",
+     "label": "Fee for Use",
+     "description": "Fee Domain: Boolean"
+    },
+    {
+     "name": "TrailLine.Data_Development_Date",
+     "type": "Text",
+     "description": "Date Data was developed"
+    },
+    {
+     "name": "TrailPoint.POI_ID",
+     "type": "UID",
+     "label": "Point of Interest ID",
+     "description": "Unique ID Domain: UID"
+    },
+    {
+     "name": "TrailPoint.Trail_System",
+     "type": "unspecified",
+     "label": "Trail System Name",
+     "description": "Associated trail system common name"
+    },
+    {
+     "name": "TrailPoint.Trail_Name",
+     "type": "Text",
+     "label": "Site Name",
+     "description": "Associated trail segment common name"
+    },
+    {
+     "name": "TrailPoint.POI_Type",
+     "type": "Text",
+     "label": "Type of POI",
+     "description": "Type of point of interest Domain: POI_TYPE"
+    },
+    {
+     "name": "TrailPoint.POI_Name",
+     "type": "Text",
+     "label": "Point of Interest Name"
+    },
+    {
+     "name": "TrailPoint.Notes",
+     "type": "Text",
+     "description": "Any extra notes/comments"
+    },
+    {
+     "name": "TrailPoint.Lat",
+     "type": "Double",
+     "label": "Latitude",
+     "description": "Latitude dd.dddd"
+    },
+    {
+     "name": "TrailPoint.Long",
+     "type": "Double",
+     "label": "Longitude",
+     "description": "Longitudee dd.dddd"
+    },
+    {
+     "name": "TrailPoint.Data_Development_Date",
+     "type": "Text",
+     "description": "Date Data was developed"
+    }
+   ],
+   "note": "Also published as an empty geodatabase (CT_trails_12021.gdb.zip) and metadata XML. Domains (coded value lists) are on the Domains sheet of the spreadsheet."
+  },
+  {
+   "slug": "ct-deep-trails",
+   "accessUrl": "https://services1.arcgis.com/FjPcSmEFuDYlIdKC/arcgis/rest/services/DEEP_Trails_Set/FeatureServer/3",
+   "title": "CT DEEP Trails",
+   "publisher": "Connecticut Department of Energy and Environmental Protection",
+   "jurisdiction": "US-CT",
+   "recordDescription": "One trail line on Connecticut state land managed by DEEP, with its trail system, surface, status and the uses allowed on it.",
+   "license": "not stated",
+   "updateFrequency": "irregular; last updated 2026-09-17"
+  },
+  {
+   "slug": "ct-deep-trail-access",
+   "accessUrl": "https://services1.arcgis.com/FjPcSmEFuDYlIdKC/arcgis/rest/services/DEEP_Trails_Set/FeatureServer/1",
+   "title": "CT DEEP Trail Access Points",
+   "publisher": "Connecticut Department of Energy and Environmental Protection",
+   "jurisdiction": "US-CT",
+   "recordDescription": "One access point to a trail on Connecticut state land, with parking, restrooms and when it is open.",
+   "license": "not stated"
+  },
+  {
+   "slug": "blue-blazed-trails",
+   "accessUrl": "https://services7.arcgis.com/nYjAANwm3YtNiTFR/arcgis/rest/services/BBHT_Public_Map_Trails/FeatureServer/0",
+   "title": "Blue-Blazed Hiking Trails (public map)",
+   "publisher": "Bluetrails (Blue-Blazed Hiking Trail public map)",
+   "jurisdiction": "US-CT",
+   "recordDescription": "One trail line in Connecticut's Blue-Blazed Hiking Trail system, with its trail and network names, blaze and distance.",
+   "license": "not stated"
+  }
+ ],
+ "mappings": [
+  {
+   "source": "ct-trails-2021",
+   "concept": "trail-stewardship/trail-segment",
+   "role": "record",
+   "fields": [
+    {
+     "from": "TrailLine.Trail_Name",
+     "to": "name"
+    },
+    {
+     "from": "TrailLine.Blaze",
+     "to": "blaze"
+    },
+    {
+     "from": "TrailLine.Surface",
+     "to": "surface",
+     "conversion": "coded values on the Trail_Surface domain"
+    },
+    {
+     "from": "TrailLine.ADA_Access",
+     "to": "adaAccess",
+     "conversion": "A, NA or NE (accessible, not accessible, not evaluated)"
+    },
+    {
+     "from": "TrailLine.Trail_Status",
+     "to": "buildStatus",
+     "conversion": "the state's Trail_Status domain; its values differ from the lifecycle states here"
+    },
+    {
+     "from": "TrailLine.Town",
+     "to": "town",
+     "conversion": "the town most of the trail is in"
+    },
+    {
+     "from": "TrailLine.Distance_Miles",
+     "to": "lengthMeters",
+     "conversion": "miles \u00d7 1609.344"
+    },
+    {
+     "from": "TrailLine.Source",
+     "to": "sourceRef"
+    }
+   ]
+  },
+  {
+   "source": "ct-trails-2021",
+   "concept": "trail-stewardship/trail-system",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "TrailLine.Trail_System",
+     "to": "name"
+    },
+    {
+     "from": "TrailLine.Trail_System_Type",
+     "to": "systemType"
+    },
+    {
+     "from": "TrailLine.Route_Type",
+     "to": "routeType"
+    },
+    {
+     "from": "TrailLine.Trail_Difficulty",
+     "to": "difficulty"
+    }
+   ]
+  },
+  {
+   "source": "ct-trails-2021",
+   "concept": "trail-stewardship/trail-point",
+   "role": "record",
+   "fields": [
+    {
+     "from": "TrailPoint.POI_Type",
+     "to": "type"
+    },
+    {
+     "from": "TrailPoint.POI_Name",
+     "to": "name"
+    },
+    {
+     "from": "TrailPoint.Lat",
+     "to": "latitude"
+    },
+    {
+     "from": "TrailPoint.Long",
+     "to": "longitude"
+    },
+    {
+     "from": "TrailPoint.Notes",
+     "to": "notes"
+    }
+   ]
+  },
+  {
+   "source": "ct-deep-trails",
+   "concept": "trail-stewardship/trail-segment",
+   "role": "record",
+   "fields": [
+    {
+     "from": "TRAILNAME",
+     "to": "name"
+    },
+    {
+     "from": "TRAILSURF",
+     "to": "surface",
+     "conversion": "DEEP's own surface codes"
+    },
+    {
+     "from": "TRAILSTAT",
+     "to": "buildStatus",
+     "conversion": "DEEP's own status codes"
+    },
+    {
+     "from": "ADAACCESS",
+     "to": "adaAccess"
+    }
+   ]
+  },
+  {
+   "source": "ct-deep-trail-access",
+   "concept": "trail-stewardship/trail-point",
+   "role": "record",
+   "fields": [
+    {
+     "from": "SITENAME",
+     "to": "name"
+    }
+   ]
+  },
+  {
+   "source": "blue-blazed-trails",
+   "concept": "trail-stewardship/trail-segment",
+   "role": "record",
+   "fields": [
+    {
+     "from": "TR_NAME",
+     "to": "name"
+    },
+    {
+     "from": "Blaze",
+     "to": "blaze"
+    },
+    {
+     "from": "Dist_Mi",
+     "to": "lengthMeters",
+     "conversion": "miles \u00d7 1609.344"
+    }
+   ]
+  },
+  {
+   "source": "blue-blazed-trails",
+   "concept": "trail-stewardship/trail-system",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "NETWORK_NAME",
+     "to": "name"
+    }
+   ]
+  }
+ ]
+}

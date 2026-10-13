@@ -42,7 +42,11 @@ let cache: { at: number; totals: string; data: AtlasData } | null = null;
 const CACHE_MS = 5 * 60_000;
 
 export async function buildAtlas(instance: LatticeInstance): Promise<AtlasData> {
-  const totals = JSON.stringify(instance.totals());
+  // Keyed on what the map draws, not on the event count: every search is an
+  // event, so keying on it rebuilt the atlas (and its seconds-long demand
+  // clustering) on nearly every request. Unmet searches refresh with the TTL.
+  const { concepts, contexts } = instance.totals();
+  const totals = `${concepts}/${contexts}/${instance.sources.listAll().length}`;
   if (cache && Date.now() - cache.at < CACHE_MS && cache.totals === totals) return cache.data;
 
   const db = instance.store.db;

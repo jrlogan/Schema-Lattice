@@ -1,0 +1,1191 @@
+{
+  "contexts": [
+    {
+      "slug": "elections",
+      "title": "Elections",
+      "definition": "Vocabulary for how public elections are administered locally: the sites where voters cast ballots and the districts and precincts those sites serve."
+    },
+    {
+      "slug": "education",
+      "title": "Education",
+      "definition": "Vocabulary for educational organizations such as public, magnet, charter and private schools and the state and federal codes that identify them."
+    },
+    {
+      "slug": "public-statistics",
+      "title": "Public Statistics",
+      "definition": "Vocabulary for aggregate figures that public agencies publish about places: a measured indicator for a geography over a period, with its unit and uncertainty."
+    },
+    {
+      "slug": "business-licensing",
+      "title": "Business Licensing",
+      "definition": "Vocabulary for legal business entities on a state's corporate register and the permits and licenses governments issue to let them operate."
+    }
+  ],
+  "concepts": [
+    {
+      "context": "elections",
+      "conceptSlug": "polling-place",
+      "prefLabel": "Polling Place",
+      "altLabels": [
+        "Polling Location",
+        "Polling Station",
+        "Voting Location"
+      ],
+      "definition": "A site, usually a school, library or community building, where registered voters of an assigned precinct or voting district cast ballots on election day. It is identified by the districts it serves and the elections it is used for.",
+      "conceptKind": "place",
+      "broaderRoot": "location",
+      "closeMatch": [
+        "wd:Q335778"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public",
+            "description": "Name of the building or site"
+          },
+          {
+            "name": "address",
+            "type": "string",
+            "classification": "public",
+            "description": "Street address of the site (an institutional address)"
+          },
+          {
+            "name": "directions",
+            "type": "string",
+            "classification": "public",
+            "description": "Where in the building to go, e.g. entrance or room"
+          },
+          {
+            "name": "municipality",
+            "type": "reference",
+            "classification": "public",
+            "description": "Town the site is in",
+            "refUri": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b"
+          },
+          {
+            "name": "state",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "votingDistrict",
+            "type": "reference",
+            "classification": "public",
+            "description": "Ward or voting district the site serves",
+            "refUri": "https://schemalattice.com/c/civic-participation/city-district@bd808dfd5db4"
+          },
+          {
+            "name": "precinct",
+            "type": "string",
+            "classification": "public",
+            "description": "Precinct number or split within the district"
+          },
+          {
+            "name": "stateSenateDistrict",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "stateHouseDistrict",
+            "type": "string",
+            "classification": "public",
+            "description": "State assembly / house district"
+          },
+          {
+            "name": "servesLocalElections",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "servesStateElections",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "isEarlyVoting",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "isDropBox",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "location",
+            "type": "geometry",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://vip-specification.readthedocs.io/en/latest/built_rst/xml/elements/polling_location.html",
+        "authoredBy": [
+          "SchemaLattice civic-services pilot"
+        ],
+        "sourceNotes": "Fields shared by the Voting Information Project 5.1.2 PollingLocation/Precinct elements (Name, AddressLine, Directions, LatLng, IsEarlyVoting, IsDropBox, Precinct Number, ElectoralDistrictIds, Locality) and the City of New Haven PollingPlaces_2024 layer (polling_places, addresses, location, dst, prec, sen, ad, municipality, state, local_elections, state_elections)."
+      }
+    },
+    {
+      "context": "education",
+      "conceptSlug": "school",
+      "prefLabel": "School",
+      "altLabels": [
+        "School Campus",
+        "Educational Organization",
+        "K-12 School"
+      ],
+      "definition": "An educational institution or campus that enrolls students in a span of grade levels, run by a district or other operator and identified by state and federal organization codes. Magnet, charter and private institutions are included.",
+      "conceptKind": "entity",
+      "broaderRoot": "organization",
+      "closeMatch": [
+        "wd:Q3914",
+        "schema:School"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "stateOrgCode",
+            "type": "string",
+            "classification": "public",
+            "description": "State education agency organization code, e.g. CT 7-digit CSDE code"
+          },
+          {
+            "name": "ncesId",
+            "type": "string",
+            "classification": "public",
+            "description": "NCES school id (NCESSCH)"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "districtName",
+            "type": "string",
+            "classification": "public",
+            "description": "Operating district or local education agency"
+          },
+          {
+            "name": "organizationType",
+            "type": "string",
+            "classification": "public",
+            "description": "e.g. public school, charter, magnet, private"
+          },
+          {
+            "name": "address",
+            "type": "string",
+            "classification": "public",
+            "description": "Campus street address"
+          },
+          {
+            "name": "town",
+            "type": "reference",
+            "classification": "public",
+            "refUri": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b"
+          },
+          {
+            "name": "postalCode",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "phone",
+            "type": "string",
+            "classification": "public",
+            "description": "Main office phone"
+          },
+          {
+            "name": "gradesOffered",
+            "type": "array",
+            "classification": "public",
+            "description": "Grade levels offered, PK through 12"
+          },
+          {
+            "name": "lowestGrade",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "highestGrade",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "isMagnet",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "isCharter",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "classification": "public",
+            "description": "Operational status, e.g. open, closed, new"
+          },
+          {
+            "name": "openDate",
+            "type": "date",
+            "classification": "public",
+            "description": "Date the school first enrolled students"
+          },
+          {
+            "name": "location",
+            "type": "geometry",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://data.ct.gov/api/views/9k2y-kqxn.json",
+        "authoredBy": [
+          "SchemaLattice civic-services pilot"
+        ],
+        "sourceNotes": "Fields shared by the CT State Department of Education Education Directory (organization_code, name, district_name, organization_type, address, town, zipcode, phone, grade flags, interdistrict_magnet, student_open_date, geocoded_column) and NCES EDGE Public School Administrative Data 2023-24 (NCESSCH, SCH_NAME, LEA_NAME, LSTREET1, LCITY, LZIP, PHONE, GSLO, GSHI, PK..G12, CHARTER_TEXT, SY_STATUS_TEXT, LAT/LON)."
+      }
+    },
+    {
+      "context": "public-statistics",
+      "conceptSlug": "area-statistic",
+      "prefLabel": "Area Statistic",
+      "altLabels": [
+        "Area Indicator",
+        "Geographic Indicator",
+        "Statistical Observation",
+        "Small-Area Estimate"
+      ],
+      "definition": "One published figure for a geographic area over a period: a named measure (a count, percent or rate) for a tract, town or county in a given year or week, with its unit and, when modelled, confidence bounds. Agencies release such aggregates instead of individual records.",
+      "conceptKind": "measurement",
+      "broaderRoot": "quantity",
+      "closeMatch": [
+        "schema:Observation"
+      ],
+      "broadMatch": [
+        "wd:Q4692253"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "geographyCode",
+            "type": "string",
+            "classification": "public",
+            "description": "Code of the area, e.g. tract GEOID or town code (SDMX refArea)"
+          },
+          {
+            "name": "geographyName",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "geographyType",
+            "type": "string",
+            "classification": "public",
+            "description": "e.g. census tract, town, county, state"
+          },
+          {
+            "name": "year",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "periodStart",
+            "type": "date",
+            "classification": "public",
+            "description": "Start of the reference period (SDMX refPeriod)"
+          },
+          {
+            "name": "periodEnd",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "measureCode",
+            "type": "string",
+            "classification": "public",
+            "description": "Short id of the measure"
+          },
+          {
+            "name": "measureName",
+            "type": "string",
+            "classification": "public",
+            "description": "What is measured (schema variableMeasured)"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "classification": "public",
+            "description": "Topic group of the measure"
+          },
+          {
+            "name": "value",
+            "type": "number",
+            "classification": "public",
+            "description": "The figure (SDMX obsValue)"
+          },
+          {
+            "name": "valueType",
+            "type": "string",
+            "classification": "public",
+            "description": "e.g. count, crude prevalence, age-adjusted rate, percent"
+          },
+          {
+            "name": "unit",
+            "type": "string",
+            "classification": "public",
+            "description": "Unit of the value (SDMX unitMeasure)"
+          },
+          {
+            "name": "lowConfidenceLimit",
+            "type": "number",
+            "classification": "public"
+          },
+          {
+            "name": "highConfidenceLimit",
+            "type": "number",
+            "classification": "public"
+          },
+          {
+            "name": "populationBase",
+            "type": "integer",
+            "classification": "public",
+            "description": "Population the figure describes (schema measurementDenominator)"
+          },
+          {
+            "name": "dataSource",
+            "type": "string",
+            "classification": "public",
+            "description": "Survey or system the figure is derived from"
+          },
+          {
+            "name": "footnote",
+            "type": "string",
+            "classification": "public",
+            "description": "Suppression or quality note"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://www.w3.org/TR/vocab-data-cube/",
+        "authoredBy": [
+          "SchemaLattice civic-services pilot"
+        ],
+        "sourceNotes": "W3C RDF Data Cube / SDMX components (refArea, refPeriod, obsValue, unitMeasure) and schema.org Observation (observationAbout, observationPeriod, variableMeasured, value, unitText, marginOfError, measurementDenominator), with field names from CDC PLACES 2025 (locationid, year, measureid, measure, category, data_value, data_value_unit, data_value_type, low/high_confidence_limit, totalpopulation, datasource) and CT DSS / evictions / affordable-housing aggregates."
+      }
+    },
+    {
+      "context": "business-licensing",
+      "conceptSlug": "registered-business",
+      "prefLabel": "Registered Business",
+      "altLabels": [
+        "Business Entity",
+        "Registered Company",
+        "Corporate Registration"
+      ],
+      "definition": "A legal entity such as an LLC, corporation, partnership or nonprofit that is formed in, or registered to transact business in, a state, recorded on the Secretary of State's corporate register with an account number, entity type and standing.",
+      "conceptKind": "agent",
+      "broaderRoot": "organization",
+      "closeMatch": [
+        "wd:Q783794"
+      ],
+      "broadMatch": [
+        "wd:Q4830453"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "registryId",
+            "type": "string",
+            "classification": "public",
+            "description": "Register account / company number"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public",
+            "description": "Legal name on the register"
+          },
+          {
+            "name": "entityType",
+            "type": "string",
+            "classification": "public",
+            "description": "e.g. LLC, Stock, Non-Stock, LLP"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "classification": "public",
+            "description": "Standing, e.g. Active, Dissolved, Forfeited"
+          },
+          {
+            "name": "statusDetail",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "registrationDate",
+            "type": "date",
+            "classification": "public",
+            "description": "Formation date (domestic) or registration date (foreign)"
+          },
+          {
+            "name": "dissolutionDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "formationJurisdiction",
+            "type": "string",
+            "classification": "public",
+            "description": "State or country of formation"
+          },
+          {
+            "name": "industryCode",
+            "type": "string",
+            "classification": "public",
+            "description": "NAICS (US) or SIC (UK) code"
+          },
+          {
+            "name": "businessCity",
+            "type": "string",
+            "classification": "public",
+            "description": "City of the principal business address"
+          },
+          {
+            "name": "businessPostalCode",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "businessAddress",
+            "type": "string",
+            "classification": "personal-contact",
+            "description": "Street address; often a principal's home"
+          },
+          {
+            "name": "registeredOfficeAddress",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "email",
+            "type": "string",
+            "classification": "personal-contact"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://data.ct.gov/api/views/n7gp-d28j.json",
+        "authoredBy": [
+          "SchemaLattice civic-services pilot"
+        ],
+        "sourceNotes": "Fields shared by the CT Business Registry Business Master (accountnumber, name, business_type, status, sub_status, date_registration, dissolution_date, state_or_territory_formation, naics_code, billingcity, billingpostalcode, billingstreet, office_jurisdiction_address, business_email_address) and the UK Companies House company profile API (company_number, company_name, type, company_status, company_status_detail, date_of_creation, date_of_cessation, jurisdiction, sic_codes, registered_office_address)."
+      }
+    },
+    {
+      "context": "business-licensing",
+      "conceptSlug": "business-license",
+      "prefLabel": "Business License",
+      "altLabels": [
+        "Business Permit",
+        "Operating Permit",
+        "Liquor Permit",
+        "Credential"
+      ],
+      "definition": "A government-issued authorization, identified by a credential number and class, that lets a business carry on a regulated activity at a premises (for example selling alcohol) between an effective and an expiry date.",
+      "conceptKind": "entity",
+      "broaderRoot": "credential",
+      "closeMatch": [
+        "wd:Q5001891",
+        "schema:GovernmentPermit"
+      ],
+      "broadMatch": [
+        "wd:Q882991"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "licenseNumber",
+            "type": "string",
+            "classification": "public",
+            "description": "Credential number"
+          },
+          {
+            "name": "licenseType",
+            "type": "string",
+            "classification": "public",
+            "description": "Class or type of license"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "statusReason",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "issueDate",
+            "type": "date",
+            "classification": "public"
+          },
+          {
+            "name": "effectiveDate",
+            "type": "date",
+            "classification": "public",
+            "description": "Start of validity (schema validFrom)"
+          },
+          {
+            "name": "expirationDate",
+            "type": "date",
+            "classification": "public",
+            "description": "End of validity (schema validUntil)"
+          },
+          {
+            "name": "tradeName",
+            "type": "string",
+            "classification": "public",
+            "description": "Doing-business-as name of the premises"
+          },
+          {
+            "name": "holderName",
+            "type": "string",
+            "classification": "personal-identity",
+            "description": "Permittee; often an individual"
+          },
+          {
+            "name": "issuingAuthority",
+            "type": "string",
+            "classification": "public",
+            "description": "Agency that issued it (schema issuedBy)"
+          },
+          {
+            "name": "premisesAddress",
+            "type": "string",
+            "classification": "personal-contact",
+            "description": "Street address of the licensed premises"
+          },
+          {
+            "name": "premisesCity",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "premisesPostalCode",
+            "type": "string",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schema.org/GovernmentPermit",
+        "authoredBy": [
+          "SchemaLattice civic-services pilot"
+        ],
+        "sourceNotes": "schema.org GovernmentPermit (identifier, issuedBy, validFrom, validUntil, validIn) with field names shared by CT DCP Liquor Permits (credential, dba, permittee_name, permit_address, permit_city, permit_zip, status, reason, effective_date, expire_date) and CT DCP State Licenses and Credentials (credentialnumber, credentialtype, businessname, dba, status, statusreason, issuedate, effectivedate, expirationdate, address, city, zip)."
+      }
+    }
+  ],
+  "sources": [
+    {
+      "slug": "new-haven-polling-places-2024",
+      "accessUrl": "https://gis.newhavenct.gov/server/rest/services/Hosted/PollingPlaces_2024/FeatureServer/0",
+      "title": "New Haven Polling Places 2024",
+      "publisher": "City of New Haven GIS (Office of Technology)",
+      "jurisdiction": "US-CT/new-haven",
+      "recordDescription": "One polling place serving one ward (voting district) and precinct combination.",
+      "landingPage": "https://newhavenct.maps.arcgis.com/home/index.html",
+      "updateFrequency": "As needed",
+      "note": "39 points, wards 1-30. The full layer carries local_elections/state_elections; the Hosted/Polling_Places_view service omits them."
+    },
+    {
+      "slug": "ct-education-directory",
+      "accessUrl": "https://data.ct.gov/resource/9k2y-kqxn.json",
+      "title": "Education Directory",
+      "publisher": "CT State Department of Education",
+      "jurisdiction": "US-CT",
+      "recordDescription": "One school, district or educational organization with its address, grade span and state organization code.",
+      "landingPage": "https://data.ct.gov/d/9k2y-kqxn",
+      "license": "Public Domain",
+      "updateFrequency": "Bi-annually"
+    },
+    {
+      "slug": "cdc-places-tract-2025",
+      "accessUrl": "https://data.cdc.gov/resource/cwsq-ngmh.json",
+      "title": "PLACES: Local Data for Better Health, Census Tract Data, 2025 release",
+      "publisher": "CDC NCCDPHP Division of Population Health",
+      "jurisdiction": "US",
+      "recordDescription": "One census tract and health measure with its model-based estimate and confidence interval for a year.",
+      "landingPage": "https://data.cdc.gov/d/cwsq-ngmh",
+      "license": "Public Domain",
+      "updateFrequency": "Annually",
+      "note": "Tract GEOIDs use CT's 2022 planning-region county codes (09170 for South Central); older CT tract data uses 09009 and needs a crosswalk."
+    },
+    {
+      "slug": "ct-dss-people-served-by-town",
+      "accessUrl": "https://data.ct.gov/resource/vvvu-dkxn.json",
+      "title": "Department of Social Services - People Served by Town and Program, 2015-2025",
+      "publisher": "CT Department of Social Services",
+      "jurisdiction": "US-CT",
+      "recordDescription": "One town, year and DSS program with the count of people served.",
+      "landingPage": "https://data.ct.gov/d/vvvu-dkxn",
+      "license": "Public Domain",
+      "updateFrequency": "Annually"
+    },
+    {
+      "slug": "ct-business-registry-master",
+      "accessUrl": "https://data.ct.gov/resource/n7gp-d28j.json",
+      "title": "Connecticut Business Registry - Business Master",
+      "publisher": "CT Secretary of the State",
+      "jurisdiction": "US-CT",
+      "recordDescription": "One business entity formed in or registered with the Connecticut Secretary of the State.",
+      "landingPage": "https://data.ct.gov/d/n7gp-d28j",
+      "license": "Public Domain",
+      "updateFrequency": "Daily",
+      "note": "Street addresses and emails can be principals' personal contact details; join to Principals (ka36-64k6) and Agents (qh2m-n44y) by id, which hold individuals' names."
+    },
+    {
+      "slug": "ct-liquor-permits",
+      "accessUrl": "https://data.ct.gov/resource/gwv2-eswx.json",
+      "title": "Liquor Permits",
+      "publisher": "CT Dept of Consumer Protection, Liquor Control",
+      "jurisdiction": "US-CT",
+      "recordDescription": "One liquor permit for a premises such as a restaurant, package store or cafe.",
+      "landingPage": "https://data.ct.gov/d/gwv2-eswx",
+      "updateFrequency": "Daily",
+      "note": "Permittee and backer names and addresses are individuals' personal data."
+    }
+  ],
+  "mappings": [
+    {
+      "source": "new-haven-polling-places-2024",
+      "concept": "elections/polling-place",
+      "role": "record",
+      "fields": [
+        {
+          "from": "polling_places",
+          "to": "name"
+        },
+        {
+          "from": "addresses",
+          "to": "address"
+        },
+        {
+          "from": "location",
+          "to": "directions"
+        },
+        {
+          "from": "municipality",
+          "to": "municipality"
+        },
+        {
+          "from": "state",
+          "to": "state"
+        },
+        {
+          "from": "dst",
+          "to": "votingDistrict",
+          "conversion": "ward number 1-30"
+        },
+        {
+          "from": "prec",
+          "to": "precinct"
+        },
+        {
+          "from": "sen",
+          "to": "stateSenateDistrict"
+        },
+        {
+          "from": "ad",
+          "to": "stateHouseDistrict"
+        },
+        {
+          "from": "local_elections",
+          "to": "servesLocalElections",
+          "conversion": "'Yes'/'No' to boolean"
+        },
+        {
+          "from": "state_elections",
+          "to": "servesStateElections",
+          "conversion": "'Yes'/'No' to boolean"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-polling-places-2024",
+      "concept": "https://schemalattice.com/c/civic-participation/city-district@bd808dfd5db4",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "dst",
+          "to": "externalCode",
+          "conversion": "ward number 1-30, same as new-haven-wards.ward"
+        }
+      ]
+    },
+    {
+      "source": "new-haven-polling-places-2024",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "municipality",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "ct-education-directory",
+      "concept": "education/school",
+      "role": "record",
+      "fields": [
+        {
+          "from": "organization_code",
+          "to": "stateOrgCode",
+          "conversion": "7-digit CSDE code, keep leading zero"
+        },
+        {
+          "from": "name",
+          "to": "name"
+        },
+        {
+          "from": "district_name",
+          "to": "districtName"
+        },
+        {
+          "from": "organization_type",
+          "to": "organizationType"
+        },
+        {
+          "from": "address",
+          "to": "address"
+        },
+        {
+          "from": "town",
+          "to": "town"
+        },
+        {
+          "from": "zipcode",
+          "to": "postalCode"
+        },
+        {
+          "from": "phone",
+          "to": "phone"
+        },
+        {
+          "from": "interdistrict_magnet",
+          "to": "isMagnet",
+          "conversion": "'1'/'0' to boolean"
+        },
+        {
+          "from": "student_open_date",
+          "to": "openDate"
+        },
+        {
+          "from": "geocoded_column",
+          "to": "location"
+        },
+        {
+          "from": "prekindergarten",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade PK is offered"
+        },
+        {
+          "from": "kindergarten",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade KG is offered"
+        },
+        {
+          "from": "grade_1",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 1 is offered"
+        },
+        {
+          "from": "grade_2",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 2 is offered"
+        },
+        {
+          "from": "grade_3",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 3 is offered"
+        },
+        {
+          "from": "grade_4",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 4 is offered"
+        },
+        {
+          "from": "grade_5",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 5 is offered"
+        },
+        {
+          "from": "grade_6",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 6 is offered"
+        },
+        {
+          "from": "grade_7",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 7 is offered"
+        },
+        {
+          "from": "grade_8",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 8 is offered"
+        },
+        {
+          "from": "grade_9",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 9 is offered"
+        },
+        {
+          "from": "grade_10",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 10 is offered"
+        },
+        {
+          "from": "grade_11",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 11 is offered"
+        },
+        {
+          "from": "grade_12",
+          "to": "gradesOffered",
+          "conversion": "flag '1' means grade 12 is offered"
+        }
+      ]
+    },
+    {
+      "source": "ct-education-directory",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "town",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "cdc-places-tract-2025",
+      "concept": "public-statistics/area-statistic",
+      "role": "record",
+      "fields": [
+        {
+          "from": "locationid",
+          "to": "geographyCode",
+          "conversion": "11-digit tract GEOID"
+        },
+        {
+          "from": "year",
+          "to": "year"
+        },
+        {
+          "from": "measureid",
+          "to": "measureCode"
+        },
+        {
+          "from": "measure",
+          "to": "measureName"
+        },
+        {
+          "from": "category",
+          "to": "category"
+        },
+        {
+          "from": "data_value",
+          "to": "value"
+        },
+        {
+          "from": "data_value_type",
+          "to": "valueType"
+        },
+        {
+          "from": "data_value_unit",
+          "to": "unit"
+        },
+        {
+          "from": "low_confidence_limit",
+          "to": "lowConfidenceLimit"
+        },
+        {
+          "from": "high_confidence_limit",
+          "to": "highConfidenceLimit"
+        },
+        {
+          "from": "totalpopulation",
+          "to": "populationBase"
+        },
+        {
+          "from": "datasource",
+          "to": "dataSource"
+        },
+        {
+          "from": "data_value_footnote",
+          "to": "footnote"
+        }
+      ]
+    },
+    {
+      "source": "cdc-places-tract-2025",
+      "concept": "https://schemalattice.com/c/public-geography/census-tract@602e860c2513",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "locationid",
+          "to": "geoid",
+          "conversion": "2020 GEOID with CT planning-region county (09170...)"
+        },
+        {
+          "from": "countyfips",
+          "to": "countyFips",
+          "conversion": "5-digit state+county; keep last 3 for county code"
+        }
+      ]
+    },
+    {
+      "source": "ct-dss-people-served-by-town",
+      "concept": "public-statistics/area-statistic",
+      "role": "record",
+      "fields": [
+        {
+          "from": "township",
+          "to": "geographyName"
+        },
+        {
+          "from": "year",
+          "to": "year"
+        },
+        {
+          "from": "program_name",
+          "to": "measureName",
+          "conversion": "people served by this program"
+        },
+        {
+          "from": "count",
+          "to": "value",
+          "conversion": "unit: people (count)"
+        }
+      ]
+    },
+    {
+      "source": "ct-dss-people-served-by-town",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "township",
+          "to": "name"
+        }
+      ]
+    },
+    {
+      "source": "ct-evictions-by-tract",
+      "concept": "public-statistics/area-statistic",
+      "role": "record",
+      "fields": [
+        {
+          "from": "type",
+          "to": "geographyType"
+        },
+        {
+          "from": "geoid",
+          "to": "geographyCode",
+          "conversion": "tract GEOID, county 09009 vintage"
+        },
+        {
+          "from": "week_date",
+          "to": "periodStart",
+          "conversion": "week start; periodEnd is 6 days later"
+        },
+        {
+          "from": "filings_avg",
+          "to": "value",
+          "conversion": "measure: average weekly eviction filings"
+        }
+      ]
+    },
+    {
+      "source": "ct-affordable-housing-appeals-list",
+      "concept": "public-statistics/area-statistic",
+      "role": "record",
+      "fields": [
+        {
+          "from": "code",
+          "to": "geographyCode",
+          "conversion": "CT town code"
+        },
+        {
+          "from": "town",
+          "to": "geographyName"
+        },
+        {
+          "from": "year",
+          "to": "year"
+        },
+        {
+          "from": "gov_assisted",
+          "to": "value",
+          "conversion": "wide row: unpivot, measureCode 'gov_assisted'"
+        },
+        {
+          "from": "tenant_rental_assistance",
+          "to": "value",
+          "conversion": "wide row: unpivot, measureCode 'tenant_rental_assistance'"
+        },
+        {
+          "from": "chfa_usda_mortgages",
+          "to": "value",
+          "conversion": "wide row: unpivot, measureCode 'chfa_usda_mortgages'"
+        },
+        {
+          "from": "deed_restricted",
+          "to": "value",
+          "conversion": "wide row: unpivot, measureCode 'deed_restricted'"
+        },
+        {
+          "from": "total_assisted",
+          "to": "value",
+          "conversion": "wide row: unpivot, measureCode 'total_assisted'"
+        },
+        {
+          "from": "percent_assisted",
+          "to": "value",
+          "conversion": "wide row: unpivot, measureCode 'percent_assisted'"
+        }
+      ]
+    },
+    {
+      "source": "ct-business-registry-master",
+      "concept": "business-licensing/registered-business",
+      "role": "record",
+      "fields": [
+        {
+          "from": "accountnumber",
+          "to": "registryId"
+        },
+        {
+          "from": "name",
+          "to": "name"
+        },
+        {
+          "from": "business_type",
+          "to": "entityType"
+        },
+        {
+          "from": "status",
+          "to": "status"
+        },
+        {
+          "from": "sub_status",
+          "to": "statusDetail"
+        },
+        {
+          "from": "date_registration",
+          "to": "registrationDate",
+          "conversion": "0001-01-01 means none"
+        },
+        {
+          "from": "dissolution_date",
+          "to": "dissolutionDate"
+        },
+        {
+          "from": "state_or_territory_formation",
+          "to": "formationJurisdiction"
+        },
+        {
+          "from": "naics_code",
+          "to": "industryCode"
+        },
+        {
+          "from": "billingcity",
+          "to": "businessCity"
+        },
+        {
+          "from": "billingpostalcode",
+          "to": "businessPostalCode"
+        }
+      ]
+    },
+    {
+      "source": "ct-business-registry-master",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "billingcity",
+          "to": "name",
+          "conversion": "CT towns only; billingstate must be CT"
+        }
+      ]
+    },
+    {
+      "source": "ct-liquor-permits",
+      "concept": "business-licensing/business-license",
+      "role": "record",
+      "fields": [
+        {
+          "from": "credential",
+          "to": "licenseNumber"
+        },
+        {
+          "from": "status",
+          "to": "status"
+        },
+        {
+          "from": "reason",
+          "to": "statusReason"
+        },
+        {
+          "from": "effective_date",
+          "to": "effectiveDate",
+          "conversion": "MM/DD/YYYY"
+        },
+        {
+          "from": "expire_date",
+          "to": "expirationDate",
+          "conversion": "MM/DD/YYYY"
+        },
+        {
+          "from": "dba",
+          "to": "tradeName"
+        },
+        {
+          "from": "permit_city",
+          "to": "premisesCity"
+        },
+        {
+          "from": "permit_zip",
+          "to": "premisesPostalCode"
+        }
+      ]
+    },
+    {
+      "source": "ct-liquor-permits",
+      "concept": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+      "role": "reference",
+      "fields": [
+        {
+          "from": "permit_city",
+          "to": "name",
+          "conversion": "upper-case town name"
+        }
+      ]
+    }
+  ]
+}
