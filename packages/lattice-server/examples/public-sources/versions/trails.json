@@ -1,0 +1,7 @@
+{ "versions": [
+  {"old": "https://schemalattice.com/c/trail-stewardship/segment-adoption@d0fb3811fe2b", "context": "place-stewardship", "slug": "site-adoption", "label": "Site Adoption",
+   "definition": "A volunteer group's standing commitment to look after part of a stewarded place for a period, such as a trail segment, a garden bed, a stretch of park or a storm drain: who adopted it, what upkeep they promised, how often, and whether the commitment is still being kept."},
+  {"old": "https://schemalattice.com/c/trail-stewardship/trail-system@6d4884fdd612", "context": "trail-stewardship", "slug": "trail-system", "label": "Trail System",
+   "definition": "A named trail or trail network that people know as one place, such as a rail trail, a greenway or a preserve's trail network, made up of physical segments and listed by its manager and by trail finders; the trail kind of stewarded site.",
+   "broader": ["https://schemalattice.com/c/place-stewardship/stewarded-site@1764e6346b1a"]}
+]}

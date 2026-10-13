@@ -1,0 +1,2572 @@
+{
+ "contexts": [
+  {
+   "slug": "place-stewardship",
+   "title": "Place Stewardship",
+   "definition": "Vocabulary for volunteer and community care of shared outdoor places such as trails, parks, greenspaces and community gardens: the places themselves, the organizations that partner on them and the people to contact, the projects and dated milestones in each place's story, the plants put in and watered, the species volunteers learn to tell apart, and the maintenance problems they track to resolution."
+  },
+  {
+   "slug": "volunteer-engagement",
+   "title": "Volunteer Engagement",
+   "definition": "Vocabulary for how an organization recruits, schedules and counts volunteers: hands-on work days and other volunteer events with their turnout and hours, each person's sign-up with the hours they gave, and requests from schools, companies and other groups to come for a service day."
+  }
+ ],
+ "concepts": [
+  {
+   "context": "place-stewardship",
+   "conceptSlug": "stewarded-site",
+   "prefLabel": "Stewarded Site",
+   "altLabels": [
+    "Stewardship site",
+    "Adopted place",
+    "Greenspace",
+    "Community garden",
+    "Friends-group site"
+   ],
+   "definition": "A trail, park, greenspace or community garden that a volunteer group or partner organization looks after, with its kind, owning organization, partner organizations, towns, public description and whether it welcomes visiting volunteer groups. Trail-only details such as segments and blazes belong to the trail system it may also be.",
+   "conceptKind": "place",
+   "broaderRoot": "location",
+   "broadMatch": [
+    "wd:Q22658"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "kind",
+      "type": "enum",
+      "classification": "public",
+      "description": "A park may contain child sites",
+      "values": [
+       "trail",
+       "park",
+       "greenspace",
+       "garden"
+      ]
+     },
+     {
+      "name": "about",
+      "type": "string",
+      "classification": "public",
+      "description": "Two or three sentences for someone who has never heard of the place"
+     },
+     {
+      "name": "parentSite",
+      "type": "reference",
+      "classification": "public",
+      "description": "The park this site is part of"
+     },
+     {
+      "name": "owningOrganization",
+      "type": "reference",
+      "classification": "public",
+      "description": "Steward of record",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "partnerOrganizations",
+      "type": "array",
+      "classification": "public",
+      "description": "Other organizations with a role on the site, each with its role (co-steward, steward, viewer)"
+     },
+     {
+      "name": "towns",
+      "type": "array",
+      "classification": "public",
+      "description": "Municipalities the site lies in",
+      "refUri": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b"
+     },
+     {
+      "name": "states",
+      "type": "array",
+      "classification": "public"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "neighborhood",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "tagline",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "publiclyListed",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Shown in a public directory of places to volunteer"
+     },
+     {
+      "name": "acceptsVolunteerGroups",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "maxGroupSize",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "groupActivities",
+      "type": "array",
+      "classification": "public",
+      "description": "cleanup, invasive-removal, planting, trail-work, education, gardening, flexible"
+     },
+     {
+      "name": "highlights",
+      "type": "array",
+      "classification": "public",
+      "description": "Organizer-stated headline figures, e.g. miles open"
+     },
+     {
+      "name": "externalListings",
+      "type": "array",
+      "classification": "public",
+      "description": "URLs of the site's profiles on outside directories"
+     },
+     {
+      "name": "biodiversityProjectUrl",
+      "type": "url",
+      "classification": "public",
+      "description": "Community-science project recording sightings at the site"
+     },
+     {
+      "name": "issueReportingUrl",
+      "type": "url",
+      "classification": "public",
+      "description": "Public municipal page for reporting problems needing city action"
+     },
+     {
+      "name": "mailingAddress",
+      "type": "string",
+      "classification": "internal",
+      "description": "Postal address printed on outgoing mail"
+     },
+     {
+      "name": "timezone",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "coverPhotoUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "logoUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "unclaimed",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Directory stub nobody on the ground has taken over yet"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "Fields from the stewardship app's Site type (src/types.ts: Site, SiteKind, SiteDirectoryListing, SiteHighlight, SiteListing, SiteNetworkRel), which one backend serves to both trail- and garden-branded front ends. Branding, email and SeeClickFix query plumbing left out. Generalizes Trail System for non-trail places."
+   }
+  },
+  {
+   "context": "place-stewardship",
+   "conceptSlug": "stewardship-partnership",
+   "prefLabel": "Stewardship Partnership",
+   "altLabels": [
+    "Co-stewardship grant",
+    "Site access grant",
+    "Partner role on a site"
+   ],
+   "definition": "An arrangement in which the organization that owns a stewarded place gives another organization a role on all of it or part of it (named towns or segments): co-steward, steward or read-only viewer, active until revoked, with an optional partnership note that may be shown publicly.",
+   "conceptKind": "entity",
+   "broaderRoot": "agent",
+   "broadMatch": [
+    "wd:Q728646"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "partnerOrganization",
+      "type": "reference",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "site",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "grantingOrganization",
+      "type": "reference",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "role",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "owner",
+       "co-steward",
+       "steward",
+       "viewer"
+      ]
+     },
+     {
+      "name": "scope",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "whole-site",
+       "towns",
+       "segments"
+      ]
+     },
+     {
+      "name": "towns",
+      "type": "array",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/public-geography/municipality@f24602cb066b"
+     },
+     {
+      "name": "segments",
+      "type": "array",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/trail-stewardship/trail-segment@5f526ff012b7"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "active",
+       "revoked"
+      ]
+     },
+     {
+      "name": "note",
+      "type": "string",
+      "classification": "internal",
+      "description": "e.g. funds a restoration; student crews in summer"
+     },
+     {
+      "name": "notePublic",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "grantedBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "Fields from OrgSiteGrant, GrantRole, GrantScope and GrantStatus in src/types.ts and the org_site_grants rules in firestore.rules; segment scoping mirrors Segment Adoption's segments list."
+   }
+  },
+  {
+   "context": "place-stewardship",
+   "conceptSlug": "site-point-person",
+   "prefLabel": "Site Point Person",
+   "altLabels": [
+    "Site contact",
+    "Trail captain",
+    "Plantings lead",
+    "Garden leader"
+   ],
+   "definition": "The person to contact about a stewarded place, or about one asset in it such as a segment, planting or water source, with a title like trail captain or plantings lead, whether they are the place's single primary lead and whether they are listed publicly. Needs no login or app role.",
+   "conceptKind": "agent",
+   "broaderRoot": "person",
+   "forkOf": "https://schemalattice.com/c/human-services/named-contact@44faa1009d6c",
+   "changeset": {
+    "ops": [
+     {
+      "op": "add",
+      "field": "site",
+      "type": "reference",
+      "description": "Place the person is responsible for"
+     },
+     {
+      "op": "add",
+      "field": "person",
+      "type": "reference",
+      "ref": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "op": "add",
+      "field": "scopeAssetType",
+      "type": "enum",
+      "description": "What the designation covers; site = whole place"
+     },
+     {
+      "op": "add",
+      "field": "scopeAsset",
+      "type": "reference",
+      "description": "The one asset this contact overrides the site default for"
+     },
+     {
+      "op": "add",
+      "field": "isPrimary",
+      "type": "boolean",
+      "description": "The single site-level lead"
+     },
+     {
+      "op": "add",
+      "field": "isPublicContact",
+      "type": "boolean",
+      "description": "Listed publicly with a relayed contact form; address never shown"
+     },
+     {
+      "op": "remove",
+      "field": "department"
+     }
+    ],
+    "note": "Ties a named contact to a stewarded place or one asset in it, marks the primary lead and public listing; drops department."
+   },
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "email",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "phone",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "site",
+      "type": "reference",
+      "classification": "public",
+      "description": "Place the person is responsible for"
+     },
+     {
+      "name": "person",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "scopeAssetType",
+      "type": "enum",
+      "classification": "public",
+      "description": "What the designation covers; site = whole place",
+      "values": [
+       "site",
+       "segment",
+       "location",
+       "planting",
+       "water_source",
+       "issue",
+       "project"
+      ]
+     },
+     {
+      "name": "scopeAsset",
+      "type": "reference",
+      "classification": "public",
+      "description": "The one asset this contact overrides the site default for"
+     },
+     {
+      "name": "isPrimary",
+      "type": "boolean",
+      "classification": "public",
+      "description": "The single site-level lead"
+     },
+     {
+      "name": "isPublicContact",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Listed publicly with a relayed contact form; address never shown"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "SiteContact, SiteContactScope and SiteContactAssetType in src/types.ts; the name/title/email/phone fields come from the parent Named Contact."
+   }
+  },
+  {
+   "context": "place-stewardship",
+   "conceptSlug": "stewardship-project",
+   "prefLabel": "Stewardship Project",
+   "altLabels": [
+    "Site project",
+    "Restoration project",
+    "Volunteer project"
+   ],
+   "definition": "A piece of planned work on a stewarded place, such as a restoration, a planting, a boardwalk or perpetual mowing, with a status that allows ongoing maintenance, an optional pin or area, the segments it touches, a lead and helpers, and flags saying it needs volunteers or a new leader.",
+   "conceptKind": "workflow",
+   "broaderRoot": "activity",
+   "broadMatch": [
+    "wd:Q170584"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "site",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "public",
+      "description": "ongoing = perpetual maintenance, never complete",
+      "values": [
+       "planned",
+       "in-progress",
+       "ongoing",
+       "completed",
+       "on-hold"
+      ]
+     },
+     {
+      "name": "startDate",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "endDate",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "geometry",
+      "type": "geometry",
+      "classification": "public",
+      "description": "A point or a polygon area"
+     },
+     {
+      "name": "segments",
+      "type": "array",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/trail-stewardship/trail-segment@5f526ff012b7"
+     },
+     {
+      "name": "leader",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "helpers",
+      "type": "array",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "seekingVolunteers",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "seekingLeader",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "milestones",
+      "type": "array",
+      "classification": "public",
+      "description": "Dated waypoints in the project's life"
+     },
+     {
+      "name": "coverPhotoUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "Project, ProjectStatus and ProjectGeometryType in src/types.ts; updates and leader messages are kept as comment/activity records, not fields."
+   }
+  },
+  {
+   "context": "place-stewardship",
+   "conceptSlug": "stewardship-milestone",
+   "prefLabel": "Stewardship Milestone",
+   "altLabels": [
+    "Timeline entry",
+    "Project milestone",
+    "Site history entry",
+    "Commitment"
+   ],
+   "definition": "A dated waypoint in the story of a place or a project on it: something that happened, a promise or award whose date can pass unmet, or a target, with who was responsible, a citation, any dollar amount as of that date, and whether it is public or still internal.",
+   "conceptKind": "event",
+   "broaderRoot": "event",
+   "broadMatch": [
+    "wd:Q2143762"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "date",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "label",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "planned",
+       "in-progress",
+       "completed",
+       "skipped"
+      ]
+     },
+     {
+      "name": "kind",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "event",
+       "commitment",
+       "award",
+       "target"
+      ]
+     },
+     {
+      "name": "actor",
+      "type": "string",
+      "classification": "public",
+      "description": "Who was responsible, e.g. a city department, a state agency, volunteers"
+     },
+     {
+      "name": "sourceUrl",
+      "type": "url",
+      "classification": "public",
+      "description": "Citation: article, agenda, press release"
+     },
+     {
+      "name": "sourceLabel",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "amount",
+      "type": "number",
+      "classification": "public",
+      "description": "Whole dollars as of the date",
+      "unit": "USD"
+     },
+     {
+      "name": "visibility",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "public",
+       "internal"
+      ]
+     },
+     {
+      "name": "site",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "project",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "segment",
+      "type": "reference",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/trail-stewardship/trail-segment@5f526ff012b7"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "SiteMilestone, ProjectMilestone, MilestoneKind and ProjectMilestoneStatus in src/types.ts (one shape, embedded on projects or standalone per site)."
+   }
+  },
+  {
+   "context": "place-stewardship",
+   "conceptSlug": "planting",
+   "prefLabel": "Planting",
+   "altLabels": [
+    "Planted specimen",
+    "Documented specimen",
+    "Tree planting"
+   ],
+   "definition": "One tree, shrub or other plant that volunteers put in the ground at a stewarded place, or a notable existing one they document, with its species, position, date planted, care phase (establishing, established, struggling) and why it struggles, its watering history and dated photos.",
+   "conceptKind": "entity",
+   "broaderRoot": "physical-object",
+   "broadMatch": [
+    "wd:Q2083967"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "site",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "location",
+      "type": "reference",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/trail-stewardship/trail-point@5922f5e370b0"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "commonName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "scientificName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "speciesProfile",
+      "type": "reference",
+      "classification": "public",
+      "description": "Field guide entry"
+     },
+     {
+      "name": "taxonId",
+      "type": "integer",
+      "classification": "public",
+      "description": "iNaturalist taxon id"
+     },
+     {
+      "name": "origin",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "planted",
+       "documented"
+      ]
+     },
+     {
+      "name": "careStatus",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "establishing",
+       "established",
+       "struggling"
+      ]
+     },
+     {
+      "name": "struggleReason",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "drought",
+       "animal-damage",
+       "human-damage",
+       "disease",
+       "transplant-shock",
+       "other"
+      ]
+     },
+     {
+      "name": "plantedDate",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "condition",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "lastWateredDate",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "nextWateringDue",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "notes",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "photos",
+      "type": "array",
+      "classification": "public",
+      "description": "Dated photos with notes"
+     },
+     {
+      "name": "segments",
+      "type": "array",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/trail-stewardship/trail-segment@5f526ff012b7"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "Planting, PlantingSource, PlantingStatus, PlantingStruggleReason, PlantingPhoto in src/types.ts. Names shared with Street Tree (commonName, scientificName, plantedDate, latitude, longitude) so a planted street tree lines up with a city inventory."
+   }
+  },
+  {
+   "context": "place-stewardship",
+   "conceptSlug": "plant-watering",
+   "prefLabel": "Plant Watering",
+   "altLabels": [
+    "Watering log entry",
+    "Tree watering"
+   ],
+   "definition": "One visit in which someone watered a young tree or other planting, recorded with the date, who did it, roughly how many gallons and any note, optionally during a volunteer event, so a group can see whether new plantings got water in a dry spell.",
+   "conceptKind": "event",
+   "broaderRoot": "activity",
+   "closeMatch": [
+    "wd:Q20918473"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "planting",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "date",
+      "type": "date",
+      "classification": "public"
+     },
+     {
+      "name": "wateredBy",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "gallons",
+      "type": "number",
+      "classification": "public",
+      "unit": "gal"
+     },
+     {
+      "name": "notes",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "event",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "loggedAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "PlantingWaterLogEntry in src/types.ts (embedded on Planting.waterLog)."
+   }
+  },
+  {
+   "context": "place-stewardship",
+   "conceptSlug": "field-guide-species",
+   "prefLabel": "Field Guide Species",
+   "altLabels": [
+    "Species card",
+    "Invasive species profile",
+    "Native plant profile"
+   ],
+   "definition": "A shared identification card for a plant or animal taxon that stewardship volunteers learn to recognize, marked as wanted or unwanted (native versus invasive), with a removal priority, field identification notes, lookalikes, removal practice, aliases and licensed photos, keyed to an iNaturalist taxon.",
+   "conceptKind": "classification",
+   "broaderRoot": "classification",
+   "broadMatch": [
+    "wd:Q16521"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "commonName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "scientificName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "aliases",
+      "type": "array",
+      "classification": "public"
+     },
+     {
+      "name": "role",
+      "type": "enum",
+      "classification": "public",
+      "description": "friend (native/desired) or enemy (invasive/problem)",
+      "values": [
+       "wanted",
+       "unwanted"
+      ]
+     },
+     {
+      "name": "priority",
+      "type": "enum",
+      "classification": "public",
+      "description": "Unwanted only",
+      "values": [
+       "top",
+       "watch",
+       "tolerated"
+      ]
+     },
+     {
+      "name": "idNotes",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "lookalikes",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "lookalikeSpecies",
+      "type": "array",
+      "classification": "public"
+     },
+     {
+      "name": "removalNotes",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "notes",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "taxonId",
+      "type": "integer",
+      "classification": "public",
+      "description": "iNaturalist taxon id"
+     },
+     {
+      "name": "wikipediaUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "photos",
+      "type": "array",
+      "classification": "public",
+      "description": "url, source, attribution, licenseCode, caption"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://api.inaturalist.org/v1/docs/",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "Species, SpeciesKind, SpeciesPriority, SpeciesPhoto in src/types.ts; taxon id, Wikipedia URL and photo attribution/license fields come from the iNaturalist taxa API the app reads (src/services/iNaturalistService.ts)."
+   }
+  },
+  {
+   "context": "place-stewardship",
+   "conceptSlug": "species-watchlist-entry",
+   "prefLabel": "Species Watchlist Entry",
+   "altLabels": [
+    "Site species",
+    "Organization watchlist species",
+    "Field guide entry"
+   ],
+   "definition": "The fact that a place, or every place an organization looks after, keeps a given species in its field guide, with how widespread it is at the place (dominant, common, occasional, rare), a local removal priority that overrides the shared one, and regional notes.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "broadMatch": [
+    "wd:Q29274509"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "species",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "site",
+      "type": "reference",
+      "classification": "public",
+      "description": "Set for a place-level entry"
+     },
+     {
+      "name": "organization",
+      "type": "reference",
+      "classification": "public",
+      "description": "Set for an organization-wide watchlist entry",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "prevalence",
+      "type": "enum",
+      "classification": "public",
+      "description": "Place-level only",
+      "values": [
+       "dominant",
+       "common",
+       "occasional",
+       "rare"
+      ]
+     },
+     {
+      "name": "priority",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "top",
+       "watch",
+       "tolerated"
+      ]
+     },
+     {
+      "name": "notes",
+      "type": "string",
+      "classification": "public",
+      "description": "Regional guidance, e.g. cut before seed-set"
+     },
+     {
+      "name": "addedBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "SiteSpecies and OrgSpecies in src/types.ts (same shape, site or org scope) and SpeciesPrevalence."
+   }
+  },
+  {
+   "context": "place-stewardship",
+   "conceptSlug": "site-maintenance-issue",
+   "prefLabel": "Site Maintenance Issue",
+   "altLabels": [
+    "Stewardship issue",
+    "Invasive patch",
+    "Trail problem",
+    "Work item"
+   ],
+   "definition": "A problem that stewards of a place track until it is dealt with, such as a fallen tree, a washout or a patch of knotweed, with a monitoring state for recurring invasives, the rounds of work done on it with before and after photos, and a note saying how it was resolved.",
+   "conceptKind": "workflow",
+   "broaderRoot": "workflow",
+   "forkOf": "https://schemalattice.com/c/civic-issue-reporting/issue-report@6ab5cb338457",
+   "changeset": {
+    "ops": [
+     {
+      "op": "remove",
+      "field": "postcode"
+     },
+     {
+      "op": "remove",
+      "field": "bodies"
+     },
+     {
+      "op": "add",
+      "field": "site",
+      "type": "reference"
+     },
+     {
+      "op": "add",
+      "field": "segments",
+      "type": "array",
+      "ref": "https://schemalattice.com/c/trail-stewardship/trail-segment@5f526ff012b7"
+     },
+     {
+      "op": "add",
+      "field": "location",
+      "type": "reference",
+      "ref": "https://schemalattice.com/c/trail-stewardship/trail-point@5922f5e370b0"
+     },
+     {
+      "op": "add",
+      "field": "project",
+      "type": "reference"
+     },
+     {
+      "op": "add",
+      "field": "event",
+      "type": "reference",
+      "description": "Work day where it was found or worked"
+     },
+     {
+      "op": "add",
+      "field": "species",
+      "type": "reference",
+      "description": "Invasive the issue is about"
+     },
+     {
+      "op": "add",
+      "field": "beforePhotos",
+      "type": "array"
+     },
+     {
+      "op": "add",
+      "field": "afterPhotos",
+      "type": "array"
+     },
+     {
+      "op": "add",
+      "field": "resolutionNote",
+      "type": "string",
+      "description": "What actually happened when closed or moved to monitoring"
+     },
+     {
+      "op": "add",
+      "field": "workLog",
+      "type": "array",
+      "description": "Each round of work: date, who, notes, before/after photos, event"
+     },
+     {
+      "op": "add",
+      "field": "reporterEmail",
+      "type": "string",
+      "description": "Public reporter to notify on resolution"
+     }
+    ],
+    "note": "Steward-side issue: adds place, segments, linked project/event/species, before/after photos, work log and resolution note; state values open, in-progress, monitoring, resolved. Drops postcode and council routing."
+   },
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "category",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "detail",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "photo",
+      "type": "binary",
+      "classification": "public"
+     },
+     {
+      "name": "state",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "reporter",
+      "type": "reference",
+      "classification": "internal"
+     },
+     {
+      "name": "anonymous",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "created",
+      "type": "dateTime",
+      "classification": "public"
+     },
+     {
+      "name": "site",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "segments",
+      "type": "array",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/trail-stewardship/trail-segment@5f526ff012b7"
+     },
+     {
+      "name": "location",
+      "type": "reference",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/trail-stewardship/trail-point@5922f5e370b0"
+     },
+     {
+      "name": "project",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "event",
+      "type": "reference",
+      "classification": "public",
+      "description": "Work day where it was found or worked"
+     },
+     {
+      "name": "species",
+      "type": "reference",
+      "classification": "public",
+      "description": "Invasive the issue is about"
+     },
+     {
+      "name": "beforePhotos",
+      "type": "array",
+      "classification": "public"
+     },
+     {
+      "name": "afterPhotos",
+      "type": "array",
+      "classification": "public"
+     },
+     {
+      "name": "resolutionNote",
+      "type": "string",
+      "classification": "public",
+      "description": "What actually happened when closed or moved to monitoring"
+     },
+     {
+      "name": "workLog",
+      "type": "array",
+      "classification": "public",
+      "description": "Each round of work: date, who, notes, before/after photos, event"
+     },
+     {
+      "name": "reporterEmail",
+      "type": "string",
+      "classification": "personal-contact",
+      "description": "Public reporter to notify on resolution"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "Issue, IssueStatus and IssueWorkLogEntry in src/types.ts; resident-report fields come from the parent Issue Report."
+   }
+  },
+  {
+   "context": "volunteer-engagement",
+   "conceptSlug": "volunteer-event",
+   "prefLabel": "Volunteer Event",
+   "altLabels": [
+    "Work day",
+    "Workday",
+    "Service day",
+    "Volunteer shift"
+   ],
+   "definition": "A scheduled gathering run by a volunteer group, most often a hands-on work day at a place it looks after, carrying everything a community event does plus the place and segments worked, the meeting point, what to bring, difficulty, turnout including walk-ins, total volunteer hours and a recap.",
+   "conceptKind": "event",
+   "broaderRoot": "event",
+   "forkOf": "https://schemalattice.com/c/community-events/community-event@2edece4bdfe7",
+   "changeset": {
+    "ops": [
+     {
+      "op": "add",
+      "field": "volunteerWork",
+      "type": "boolean",
+      "description": "Hands-on work day (clearing, planting, repair)"
+     },
+     {
+      "op": "add",
+      "field": "status",
+      "type": "enum"
+     },
+     {
+      "op": "add",
+      "field": "site",
+      "type": "reference",
+      "description": "Stewarded place it happens at"
+     },
+     {
+      "op": "add",
+      "field": "segments",
+      "type": "array",
+      "ref": "https://schemalattice.com/c/trail-stewardship/trail-segment@5f526ff012b7"
+     },
+     {
+      "op": "add",
+      "field": "meetingPoint",
+      "type": "reference",
+      "ref": "https://schemalattice.com/c/trail-stewardship/trail-point@5922f5e370b0"
+     },
+     {
+      "op": "add",
+      "field": "project",
+      "type": "reference"
+     },
+     {
+      "op": "add",
+      "field": "hostOrganization",
+      "type": "reference",
+      "ref": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "op": "add",
+      "field": "visitingGroup",
+      "type": "reference",
+      "description": "School, company or troop the day was organized for"
+     },
+     {
+      "op": "add",
+      "field": "leader",
+      "type": "reference",
+      "ref": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "op": "add",
+      "field": "whatToBring",
+      "type": "string"
+     },
+     {
+      "op": "add",
+      "field": "difficulty",
+      "type": "enum"
+     },
+     {
+      "op": "add",
+      "field": "ticketTiers",
+      "type": "array",
+      "description": "Priced ticket options for a fundraiser"
+     },
+     {
+      "op": "add",
+      "field": "attendedCount",
+      "type": "integer"
+     },
+     {
+      "op": "add",
+      "field": "walkInCount",
+      "type": "integer",
+      "description": "People who came but never signed in"
+     },
+     {
+      "op": "add",
+      "field": "walkInHoursEach",
+      "type": "number",
+      "unit": "h"
+     },
+     {
+      "op": "add",
+      "field": "volunteerHours",
+      "type": "number",
+      "unit": "h",
+      "description": "Sum of hours worked by attendees"
+     },
+     {
+      "op": "add",
+      "field": "recapMessage",
+      "type": "string"
+     },
+     {
+      "op": "add",
+      "field": "recurringSeries",
+      "type": "string"
+     }
+    ],
+    "note": "Adds the stewardship-site anchoring, volunteer outcome counts (attended, walk-ins, hours), recap and fundraiser ticket tiers. Kinds map: workday -> volunteerWork, walk -> tour, meeting -> meeting, talk -> workshop, social -> meetup, external -> partner_hosted."
+   },
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "public",
+      "description": "Stable id of the event"
+     },
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "summary",
+      "type": "string",
+      "classification": "public",
+      "description": "Short teaser"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "eventType",
+      "type": "enum",
+      "classification": "public",
+      "description": "CiviCRM event_type_id; workshop..performance from CiviCRM defaults, the rest from a makerspace's event bundles",
+      "values": [
+       "workshop",
+       "class_session",
+       "program",
+       "meetup",
+       "tour",
+       "open_house",
+       "member_event",
+       "private_event",
+       "partner_hosted",
+       "conference",
+       "exhibition",
+       "fundraiser",
+       "meeting",
+       "performance",
+       "other"
+      ]
+     },
+     {
+      "name": "isPublic",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Listed in public calendars"
+     },
+     {
+      "name": "isActive",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "startDate",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "endDate",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "sessions",
+      "type": "array",
+      "classification": "public",
+      "description": "Start datetime of every meeting, first included, for multi-session runs"
+     },
+     {
+      "name": "venueName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "streetAddress",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "locality",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "region",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "postalCode",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "isOnline",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "onlineJoinUrl",
+      "type": "url",
+      "classification": "internal",
+      "description": "Meeting link sent only to registrants"
+     },
+     {
+      "name": "registrationUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "isOnlineRegistration",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "registrationStartDate",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "registrationEndDate",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "capacity",
+      "type": "integer",
+      "classification": "public",
+      "description": "Maximum participants (CiviCRM max_participants)"
+     },
+     {
+      "name": "registeredCount",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "remainingSpots",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "isFull",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "hasWaitlist",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "requiresApproval",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "isPaid",
+      "type": "boolean",
+      "classification": "public",
+      "description": "CiviCRM is_monetary"
+     },
+     {
+      "name": "feeDescription",
+      "type": "string",
+      "classification": "public",
+      "description": "Ticket types and prices as shown to registrants"
+     },
+     {
+      "name": "currency",
+      "type": "string",
+      "classification": "public",
+      "description": "ISO 4217"
+     },
+     {
+      "name": "ageRequirement",
+      "type": "string",
+      "classification": "public",
+      "description": "Minimum age or age band, e.g. 18+, 13+ with guardian"
+     },
+     {
+      "name": "skillLevel",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "introductory",
+       "intermediate",
+       "advanced"
+      ]
+     },
+     {
+      "name": "topics",
+      "type": "array",
+      "classification": "public",
+      "description": "Subject areas"
+     },
+     {
+      "name": "tags",
+      "type": "array",
+      "classification": "public"
+     },
+     {
+      "name": "hosts",
+      "type": "array",
+      "classification": "internal",
+      "description": "Instructors or on-site leads",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "staffContact",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "partnerOrganizations",
+      "type": "array",
+      "classification": "public",
+      "description": "Co-hosting or sponsoring organizations",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "badgesAwarded",
+      "type": "array",
+      "classification": "public",
+      "description": "Badges participants earn on completion",
+      "refUri": "https://schemalattice.com/c/shared-facilities/equipment-badge@5be503d25413"
+     },
+     {
+      "name": "course",
+      "type": "reference",
+      "classification": "public",
+      "description": "The learning-programs Course this event is one run of (schema:CourseInstance)"
+     },
+     {
+      "name": "parentEvent",
+      "type": "reference",
+      "classification": "public",
+      "description": "Enclosing event for sub-events"
+     },
+     {
+      "name": "materials",
+      "type": "array",
+      "classification": "public",
+      "description": "Links to slides, notes, worksheets"
+     },
+     {
+      "name": "recordingUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "imageUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "termsAndConditions",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "volunteerWork",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Hands-on work day (clearing, planting, repair)"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "upcoming",
+       "completed",
+       "cancelled"
+      ]
+     },
+     {
+      "name": "site",
+      "type": "reference",
+      "classification": "public",
+      "description": "Stewarded place it happens at"
+     },
+     {
+      "name": "segments",
+      "type": "array",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/trail-stewardship/trail-segment@5f526ff012b7"
+     },
+     {
+      "name": "meetingPoint",
+      "type": "reference",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/trail-stewardship/trail-point@5922f5e370b0"
+     },
+     {
+      "name": "project",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "hostOrganization",
+      "type": "reference",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "visitingGroup",
+      "type": "reference",
+      "classification": "public",
+      "description": "School, company or troop the day was organized for"
+     },
+     {
+      "name": "leader",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "whatToBring",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "difficulty",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "easy",
+       "moderate",
+       "strenuous"
+      ]
+     },
+     {
+      "name": "ticketTiers",
+      "type": "array",
+      "classification": "public",
+      "description": "Priced ticket options for a fundraiser"
+     },
+     {
+      "name": "attendedCount",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "walkInCount",
+      "type": "integer",
+      "classification": "public",
+      "description": "People who came but never signed in"
+     },
+     {
+      "name": "walkInHoursEach",
+      "type": "number",
+      "classification": "public",
+      "unit": "h"
+     },
+     {
+      "name": "volunteerHours",
+      "type": "number",
+      "classification": "public",
+      "unit": "h",
+      "description": "Sum of hours worked by attendees"
+     },
+     {
+      "name": "recapMessage",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "recurringSeries",
+      "type": "string",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "Event, EventKind, EventDifficulty and TicketTier in src/types.ts; impact figures as computed in src/services/impactService.ts."
+   }
+  },
+  {
+   "context": "volunteer-engagement",
+   "conceptSlug": "volunteer-event-registration",
+   "prefLabel": "Volunteer Event Registration",
+   "altLabels": [
+    "Volunteer sign-up",
+    "Work day RSVP",
+    "Roster entry"
+   ],
+   "definition": "One person's sign-up for a volunteer event, extending an event sign-up with the hours they worked, whether they were added automatically as a regular, and for fundraisers the ticket tier, seats held, guests named on a bundled ticket, payment and the gift acknowledgement sent.",
+   "conceptKind": "event",
+   "broaderRoot": "activity",
+   "forkOf": "https://schemalattice.com/c/community-events/event-registration@2820159bd087",
+   "changeset": {
+    "ops": [
+     {
+      "op": "add",
+      "field": "hoursWorked",
+      "type": "number",
+      "unit": "h"
+     },
+     {
+      "op": "add",
+      "field": "autoAdded",
+      "type": "boolean",
+      "description": "Regular added automatically before the day"
+     },
+     {
+      "op": "add",
+      "field": "ticketTier",
+      "type": "reference"
+     },
+     {
+      "op": "add",
+      "field": "quantity",
+      "type": "integer"
+     },
+     {
+      "op": "add",
+      "field": "seats",
+      "type": "integer",
+      "description": "Spots this registration holds"
+     },
+     {
+      "op": "add",
+      "field": "guestOfRegistration",
+      "type": "reference",
+      "description": "Buyer whose bundled seat this guest fills"
+     },
+     {
+      "op": "add",
+      "field": "buyerNotAttending",
+      "type": "boolean"
+     },
+     {
+      "op": "add",
+      "field": "amountDue",
+      "type": "number"
+     },
+     {
+      "op": "add",
+      "field": "amountPaid",
+      "type": "number"
+     },
+     {
+      "op": "add",
+      "field": "paymentStatus",
+      "type": "enum"
+     },
+     {
+      "op": "add",
+      "field": "paidAt",
+      "type": "datetime"
+     },
+     {
+      "op": "add",
+      "field": "paymentTransactionId",
+      "type": "string"
+     },
+     {
+      "op": "add",
+      "field": "publicRecognitionOptOut",
+      "type": "boolean",
+      "description": "List as anonymous on public rolls"
+     },
+     {
+      "op": "add",
+      "field": "acknowledgedAt",
+      "type": "datetime",
+      "description": "Gift acknowledgement letter sent"
+     },
+     {
+      "op": "add",
+      "field": "acknowledgedDeductible",
+      "type": "number"
+     }
+    ],
+    "note": "Adds hours worked, regulars auto-add, and ticket/seat/payment/acknowledgement fields for fundraiser events."
+   },
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "event",
+      "type": "reference",
+      "classification": "public",
+      "description": "The Community Event"
+     },
+     {
+      "name": "participant",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "role",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "attendee",
+       "volunteer",
+       "host",
+       "speaker"
+      ]
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "registered",
+       "attended",
+       "no_show",
+       "cancelled",
+       "pending_pay_later",
+       "pending_incomplete_transaction",
+       "on_waitlist",
+       "awaiting_approval",
+       "pending_from_waitlist",
+       "pending_from_approval",
+       "rejected",
+       "expired",
+       "partially_paid",
+       "pending_refund",
+       "transferred"
+      ]
+     },
+     {
+      "name": "registeredAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "source",
+      "type": "string",
+      "classification": "internal",
+      "description": "How the registration came in (online form, back office, import)"
+     },
+     {
+      "name": "feeLevel",
+      "type": "string",
+      "classification": "personal-financial",
+      "description": "Ticket or price option chosen"
+     },
+     {
+      "name": "feeAmount",
+      "type": "number",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "feeCurrency",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "discountAmount",
+      "type": "number",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "isPayLater",
+      "type": "boolean",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "registeredBy",
+      "type": "reference",
+      "classification": "personal-identity",
+      "description": "Person who registered on the participant's behalf",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "transferredTo",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "birthDate",
+      "type": "date",
+      "classification": "personal-identity",
+      "description": "Collected at registration to enforce age limits"
+     },
+     {
+      "name": "hoursWorked",
+      "type": "number",
+      "classification": "public",
+      "unit": "h"
+     },
+     {
+      "name": "autoAdded",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Regular added automatically before the day"
+     },
+     {
+      "name": "ticketTier",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "quantity",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "seats",
+      "type": "integer",
+      "classification": "public",
+      "description": "Spots this registration holds"
+     },
+     {
+      "name": "guestOfRegistration",
+      "type": "reference",
+      "classification": "public",
+      "description": "Buyer whose bundled seat this guest fills"
+     },
+     {
+      "name": "buyerNotAttending",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "amountDue",
+      "type": "number",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "amountPaid",
+      "type": "number",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "paymentStatus",
+      "type": "enum",
+      "classification": "personal-financial",
+      "values": [
+       "none",
+       "pending",
+       "paid",
+       "comp",
+       "refunded"
+      ]
+     },
+     {
+      "name": "paidAt",
+      "type": "datetime",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "paymentTransactionId",
+      "type": "string",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "publicRecognitionOptOut",
+      "type": "boolean",
+      "classification": "public",
+      "description": "List as anonymous on public rolls"
+     },
+     {
+      "name": "acknowledgedAt",
+      "type": "datetime",
+      "classification": "personal-financial",
+      "description": "Gift acknowledgement letter sent"
+     },
+     {
+      "name": "acknowledgedDeductible",
+      "type": "number",
+      "classification": "personal-financial"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "EventRegistration in src/types.ts, functions/src/acknowledgements.ts (deductible = paid - fair market value x seats)."
+   }
+  },
+  {
+   "context": "volunteer-engagement",
+   "conceptSlug": "group-volunteer-request",
+   "prefLabel": "Group Volunteer Request",
+   "altLabels": [
+    "Service day request",
+    "Corporate volunteer day request",
+    "Group visit inquiry"
+   ],
+   "definition": "An ask from a school, company, scout troop, faith or civic group to come do a service day, for one named place or open to any that fits: who they are and how many, ages, preferred dates and length, the kinds of work they want, and its handling from new through scheduled, declined or completed.",
+   "conceptKind": "workflow",
+   "broaderRoot": "workflow",
+   "broadMatch": [
+    "wd:Q188844"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "groupName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "contactName",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "contactEmail",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "contactPhone",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "groupType",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "school",
+       "corporate",
+       "scout",
+       "religious",
+       "civic",
+       "family",
+       "other"
+      ]
+     },
+     {
+      "name": "groupSize",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "ageRange",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "preferredDates",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "durationHours",
+      "type": "number",
+      "classification": "public",
+      "unit": "h"
+     },
+     {
+      "name": "activityInterests",
+      "type": "array",
+      "classification": "public",
+      "description": "cleanup, invasive-removal, planting, trail-work, education, gardening, flexible"
+     },
+     {
+      "name": "goals",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "site",
+      "type": "reference",
+      "classification": "public",
+      "description": "Place asked for; absent on an open request"
+     },
+     {
+      "name": "candidateSites",
+      "type": "array",
+      "classification": "public",
+      "description": "Shortlist on an open request"
+     },
+     {
+      "name": "areaPreference",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "placeKinds",
+      "type": "array",
+      "classification": "public",
+      "description": "trail, park, greenspace, garden"
+     },
+     {
+      "name": "openToOthers",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "new",
+       "contacted",
+       "scheduled",
+       "declined",
+       "completed",
+       "open",
+       "matched",
+       "closed"
+      ]
+     },
+     {
+      "name": "internalNotes",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "scheduledEvent",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "group",
+      "type": "reference",
+      "classification": "public",
+      "description": "Lasting relationship record for the group",
+      "refUri": "https://schemalattice.com/c/nonprofit-crm/constituent@61e9f07e19f2"
+     },
+     {
+      "name": "mergedInto",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "returningFromEvent",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "GroupRequest, OpenGroupRequestInput, OpenRequestBoardItem, GroupRequestType, GroupActivityInterest, GroupRequestStatus and OpenGroupRequestStatus in src/types.ts."
+   }
+  },
+  {
+   "context": "community-events",
+   "conceptSlug": "ticket-tier",
+   "prefLabel": "Event Ticket Tier",
+   "altLabels": [
+    "Ticket level",
+    "Sponsorship tier",
+    "Price option"
+   ],
+   "definition": "One priced option for attending a fundraiser or other ticketed gathering, such as a patron level or general admission, with fine print, price, whether several may be bought at once, how many people one unit admits and the fair market value of what each seat receives, so the deductible part of a gift can be stated.",
+   "conceptKind": "entity",
+   "broaderRoot": "concept",
+   "closeMatch": [
+    "schema:Offer"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "price",
+      "type": "number",
+      "classification": "public",
+      "unit": "USD"
+     },
+     {
+      "name": "allowMultiple",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "seatsIncluded",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "fairMarketValue",
+      "type": "number",
+      "classification": "public",
+      "description": "Value received per seat; deductible = paid - value x seats",
+      "unit": "USD"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://schema.org/Offer",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "TicketTier in src/types.ts; aligned with schema.org Offer (name, description, price, eligibleQuantity)."
+   }
+  },
+  {
+   "context": "nonprofit-finance",
+   "conceptSlug": "volunteer-expense-record",
+   "prefLabel": "Volunteer Expense Record",
+   "altLabels": [
+    "Out-of-pocket expense",
+    "Mileage claim",
+    "Receipt log"
+   ],
+   "definition": "A cost a volunteer leader paid personally for a group, logged by that person: purchase date, category, vendor or mileage and rate, the project or event it served, who is being asked to pay it back, and whether the money was confirmed received or the cost was given as an in-kind gift.",
+   "conceptKind": "transaction",
+   "broaderRoot": "transaction",
+   "forkOf": "https://schemalattice.com/c/nonprofit-finance/expense-reimbursement-request@213aa929a08e",
+   "changeset": {
+    "ops": [
+     {
+      "op": "add",
+      "field": "spentOn",
+      "type": "date",
+      "description": "Date of purchase"
+     },
+     {
+      "op": "add",
+      "field": "category",
+      "type": "enum"
+     },
+     {
+      "op": "add",
+      "field": "vendor",
+      "type": "string"
+     },
+     {
+      "op": "add",
+      "field": "miles",
+      "type": "number",
+      "unit": "mi"
+     },
+     {
+      "op": "add",
+      "field": "ratePerMile",
+      "type": "number",
+      "unit": "USD/mi"
+     },
+     {
+      "op": "add",
+      "field": "relatedProject",
+      "type": "reference"
+     },
+     {
+      "op": "add",
+      "field": "reimbursingParty",
+      "type": "string",
+      "description": "Who is asked to pay it back"
+     },
+     {
+      "op": "add",
+      "field": "paymentReference",
+      "type": "string"
+     },
+     {
+      "op": "add",
+      "field": "paymentConfirmed",
+      "type": "boolean",
+      "description": "Money actually received, distinct from paid"
+     },
+     {
+      "op": "add",
+      "field": "donatedInKind",
+      "type": "boolean",
+      "description": "Spender chose not to claim it; counts as an in-kind gift"
+     },
+     {
+      "op": "add",
+      "field": "statusChangedAt",
+      "type": "datetime"
+     }
+    ],
+    "note": "Volunteer-side ledger: adds purchase date, category, vendor, mileage, project, reimbursing party, payment reference, confirmation of receipt and in-kind donation."
+   },
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "payee",
+      "type": "reference",
+      "classification": "personal-identity",
+      "description": "Person to be paid",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "payToContact",
+      "type": "string",
+      "classification": "personal-financial",
+      "description": "Accounting-system contact to pay instead of the payee, e.g. their LLC"
+     },
+     {
+      "name": "amount",
+      "type": "number",
+      "classification": "personal-financial",
+      "description": "Total to be paid",
+      "unit": "USD"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "receipt",
+      "type": "url",
+      "classification": "personal-financial",
+      "description": "Receipt or other documentation"
+     },
+     {
+      "name": "relatedEvent",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Event or class the payment relates to"
+     },
+     {
+      "name": "expenseAccount",
+      "type": "string",
+      "classification": "internal",
+      "description": "General-ledger account code it posts to"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "draft",
+       "submitted",
+       "approved",
+       "paid",
+       "rejected"
+      ]
+     },
+     {
+      "name": "accountingBillId",
+      "type": "string",
+      "classification": "internal",
+      "description": "ID of the bill created in the accounting system"
+     },
+     {
+      "name": "submittedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "spentOn",
+      "type": "date",
+      "classification": "public",
+      "description": "Date of purchase"
+     },
+     {
+      "name": "category",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "materials",
+       "tools",
+       "plants",
+       "food",
+       "permits",
+       "mileage",
+       "other"
+      ]
+     },
+     {
+      "name": "vendor",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "miles",
+      "type": "number",
+      "classification": "public",
+      "unit": "mi"
+     },
+     {
+      "name": "ratePerMile",
+      "type": "number",
+      "classification": "public",
+      "unit": "USD/mi"
+     },
+     {
+      "name": "relatedProject",
+      "type": "reference",
+      "classification": "public"
+     },
+     {
+      "name": "reimbursingParty",
+      "type": "string",
+      "classification": "public",
+      "description": "Who is asked to pay it back"
+     },
+     {
+      "name": "paymentReference",
+      "type": "string",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "paymentConfirmed",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Money actually received, distinct from paid"
+     },
+     {
+      "name": "donatedInKind",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Spender chose not to claim it; counts as an in-kind gift"
+     },
+     {
+      "name": "statusChangedAt",
+      "type": "datetime",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/jrlogan/trail-team",
+    "authoredBy": [
+     "SchemaLattice trail-team deep pass"
+    ],
+    "sourceNotes": "Expense, ExpenseCategory and ExpenseStatus in src/types.ts."
+   }
+  }
+ ]
+}

@@ -1,0 +1,27 @@
+{
+ "contexts": [
+  {"slug": "deliberative-bodies", "title": "Deliberative Bodies",
+   "definition": "How boards, committees, councils, commissions and advisory groups do business together: their meetings and agendas, the motions they decide, and who attended. Narrower vocabularies (a nonprofit board, a city council) build on these."},
+  {"slug": "policies", "title": "Policies",
+   "definition": "The written rules an organization adopts for how it and its people act, such as a code of conduct, safety rules, membership terms or a conflict-of-interest policy, and the signatures by which people attest to a specific version."}
+ ],
+ "versions": [
+  {"old": "https://schemalattice.com/c/board-governance/board-meeting@979cdd51d9b5", "context": "deliberative-bodies", "slug": "meeting", "label": "Meeting",
+   "definition": "A convening of a board, committee, council or other deliberative body, regular, annual or special, held on notice, able to act only with a quorum present, and recorded in minutes the body later adopts."},
+  {"old": "https://schemalattice.com/c/board-governance/agenda-item@6513db3bf4cd", "context": "deliberative-bodies", "slug": "agenda-item", "label": "Agenda Item",
+   "definition": "One piece of business that a convening of a board, committee or council plans to take up (consent, decision, discussion, report or executive session) with the time allowed, the outcome sought, and whether it was completed, tabled after discussion or deferred unreached."},
+  {"old": "https://schemalattice.com/c/board-governance/motion@bf35863e004c", "context": "deliberative-bodies", "slug": "motion", "label": "Motion",
+   "definition": "A formal proposal put to a deliberative body under parliamentary procedure: the exact words, who moved and seconded them, how many members were present, the counts for and against, and whether it carried."},
+  {"old": "https://schemalattice.com/c/board-governance/board-attendance-record@bf6f8e572a2e", "context": "deliberative-bodies", "slug": "meeting-attendance-record", "label": "Meeting Attendance Record",
+   "definition": "Whether one member or guest was present, remote, late, absent or excused at one convening of a board, committee or council, and when they arrived or left early: what quorum at each vote and a member's attendance standing are counted from."},
+  {"old": "https://schemalattice.com/c/board-governance/organizational-policy@91e4542cae58", "context": "policies", "slug": "organizational-policy", "label": "Organizational Policy",
+   "definition": "A written rule an organization has adopted to guide how it and its people act, such as a safety rule, membership terms, a code of conduct or a financial control, kept as a versioned document with a category, a canonical source, when and where it was adopted and when it is due for review.",
+   "addFields": [
+     {"name": "adoptedDate", "type": "date", "classification": "public"},
+     {"name": "adoptedAtMeeting", "type": "reference", "classification": "public", "refUri": "https://schemalattice.com/c/board-governance/board-meeting@979cdd51d9b5", "description": "The meeting whose vote adopted this version"},
+     {"name": "reviewDueDate", "type": "date", "classification": "public"}]},
+  {"old": "https://schemalattice.com/c/board-governance/policy-attestation@6ad642d21818", "context": "policies", "slug": "policy-attestation", "label": "Policy Attestation",
+   "definition": "A person's signature to one version of a policy their organization adopted, such as a director's conflict-of-interest disclosure or a member's safety agreement, with the disclosures it asks for. It attests to specific words, so a new version needs a new signature. Not a build-time data-governance check.",
+   "addFields": [{"name": "statement", "type": "string", "classification": "public", "description": "The exact words the person signed"}]}
+ ]
+}

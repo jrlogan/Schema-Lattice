@@ -1,0 +1,1766 @@
+{
+ "contexts": [
+  {
+   "slug": "deliberative-bodies",
+   "title": "Deliberative bodies",
+   "definition": "How any body that meets and decides together (a nonprofit board, a council or commission, an advisory group, an association's members, or a committee of any of these) is organized: its committees and who sits on them, the numbers its bylaws or charter set, what is asked for an agenda, what is minuted and the follow-ups a meeting assigns. Board-only matters stay in board-governance; government lawmaking stays in civic-legislation."
+  }
+ ],
+ "concepts": [
+  {
+   "context": "deliberative-bodies",
+   "conceptSlug": "committee",
+   "prefLabel": "Committee",
+   "altLabels": [
+    "Standing Committee",
+    "Ad Hoc Committee",
+    "Task Force",
+    "Working Group"
+   ],
+   "definition": "A smaller group a board, council or assembly sets up under a written charter to do part of its work, either standing or ad hoc with a sunset date, with a chair, often a staff lead, members who may include people who are not on the parent body, and a meeting cadence. It recommends, or decides only what has been delegated to it.",
+   "conceptKind": "agent",
+   "broaderRoot": "organization",
+   "closeMatch": [
+    "wd:Q865588"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "parentBody",
+      "type": "reference",
+      "classification": "public",
+      "description": "The board, council or assembly it reports to",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "committeeType",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "standing",
+       "ad_hoc"
+      ]
+     },
+     {
+      "name": "charter",
+      "type": "string",
+      "classification": "internal",
+      "description": "The mandate as the parent body adopted it"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "publicPurpose",
+      "type": "string",
+      "classification": "public",
+      "description": "Purpose as published for the public"
+     },
+     {
+      "name": "chair",
+      "type": "reference",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "staffLead",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Staff member supporting the committee, distinct from the chair",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "members",
+      "type": "array",
+      "classification": "internal",
+      "description": "Members who also hold an account or seat",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "externalMembers",
+      "type": "array",
+      "classification": "personal-contact",
+      "description": "Members with no seat on the parent body: name, affiliation, email, public opt-in"
+     },
+     {
+      "name": "cadence",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "monthly",
+       "quarterly",
+       "annually",
+       "as_needed"
+      ]
+     },
+     {
+      "name": "planUrl",
+      "type": "url",
+      "classification": "internal"
+     },
+     {
+      "name": "documentsUrl",
+      "type": "url",
+      "classification": "internal"
+     },
+     {
+      "name": "chatChannel",
+      "type": "string",
+      "classification": "internal",
+      "description": "Where the committee talks, e.g. a Slack channel"
+     },
+     {
+      "name": "groupEmail",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "focusAreas",
+      "type": "array",
+      "classification": "public",
+      "description": "Current areas of work, each with a self-named period"
+     },
+     {
+      "name": "openToNewMembers",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "showPublicly",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "chairAppointsMembersAuthority",
+      "type": "string",
+      "classification": "internal",
+      "description": "Citation of the power letting the chair appoint members, when delegated"
+     },
+     {
+      "name": "attendancePolicy",
+      "type": "object",
+      "classification": "internal",
+      "description": "maxConsecutiveAbsences, countExcused, source"
+     },
+     {
+      "name": "sunsetDate",
+      "type": "date",
+      "classification": "public",
+      "description": "Required for ad hoc committees"
+     },
+     {
+      "name": "active",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interface Committee (orgs/{orgId}/committees). Standing vs ad hoc and charter follow Robert's Rules practice; parent body and classification follow Popolo Organization (classification \"committee\", parent organization).",
+    "importedFrom": "https://www.popoloproject.com/specs/organization.html"
+   }
+  },
+  {
+   "context": "deliberative-bodies",
+   "conceptSlug": "body-member",
+   "prefLabel": "Body Member",
+   "altLabels": [
+    "Board Member",
+    "Director",
+    "Council Member",
+    "Trustee",
+    "Roster Entry",
+    "Seat Holder"
+   ],
+   "definition": "One person's current place on the roster of a board, council or commission: the offices they hold, whether they vote and count toward quorum, their standing from invited through active to resigned or removed, and, where seats belong to organizations, which organization they represent. Dated spans of service are kept separately as terms.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "broadMatch": [
+    "wd:Q60844538",
+    "schema:OrganizationRole"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "person",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "body",
+      "type": "reference",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "email",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "contactEmail",
+      "type": "string",
+      "classification": "personal-contact",
+      "description": "Address for papers, when different from the sign-in address"
+     },
+     {
+      "name": "phone",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "roles",
+      "type": "array",
+      "classification": "public",
+      "description": "Offices and roles held",
+      "values": [
+       "chair",
+       "vice_chair",
+       "secretary",
+       "treasurer",
+       "director",
+       "executive_director",
+       "staff_admin",
+       "committee_member",
+       "observer"
+      ]
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "invited",
+       "active",
+       "emeritus",
+       "resigned",
+       "removed"
+      ]
+     },
+     {
+      "name": "votingMember",
+      "type": "boolean",
+      "classification": "public",
+      "description": "False for ex officio non-voting members such as the executive director; excluded from quorum"
+     },
+     {
+      "name": "joinDate",
+      "type": "date",
+      "classification": "public",
+      "description": "First date on the body across all terms"
+     },
+     {
+      "name": "onBehalfOf",
+      "type": "reference",
+      "classification": "public",
+      "description": "The organization whose seat this person fills, when seats belong to organizations",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "seatRole",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "primary",
+       "alternate"
+      ]
+     },
+     {
+      "name": "publicTitle",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "occupation",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "employer",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "affiliations",
+      "type": "array",
+      "classification": "internal",
+      "description": "Communities and constituencies the member brings"
+     },
+     {
+      "name": "externalIds",
+      "type": "object",
+      "classification": "internal",
+      "description": "Identifiers in other systems keyed by provider, e.g. a CRM contact id"
+     },
+     {
+      "name": "showPublicly",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Explicit opt-in to the public roster"
+     },
+     {
+      "name": "publicBio",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "publicUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "coRefersRationale": "Contact Relationship (nonprofit-crm) can say \"board member of\" with dates and Elected Official (civic-legislation) is a person holding an elected public seat; neither carries offices, voting status or the organization represented, and neither covers appointed or ex officio members.",
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interface Member (orgs/{orgId}/members) and Seat; shape follows Popolo Membership (member, organization, role, on behalf of, start date).",
+    "importedFrom": "https://www.popoloproject.com/specs/membership.html"
+   }
+  },
+  {
+   "context": "deliberative-bodies",
+   "conceptSlug": "committee-appointment",
+   "prefLabel": "Committee Appointment",
+   "altLabels": [
+    "Appointment Act",
+    "Committee Assignment",
+    "Committee Removal"
+   ],
+   "definition": "A dated act by someone with authority that changes who serves on a committee: appointing or removing a member, appointing or ending a chair, or excusing absences. It names who acted and the bylaw clause or delegation that gave them the power, and is never edited; the current roster is derived from these acts.",
+   "conceptKind": "event",
+   "broaderRoot": "event",
+   "broadMatch": [
+    "wd:Q1318578"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "committee",
+      "type": "reference",
+      "classification": "internal",
+      "description": "The Committee concept"
+     },
+     {
+      "name": "member",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "act",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "appointed",
+       "removed",
+       "chair_appointed",
+       "chair_ended",
+       "waived"
+      ]
+     },
+     {
+      "name": "actedBy",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Who performed the act",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "authority",
+      "type": "string",
+      "classification": "internal",
+      "description": "The power relied on, e.g. a bylaw section or delegation"
+     },
+     {
+      "name": "effectiveDate",
+      "type": "date",
+      "classification": "internal"
+     },
+     {
+      "name": "reason",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "recordedAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interface CommitteeAppointment (orgs/{orgId}/committees/{id}/appointments) and src/governance/committeeAppointments.ts.",
+    "importedFrom": "https://www.popoloproject.com/specs/membership.html"
+   }
+  },
+  {
+   "context": "deliberative-bodies",
+   "conceptSlug": "action-item",
+   "prefLabel": "Action Item",
+   "altLabels": [
+    "Follow-up",
+    "Meeting Action",
+    "Commitment"
+   ],
+   "definition": "A commitment a meeting assigns to one owner with an optional due date, traced to the meeting and agenda item it came from and reviewed at later meetings, where each report (done, moving, stuck or dropped) is appended so a history of slippage survives. Not a general task tracker.",
+   "conceptKind": "workflow",
+   "broaderRoot": "workflow",
+   "closeMatch": [
+    "wd:Q57894677"
+   ],
+   "broadMatch": [
+    "wd:Q759676"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "text",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "owner",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "dueDate",
+      "type": "date",
+      "classification": "internal"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "open",
+       "in_progress",
+       "done",
+       "dropped"
+      ]
+     },
+     {
+      "name": "originMeeting",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/deliberative-bodies/meeting@fb0025907091"
+     },
+     {
+      "name": "originAgendaItem",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/deliberative-bodies/agenda-item@9d940aa81e51"
+     },
+     {
+      "name": "committee",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Committee whose list it is on"
+     },
+     {
+      "name": "source",
+      "type": "string",
+      "classification": "internal",
+      "description": "Where it came from when not a recorded meeting"
+     },
+     {
+      "name": "updates",
+      "type": "array",
+      "classification": "internal",
+      "description": "Appended follow-up reports: meeting, outcome (done, moving, stuck, dropped), note, recordedOn, via"
+     },
+     {
+      "name": "completedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interfaces ActionItem and ActionUpdate (orgs/{orgId}/actionItems) and src/governance/followUp.ts."
+   }
+  },
+  {
+   "context": "deliberative-bodies",
+   "conceptSlug": "meeting-minutes",
+   "prefLabel": "Meeting Minutes",
+   "altLabels": [
+    "Minutes",
+    "Executive Session Minutes",
+    "Record of Proceedings"
+   ],
+   "definition": "The written record of what a body did at one meeting, drafted from its agenda, attendance and motions, then approved at a later meeting, when the approved text is frozen with a hash. A closed or executive session is minuted separately with its purpose, who stepped out and what was reported out.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "closeMatch": [
+    "wd:Q2085515"
+   ],
+   "broadMatch": [
+    "schema:DigitalDocument"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "meeting",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/deliberative-bodies/meeting@fb0025907091"
+     },
+     {
+      "name": "session",
+      "type": "enum",
+      "classification": "internal",
+      "description": "Open-session record or the confidential executive-session record",
+      "values": [
+       "open",
+       "executive"
+      ]
+     },
+     {
+      "name": "body",
+      "type": "string",
+      "classification": "internal",
+      "description": "Working text, Markdown"
+     },
+     {
+      "name": "generatedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "editedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "editedBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "adoptedBody",
+      "type": "string",
+      "classification": "internal",
+      "description": "Text as approved, frozen at adoption"
+     },
+     {
+      "name": "adoptedBodyHash",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "adoptedAtMeeting",
+      "type": "reference",
+      "classification": "internal",
+      "description": "The later meeting that approved them",
+      "refUri": "https://schemalattice.com/c/deliberative-bodies/meeting@fb0025907091"
+     },
+     {
+      "name": "adoptedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "adoptedBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "externalDocumentUrl",
+      "type": "url",
+      "classification": "internal",
+      "description": "Archived copy, e.g. a Google Doc"
+     },
+     {
+      "name": "sessionPurpose",
+      "type": "string",
+      "classification": "confidential",
+      "description": "Executive session: why the body went into session"
+     },
+     {
+      "name": "enteredAt",
+      "type": "datetime",
+      "classification": "confidential"
+     },
+     {
+      "name": "returnedAt",
+      "type": "datetime",
+      "classification": "confidential"
+     },
+     {
+      "name": "steppedOut",
+      "type": "array",
+      "classification": "confidential",
+      "description": "Executive session: who left the room"
+     },
+     {
+      "name": "reportOut",
+      "type": "string",
+      "classification": "internal",
+      "description": "What was announced on returning to open session"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interfaces Minutes (meetings/{id}/minutes/current) and ExecutiveSessionRecord (meetings/{id}/executiveSession), src/governance/minutes.ts and executiveMinutes.ts."
+   }
+  },
+  {
+   "context": "deliberative-bodies",
+   "conceptSlug": "agenda-request",
+   "prefLabel": "Agenda Request",
+   "altLabels": [
+    "Topic Suggestion",
+    "Agenda Topic Proposal",
+    "Referral to the Board"
+   ],
+   "definition": "A matter someone asks a body to take up at a future meeting, with background, the decision sought and an estimated time, proposed by a member, a committee, a referred committee motion or an outside collaborator. It waits in a queue every member can see until scheduled onto an agenda, deferred or declined with a reason.",
+   "conceptKind": "workflow",
+   "broaderRoot": "workflow",
+   "broadMatch": [
+    "wd:Q1758159"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "internal",
+      "description": "Background"
+     },
+     {
+      "name": "desiredOutcome",
+      "type": "string",
+      "classification": "internal",
+      "description": "The action requested, in one sentence"
+     },
+     {
+      "name": "links",
+      "type": "array",
+      "classification": "internal",
+      "description": "Papers: label and url"
+     },
+     {
+      "name": "suggestedType",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "procedural",
+       "consent",
+       "decision",
+       "discussion",
+       "generative",
+       "report",
+       "executive_session"
+      ]
+     },
+     {
+      "name": "estimatedMinutes",
+      "type": "integer",
+      "classification": "internal",
+      "unit": "min"
+     },
+     {
+      "name": "proposedBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "proposedByCommittee",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Committee bringing it"
+     },
+     {
+      "name": "sourceMotion",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Committee motion referred up",
+      "refUri": "https://schemalattice.com/c/deliberative-bodies/motion@72463752a1e7"
+     },
+     {
+      "name": "sourceGrantApplication",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Shared grant record it came from",
+      "refUri": "https://schemalattice.com/c/grantmaking/grant-application@5d6b9626bd62"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "proposed",
+       "scheduled",
+       "deferred",
+       "declined",
+       "discussed"
+      ]
+     },
+     {
+      "name": "statusReason",
+      "type": "string",
+      "classification": "internal",
+      "description": "Required when deferred or declined"
+     },
+     {
+      "name": "targetMeeting",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/deliberative-bodies/meeting@fb0025907091"
+     },
+     {
+      "name": "agendaItem",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/deliberative-bodies/agenda-item@9d940aa81e51"
+     },
+     {
+      "name": "triagedBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "triagedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interface TopicSuggestion (orgs/{orgId}/topics), src/services/topics.ts and the grant module hand-off in src/services/grants.ts grantToTopic."
+   }
+  },
+  {
+   "context": "deliberative-bodies",
+   "conceptSlug": "bylaw-parameters",
+   "prefLabel": "Bylaw Parameters",
+   "altLabels": [
+    "Bylaw Settings",
+    "Governing Rules Profile",
+    "Quorum and Term Rules"
+   ],
+   "definition": "The numbers and switches a body's bylaws or charter set, as one record a tool can enforce: authorized size range and target, how quorum is computed, term length, consecutive-term limit and cooling-off, staggered classes, notice days per meeting kind, the absence count that triggers a consequence, and whether seats are held by people or organizations.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "broadMatch": [
+    "wd:Q679847"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "body",
+      "type": "reference",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "bodyType",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "governing",
+       "advisory",
+       "public_body"
+      ]
+     },
+     {
+      "name": "membershipBasis",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "individual",
+       "organizational"
+      ]
+     },
+     {
+      "name": "sizeMin",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "sizeMax",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "sizeTarget",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "quorumRule",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "majority_in_office",
+       "majority_of_authorized",
+       "fixed_count",
+       "fraction_in_office",
+       "fraction_of_authorized"
+      ]
+     },
+     {
+      "name": "quorumCount",
+      "type": "integer",
+      "classification": "public",
+      "description": "For fixed_count"
+     },
+     {
+      "name": "quorumNumerator",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "quorumDenominator",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "termLengthYears",
+      "type": "integer",
+      "classification": "public",
+      "unit": "a"
+     },
+     {
+      "name": "termLimit",
+      "type": "integer",
+      "classification": "public",
+      "description": "Consecutive terms before a required break; 0 = none"
+     },
+     {
+      "name": "termLimitCoolingOffYears",
+      "type": "integer",
+      "classification": "public",
+      "unit": "a"
+     },
+     {
+      "name": "officersExemptFromTermLimit",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "termClasses",
+      "type": "integer",
+      "classification": "public",
+      "description": "Staggered classes; 1 = none"
+     },
+     {
+      "name": "noticeDaysRegular",
+      "type": "integer",
+      "classification": "public",
+      "unit": "d"
+     },
+     {
+      "name": "noticeDaysSpecial",
+      "type": "integer",
+      "classification": "public",
+      "unit": "d"
+     },
+     {
+      "name": "noticeDaysAnnual",
+      "type": "integer",
+      "classification": "public",
+      "unit": "d"
+     },
+     {
+      "name": "noticeDaysAmendment",
+      "type": "integer",
+      "classification": "public",
+      "unit": "d"
+     },
+     {
+      "name": "maxUnexcusedAbsences",
+      "type": "integer",
+      "classification": "public",
+      "description": "Per year before the bylaws attach a consequence; 0 = none"
+     },
+     {
+      "name": "fiscalYearStartMonth",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "officerTitles",
+      "type": "object",
+      "classification": "public",
+      "description": "What this body calls each office"
+     },
+     {
+      "name": "committeeAppointingAuthority",
+      "type": "string",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interfaces OrgSettings, QuorumRule and BoardType (orgs/{orgId}.settings), enforced in src/governance/bylaws.ts and quorum.ts; this is the target of the bylaw_setting Governance Claim Kind."
+   }
+  },
+  {
+   "context": "board-governance",
+   "conceptSlug": "written-consent",
+   "prefLabel": "Written Consent",
+   "altLabels": [
+    "Unanimous Written Consent",
+    "Action Without a Meeting",
+    "Written Resolution"
+   ],
+   "definition": "A resolution a board adopts without meeting, by circulating its exact text to every director then in office and collecting their electronic signatures. Most US nonprofit statutes require all of them, so the eligible directors and the text are frozen at circulation, and it is later reported into a meeting's minutes.",
+   "conceptKind": "event",
+   "broaderRoot": "event",
+   "broadMatch": [
+    "wd:Q2751586"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "resolutionText",
+      "type": "string",
+      "classification": "internal",
+      "description": "The RESOLVED clause, frozen once circulated"
+     },
+     {
+      "name": "background",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "draft",
+       "circulated",
+       "adopted",
+       "failed",
+       "withdrawn"
+      ]
+     },
+     {
+      "name": "requiresUnanimous",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "eligibleMembers",
+      "type": "array",
+      "classification": "internal",
+      "description": "Directors in office at circulation",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "circulatedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "circulatedBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "effectiveAt",
+      "type": "datetime",
+      "classification": "internal",
+      "description": "When the last required signature landed"
+     },
+     {
+      "name": "expiresAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "reportedAtMeeting",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/deliberative-bodies/meeting@fb0025907091"
+     },
+     {
+      "name": "reportedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "signatures",
+      "type": "array",
+      "classification": "personal-identity",
+      "description": "Per director: action (signed, declined, revoked), typed name, statement and resolution as shown, time, decline reason, revokedAt"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "createdBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interfaces WrittenConsent and ConsentSignature (orgs/{orgId}/writtenConsents/{id}/signatures) and src/governance/writtenConsent.ts; signature evidence follows the US ESIGN Act simple electronic signature."
+   }
+  },
+  {
+   "context": "board-governance",
+   "conceptSlug": "delegation-of-authority",
+   "prefLabel": "Delegation of Authority",
+   "altLabels": [
+    "Delegated Power",
+    "Authority Matrix Entry",
+    "Reserved Power"
+   ],
+   "definition": "One statement in an organization's register of who may decide what: a power the board keeps for itself or hands to a committee, an officer or the executive director, in the literal words adopted, with any spending cap or condition and the bylaw, resolution or policy it rests on. Suggested wording stays unadopted until the board adopts it.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "broadMatch": [
+    "wd:Q1184065"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "holderKind",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "board",
+       "committee",
+       "officer",
+       "executive_director"
+      ]
+     },
+     {
+      "name": "holderCommittee",
+      "type": "reference",
+      "classification": "internal",
+      "description": "When held by a committee"
+     },
+     {
+      "name": "holderOffice",
+      "type": "string",
+      "classification": "internal",
+      "description": "When held by an officer"
+     },
+     {
+      "name": "statement",
+      "type": "string",
+      "classification": "internal",
+      "description": "The literal statement as adopted"
+     },
+     {
+      "name": "limits",
+      "type": "string",
+      "classification": "internal",
+      "description": "Cap or condition"
+     },
+     {
+      "name": "sourceKind",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "bylaws",
+       "resolution",
+       "policy",
+       "undocumented"
+      ]
+     },
+     {
+      "name": "sourceReference",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "sourceAdoptedDate",
+      "type": "date",
+      "classification": "internal"
+     },
+     {
+      "name": "adopted",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "adoptedDate",
+      "type": "date",
+      "classification": "internal"
+     },
+     {
+      "name": "order",
+      "type": "integer",
+      "classification": "internal"
+     },
+     {
+      "name": "active",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interfaces Delegation, AuthorityHolder and AuthoritySource (orgs/{orgId}/delegations) and src/governance/policyAuthority.ts."
+   }
+  },
+  {
+   "context": "board-governance",
+   "conceptSlug": "governance-document",
+   "prefLabel": "Governance Document",
+   "altLabels": [
+    "Governing Document",
+    "Board Document Checklist Entry",
+    "Corporate Record"
+   ],
+   "definition": "One of the documents an organization's board is answerable for, such as articles, bylaws, IRS determination letter, a board-adopted policy, budget, audit or Form 990, held as a file or link with its version, the date and meeting that adopted it, when it is due for review, who may change it and how far it may be shared.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "broadMatch": [
+    "wd:Q49848",
+    "schema:DigitalDocument"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "documentType",
+      "type": "string",
+      "classification": "internal",
+      "description": "Checklist slot, e.g. bylaws, conflict_of_interest_policy, form_990"
+     },
+     {
+      "name": "category",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "formation",
+       "policy",
+       "financial",
+       "operating",
+       "record"
+      ]
+     },
+     {
+      "name": "fileName",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "contentType",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "sizeBytes",
+      "type": "integer",
+      "classification": "internal",
+      "unit": "By"
+     },
+     {
+      "name": "externalUrl",
+      "type": "url",
+      "classification": "internal"
+     },
+     {
+      "name": "version",
+      "type": "integer",
+      "classification": "internal"
+     },
+     {
+      "name": "adoptedDate",
+      "type": "date",
+      "classification": "internal"
+     },
+     {
+      "name": "adoptedAtMeeting",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/deliberative-bodies/meeting@fb0025907091"
+     },
+     {
+      "name": "reviewDueDate",
+      "type": "date",
+      "classification": "internal"
+     },
+     {
+      "name": "visibility",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "board",
+       "officers",
+       "committees",
+       "members",
+       "public"
+      ]
+     },
+     {
+      "name": "changeAuthority",
+      "type": "enum",
+      "classification": "internal",
+      "description": "Who may change it",
+      "values": [
+       "staff",
+       "committee",
+       "board"
+      ]
+     },
+     {
+      "name": "authorityCommittee",
+      "type": "reference",
+      "classification": "internal"
+     },
+     {
+      "name": "maintainedBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "sections",
+      "type": "array",
+      "classification": "internal",
+      "description": "Named places in the document: label and url"
+     },
+     {
+      "name": "endorsements",
+      "type": "array",
+      "classification": "internal",
+      "description": "Bodies that endorsed a version without authority to adopt it"
+     },
+     {
+      "name": "uploadedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "uploadedBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     }
+    ]
+   },
+   "coRefersRationale": "Overlaps Organizational Policy only for policy-category documents; this also covers articles, bylaws, determination letters, budgets, audits and Form 990, and records adoption, review and change authority, which Organizational Policy does not.",
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interfaces GovernanceDocument and DocumentEndorsement (orgs/{orgId}/documents) and the DOCUMENT_CHECKLIST slots in src/governance/prescription.ts (drawn from IRS Form 990 Part VI questions)."
+   }
+  },
+  {
+   "context": "board-governance",
+   "conceptSlug": "board-candidate",
+   "prefLabel": "Board Candidate",
+   "altLabels": [
+    "Nominee",
+    "Board Prospect",
+    "Director Candidate"
+   ],
+   "definition": "A person being considered for a seat on a board in a nomination cycle: who nominated them and why, the skills and networks they offer, their questionnaire answers, the governance committee's private review notes, and where they stand from nominated through interview and slate to elected, not elected or withdrawn.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "broadMatch": [
+    "wd:Q618536"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "email",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "phone",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "bio",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "nominationCycle",
+      "type": "reference",
+      "classification": "internal",
+      "description": "The cycle: seats available, window, election meeting"
+     },
+     {
+      "name": "skillsOffered",
+      "type": "array",
+      "classification": "internal"
+     },
+     {
+      "name": "skillRatings",
+      "type": "object",
+      "classification": "internal",
+      "description": "Self-rated proficiency by skill: expert, advanced, common, none"
+     },
+     {
+      "name": "caseInFavor",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "link",
+      "type": "url",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "networks",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "committeeInterest",
+      "type": "array",
+      "classification": "internal",
+      "description": "Committees they would serve on"
+     },
+     {
+      "name": "membershipStatus",
+      "type": "string",
+      "classification": "internal",
+      "description": "Relationship to the organization"
+     },
+     {
+      "name": "memberVoteConsent",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "yes",
+       "no",
+       "discuss"
+      ]
+     },
+     {
+      "name": "missionInterest",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "demographics",
+      "type": "object",
+      "classification": "personal-identity",
+      "description": "Self-reported, shown only in aggregate"
+     },
+     {
+      "name": "nominatedBy",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "incumbent",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Set when a sitting director stands again",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "stage",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "nominated",
+       "questionnaire_sent",
+       "questionnaire_returned",
+       "interviewed",
+       "on_slate",
+       "declined",
+       "withdrawn"
+      ]
+     },
+     {
+      "name": "reviewNotes",
+      "type": "string",
+      "classification": "confidential"
+     },
+     {
+      "name": "onSlate",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "outcome",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "elected",
+       "not_elected",
+       "withdrawn",
+       "pending"
+      ]
+     },
+     {
+      "name": "questionnaireReturnedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "createdAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interfaces Candidate, CandidateDemographics and NominationCycle (orgs/{orgId}/nominationCycles/{id}/candidates) and BOARD_SKILLS in src/governance/composition.ts."
+   }
+  },
+  {
+   "context": "board-governance",
+   "conceptSlug": "executive-director-evaluation",
+   "prefLabel": "Executive Director Evaluation",
+   "altLabels": [
+    "CEO Performance Review",
+    "Chief Executive Evaluation",
+    "ED Review"
+   ],
+   "definition": "A board's yearly appraisal of the chief executive it employs: the goals and headings agreed at the start, the executive's own account, anonymous ratings from directors, the committee's written summary delivered at a meeting, and next year's goals, with any pay decision kept apart from the review.",
+   "conceptKind": "workflow",
+   "broaderRoot": "workflow",
+   "broadMatch": [
+    "wd:Q1430184"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "periodLabel",
+      "type": "string",
+      "classification": "internal",
+      "description": "e.g. FY2026"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "framing",
+       "self_evaluation",
+       "feedback",
+       "compiling",
+       "delivered",
+       "closed"
+      ]
+     },
+     {
+      "name": "executive",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "reviewers",
+      "type": "array",
+      "classification": "internal",
+      "description": "Committee compiling the review",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "headings",
+      "type": "array",
+      "classification": "internal",
+      "description": "Rated areas: key, label, description"
+     },
+     {
+      "name": "goals",
+      "type": "array",
+      "classification": "confidential"
+     },
+     {
+      "name": "goalsSource",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "selfQuestions",
+      "type": "array",
+      "classification": "internal"
+     },
+     {
+      "name": "closingQuestions",
+      "type": "array",
+      "classification": "internal"
+     },
+     {
+      "name": "showSelfEvaluationToDirectors",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "selfEvaluationOpenedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "feedbackOpenedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "feedbackClosedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "deliveredAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "deliveredAtMeeting",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/deliberative-bodies/meeting@fb0025907091"
+     },
+     {
+      "name": "closedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "summary",
+      "type": "string",
+      "classification": "confidential",
+      "description": "The committee's written evaluation"
+     },
+     {
+      "name": "nextGoals",
+      "type": "array",
+      "classification": "confidential"
+     },
+     {
+      "name": "compensationDecision",
+      "type": "string",
+      "classification": "personal-financial",
+      "description": "Decided and stored apart from the summary"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interfaces EdEvaluationCycle, EdEvaluationSummary and EdCompensationDecision (orgs/{orgId}/edEvaluations/{id}, private/summary, private/compensation) and src/governance/edEvaluation.ts."
+   }
+  },
+  {
+   "context": "board-governance",
+   "conceptSlug": "board-giving-record",
+   "prefLabel": "Board Giving Record",
+   "altLabels": [
+    "Director Giving",
+    "Give or Get Record",
+    "Board Participation in Giving"
+   ],
+   "definition": "Whether one director gave to the organization in a fiscal year, the participation figure funders ask about, with an optional separately-protected amount and the non-cash fundraising they did, such as asking others or thanking donors, plus whether the row came from a CRM import.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "broadMatch": [
+    "wd:Q1161355"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "director",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "fiscalYear",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "gave",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "amount",
+      "type": "number",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "askedOthers",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "thankedDonors",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "note",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "source",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "manual",
+       "import"
+      ]
+     },
+     {
+      "name": "sourceSystem",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "giftCount",
+      "type": "integer",
+      "classification": "internal"
+     },
+     {
+      "name": "importedAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "updatedAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "coRefersRationale": "Donation (nonprofit-crm) is one gift; this is a director-year participation summary that may be derived from many gifts or from none (asks and thank-yous count).",
+   "sourceAttribution": {
+    "authoredBy": [
+     "JR Logan (Governance Dance)",
+     "SchemaLattice governance-dance deep pass"
+    ],
+    "sourceNotes": "Fields from Governance Dance src/types.ts interface GivingRecord (orgs/{orgId}/giving/{memberId}_{fiscalYear}) and src/governance/givingImport.ts."
+   }
+  }
+ ]
+}
