@@ -366,6 +366,9 @@ async function main() {
   const atlasPageRes = await fetch(`${http.url}/atlas`);
   const atlasHtml = await atlasPageRes.text();
   check("atlas-page", atlasPageRes.status === 200 && atlasHtml.includes("/atlas.json") && atlasHtml.includes('id="lens"'));
+  const atlasAny = atlas as unknown as { concepts: Array<{ pc: number[]; rootAncestor: string | null }>; layoutQuality: { meaning: number; pca: number } };
+  check("atlas-views-data", atlasAny.concepts.every((c) => c.pc.length >= 2 && c.pc.every(Number.isFinite) && c.rootAncestor) &&
+    atlasAny.layoutQuality.meaning > 0, JSON.stringify(atlasAny.layoutQuality));
   check("atlas-lists-apps", Array.isArray((atlas as unknown as { apps: unknown }).apps));
   const anonPropose = await fetch(`${http.url}/api/tools/lattice_propose_source`, {
     method: "POST", headers: { "content-type": "application/json" },

@@ -324,7 +324,8 @@ planning an integration with a person, offer them the page
 work involved before any code is written. To show where an app sits in
 the whole catalog, link `https://schemalattice.com/atlas?focus=app:<slug>`
 (add `&with=<other-slug>` to compare two apps, or use `focus=ctx:<context>`,
-`focus=place:<jurisdiction>`, or `q=<text>`). The steps below are how to go
+`focus=place:<jurisdiction>`, or `q=<text>`; `view=lineage`, `view=time` or
+`view=turn` lays the map out by family, by arrival, or turns it). The steps below are how to go
 deeper on any one connection.
 
 If the user brings in a second project and wants them to interop:
