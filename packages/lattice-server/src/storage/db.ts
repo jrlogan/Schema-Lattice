@@ -104,6 +104,44 @@ export class Store {
     return this.readBlob<ConceptRecord>(row.blob_path);
   }
 
+  /** The record that names this one as its previousVersion, if any. */
+  newerVersionOf(uri: string): string | null {
+    const row = this.db
+      .prepare("SELECT from_uri FROM relations WHERE to_uri = ? AND relation = 'previousVersion' LIMIT 1")
+      .get(uri) as { from_uri: string } | undefined;
+    return row?.from_uri ?? null;
+  }
+
+  /** Follow previousVersion links forward to the current version (itself when current). */
+  latestVersionOf(uri: string): string {
+    let current = uri;
+    for (let i = 0; i < 100; i++) {
+      const next = this.newerVersionOf(current);
+      if (!next) return current;
+      current = next;
+    }
+    return current;
+  }
+
+  /** Every concept that a newer version has replaced. */
+  supersededUris(): Set<string> {
+    const rows = this.db
+      .prepare("SELECT DISTINCT to_uri FROM relations WHERE relation = 'previousVersion'")
+      .all() as Array<{ to_uri: string }>;
+    return new Set(rows.map((r) => r.to_uri));
+  }
+
+  /** Who published a concept: the actor on its fork or publish event. */
+  publisherOf(uri: string): string | null {
+    const row = this.db
+      .prepare(
+        `SELECT actor FROM events WHERE kind IN ('fork', 'published') AND json_extract(payload, '$.uri') = ? AND actor IS NOT NULL
+         ORDER BY CASE kind WHEN 'fork' THEN 0 ELSE 1 END, id LIMIT 1`,
+      )
+      .get(uri) as { actor: string } | undefined;
+    return row?.actor ?? null;
+  }
+
   hasConcept(uri: string): boolean {
     const row = this.db
       .prepare("SELECT 1 AS ok FROM concepts WHERE uri = ?")
@@ -169,6 +207,9 @@ export class Store {
       }
       if (args.record.forkedFrom) {
         relInsert.run(args.uri, args.record.forkedFrom, "forkedFrom");
+      }
+      if (args.record.previousVersion) {
+        relInsert.run(args.uri, args.record.previousVersion as string, "previousVersion");
       }
     });
     tx();

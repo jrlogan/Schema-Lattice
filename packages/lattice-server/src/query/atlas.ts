@@ -79,7 +79,10 @@ async function rebuild(instance: LatticeInstance, totals: string): Promise<Atlas
   for (const s of sources) for (const c of s.concepts) sourceCount.set(c.conceptUri, (sourceCount.get(c.conceptUri) ?? 0) + 1);
 
   const kept: Array<{ row: (typeof rows)[number]; record: ConceptRecord; vec: Float32Array }> = [];
+  // The map shows the catalog as it stands: a replaced version gives way to its successor.
+  const superseded = instance.store.supersededUris();
   for (const row of rows) {
+    if (superseded.has(row.uri)) continue;
     const record = instance.store.getConcept(row.uri);
     const vec = instance.vectors.vectorOf(row.uri);
     if (!record || !vec || record.inScheme === reserved) continue;

@@ -41,6 +41,13 @@ export interface PublishConceptInput {
   sessionId?: string;
   /** Authenticated writer, for the audit log. */
   actor?: string;
+  /**
+   * Who is asking, for the one check that needs it: only a concept's original
+   * publisher or the operator may publish a new version of it. Separate from
+   * `actor` because forks log their own event and must not count as originations.
+   * Absent means in-process (tests, seeds), which is trusted.
+   */
+  versionAuthor?: string;
 }
 
 export interface DuplicateWarning {
@@ -113,6 +120,32 @@ export async function publishConcept(
   const weakMatch = weakExternalMatchAdvisory(input.record);
   if (weakMatch) advisories.push(weakMatch);
 
+  // Versions (specs/uri-scheme.md § Immutability): an edit is a new record
+  // whose previousVersion names the record it replaces. Lineage stays a single
+  // line, and only the original publisher (or the operator) may extend it.
+  const previous = input.record.previousVersion as string | undefined;
+  if (previous) {
+    if (!store.hasConcept(previous)) {
+      throw new PublishError("ERR_UNKNOWN_PREVIOUS_VERSION", `previousVersion not found: ${previous}`, { previousVersion: previous });
+    }
+    const newer = store.newerVersionOf(previous);
+    if (newer) {
+      throw new PublishError(
+        "ERR_ALREADY_SUPERSEDED",
+        `${previous} already has a newer version; version the latest instead`,
+        { previousVersion: previous, latest: store.latestVersionOf(previous), guidance: "Pass the latest version as previousVersion." },
+      );
+    }
+    const publisher = store.publisherOf(previous);
+    if (input.versionAuthor && input.versionAuthor !== "operator" && publisher !== input.versionAuthor) {
+      throw new PublishError(
+        "ERR_NOT_YOUR_CONCEPT",
+        `only the publisher of ${previous} (${publisher ?? "unknown"}) or the operator can publish a new version of it`,
+        { guidance: "Fork it instead: a fork records lineage without claiming the original." },
+      );
+    }
+  }
+
   // Gate 3 — R3 shard target. TODO M3.
   // Gate 4 — changeset op validation. TODO with publish_fork.
 
@@ -130,9 +163,10 @@ export async function publishConcept(
   }
 
   // Gate 6 — duplicate detection: warn, never block.
+  // A new version is expected to resemble the version it replaces.
   const duplicateWarnings: DuplicateWarning[] = vectors
     .knn(indexVec, 10)
-    .filter((n) => n.similarity >= DUPLICATE_WARN_SIMILARITY)
+    .filter((n) => n.similarity >= DUPLICATE_WARN_SIMILARITY && n.uri !== previous)
     .map((n) => ({
       uri: n.uri,
       prefLabel: firstLang(store.getConcept(n.uri)?.prefLabel),

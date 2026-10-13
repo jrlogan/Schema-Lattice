@@ -105,6 +105,23 @@ forever. If a concept is edited — even a typo fix — a new URI is
 assigned and the old one is preserved, with `pav:previousVersion`
 linking the new record to the old.
 
+As implemented (`previousVersion` on `lattice_publish_concept` and
+`lattice_publish_fork`):
+
+- A new version may change anything, including its context: moving a
+  concept filed too narrowly (a "makerspace" concept that any shared
+  facility uses) into a broader context is an edit, not a fork.
+- Only the publisher of the version being replaced, or the operator, may
+  publish its next version. Anyone else forks it.
+- Lineage is one line: a version that already has a newer version cannot
+  be versioned again (`ERR_ALREADY_SUPERSEDED` names the latest).
+- The old URI keeps resolving. `lattice_resolve` adds `supersededBy`
+  (the latest version, following the whole chain). Discover, builder
+  packs and the atlas show only the latest version.
+- Records that reference an old version keep that reference; it resolves
+  forward through `supersededBy`. A new version is not a reason to
+  re-publish everything that points at it.
+
 Tombstones: if a concept is withdrawn, the URI still resolves but
 the response carries `:status: "withdrawn"` and a reason. v0.1 does
 not actually implement withdrawal; all published records are live.

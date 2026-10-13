@@ -233,6 +233,9 @@ function buildConceptRecord(
 
   // coRefersWith is kept even when empty: an explicit empty array plus a
   // rationale is how the R2 gate lets a caller say "nothing co-refers".
+  const previousVersion = optionalString(args, "previousVersion");
+  if (previousVersion) record.previousVersion = previousVersion;
+
   const coRefers = optionalStringArray(args, "coRefersWith");
   if (coRefers) record.coRefersWith = coRefers;
   const rationale = optionalString(args, "coRefersRationale");
@@ -416,8 +419,12 @@ export const TOOLS: ToolDef[] = [
         );
       }
       const stats = instance.stats(uri);
+      const latest = instance.store.latestVersionOf(uri);
       return {
         uri,
+        ...(latest !== uri
+          ? { supersededBy: latest, versionNote: "A newer version replaces this concept. Prefer the supersededBy URI for new work; this one keeps resolving." }
+          : {}),
         record,
         stats: stats?.stats ?? null,
         usages: instance.registry.listUsages(uri),
@@ -589,6 +596,13 @@ export const TOOLS: ToolDef[] = [
           type: "string",
           description: "The sessionId you passed to lattice_discover",
         },
+        previousVersion: {
+          type: "string",
+          description:
+            "Optional: the URI of a concept you published that this record replaces (an edit: better wording, " +
+            "a broader context). Only its publisher or the operator may do this. The old URI keeps resolving and " +
+            "points to the new one; search shows only the latest.",
+        },
       },
       required: ["contextUri", "prefLabel", "definition"],
     },
@@ -604,6 +618,7 @@ export const TOOLS: ToolDef[] = [
         record,
         sessionId: optionalString(args, "sessionId"),
         actor: actorOf(principal),
+        versionAuthor: actorOf(principal),
       });
       return {
         uri: result.uri,
@@ -672,6 +687,7 @@ export const TOOLS: ToolDef[] = [
         coRefersWith: stringArray,
         sourceAttribution: { type: "object" },
         sessionId: { type: "string" },
+        previousVersion: { type: "string", description: "Optional: an earlier version of this fork that this record replaces" },
       },
       required: ["parentUri", "contextUri", "prefLabel", "definition", "changeset"],
     },
@@ -697,6 +713,7 @@ export const TOOLS: ToolDef[] = [
         sourceAttribution: normalizedAttribution(args.sourceAttribution) as never,
         sessionId: optionalString(args, "sessionId"),
         actor: actorOf(principal),
+        previousVersion: optionalString(args, "previousVersion"),
       });
       return {
         uri: result.uri,

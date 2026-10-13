@@ -38,6 +38,8 @@ export interface PublishForkInput {
   sessionId?: string;
   /** Authenticated writer, for the audit log. */
   actor?: string;
+  /** A fork can itself be a new version of an earlier fork (specs/uri-scheme.md). */
+  previousVersion?: string;
 }
 
 export interface PublishForkOk extends PublishConceptOk {
@@ -80,6 +82,7 @@ export async function publishFork(
     record.altLabel = { en: input.altLabels.join("; ") };
   }
   if (childStructure) record.structure = childStructure;
+  if (input.previousVersion) record.previousVersion = input.previousVersion;
   if (input.coRefersWith?.length) record.coRefersWith = input.coRefersWith;
   if (input.sourceAttribution?.importedFrom) {
     record.importedFrom = input.sourceAttribution.importedFrom;
@@ -96,6 +99,7 @@ export async function publishFork(
     conceptSlug: input.conceptSlug,
     record,
     sessionId: input.sessionId,
+    versionAuthor: input.actor,
   });
 
   // Changeset ops describe field structure only. Sensitivity, capture

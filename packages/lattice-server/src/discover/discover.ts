@@ -163,6 +163,8 @@ export async function discover(
   // discover-before-publish check at publish time.
   const sessionId = input.sessionId?.trim() || `sess-${randomUUID()}`;
   const reserved = new Set(options.reservedContexts ?? []);
+  // Replaced versions never compete with their successors (specs/uri-scheme.md).
+  const superseded = store.supersededUris();
   const only = input.contexts && input.contexts.length > 0 ? new Set(input.contexts) : null;
   const [queryVec] = await embedder.embed([input.description]);
 
@@ -173,6 +175,7 @@ export async function discover(
 
   const candidates: DiscoverCandidate[] = [];
   for (const n of neighbors) {
+    if (superseded.has(n.uri)) continue;
     const record = store.getConcept(n.uri);
     const meta = store.getConceptMeta(n.uri);
     if (!record || !meta) continue;

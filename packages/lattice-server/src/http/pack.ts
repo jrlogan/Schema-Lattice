@@ -54,6 +54,7 @@ function lineKey(uri: string): string {
  * generator two Trips and no way to choose.
  */
 function isSuperseded(instance: LatticeInstance, uri: string): boolean {
+  if (instance.store.newerVersionOf(uri)) return true;
   const key = lineKey(uri);
   return instance.store.forkChildren(uri).some((child) => lineKey(child) === key);
 }
