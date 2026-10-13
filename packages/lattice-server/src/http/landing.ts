@@ -185,7 +185,8 @@ export function landingPage(host: string, totals: LandingTotals): string {
     <code>/mcp</code>. A plain-markdown version of this page is at
     <a href="/llms.txt">/llms.txt</a>. Reads need no key. App generators that
     cannot use MCP (Lovable, AI Studio, Bolt, v0) can read a paste-ready
-    vocabulary from <a href="/pack">/pack</a>.</p>
+    vocabulary from <a href="/pack">/pack</a>. Working with public data? <a href="/sources">/sources</a>
+    lists known public datasets with what each field means and how they join.</p>
   </div>
 
   <figure aria-describedby="fig-caption">
@@ -249,7 +250,7 @@ export function landingPage(host: string, totals: LandingTotals): string {
       A <strong>fork</strong> relationship comes with its changeset — the mapping is written down already.
       A <strong>common ancestor</strong> means the apps agree at that level. Concepts linked as naming the same
       thing from different perspectives are related but not interchangeable, and concepts with no relation
-      are, honestly, not translatable.</li>
+      are not translatable.</li>
     <li>The registry's overlap report scores every pair of registered apps by shared URIs, fork links and
       near-identical meanings (<code>lattice_portfolio_report</code>).</li>
     <li>For any two concepts, <code>lattice_compare</code> lays them side by side: renamed fields, and where
@@ -265,6 +266,30 @@ export function landingPage(host: string, totals: LandingTotals): string {
   deliberately out of scope.</p>
   <p class="muted">The benefit is only as good as what both sides publish: two apps that integrate at a
   boundary neither has described look unrelated here, and the report will say so.</p>
+
+  <h2>Working with public data</h2>
+  <p>The same catalog doubles as documentation for public datasets: open-data portals,
+  city and state GIS layers, federal APIs. Before an AI scrapes a portal or guesses what a
+  column called <code>FLD_ZONE</code> holds, it can ask what is already known.</p>
+  <ol class="steps">
+    <li><strong>Find it.</strong> Search by what you need and where:
+      <a href="/sources?q=property+sales&amp;jurisdiction=US-CT/new-haven"><code>/sources?q=property+sales&amp;jurisdiction=US-CT/new-haven</code></a>.
+      A search for a city also returns the statewide and national sources that cover it.</li>
+    <li><strong>Read it.</strong> Each source has a page with its endpoint, an example request, its license,
+      every field with the catalog concept it carries, and how it joins to related sources: by a shared key,
+      by normalised text such as town and address, or by map overlay.</li>
+    <li><strong>Add to it.</strong> An AI that finds a dataset the catalog lacks proposes it
+      (<code>lattice_propose_source</code>; the server reads the field list from the publisher itself) and
+      records what the fields mean (<code>lattice_map_source</code>). Proposals are listed once a curator or
+      independent builders confirm them. Join keys between datasets follow from those mappings; nobody
+      writes them by hand.</li>
+  </ol>
+  <p>First seeded with Connecticut and New Haven property data: parcels and assessments, sales, mill rates,
+  zoning, FEMA flood zones and census tracts. <a href="/sources">See every source</a>. Searches that find
+  nothing are kept, aggregated, as a list of the data people need and can't find
+  (<code>lattice_sources_report</code>).</p>
+  <p class="muted">The catalog points at publishers. It never copies or proxies their records, and it only
+  lists data that can be read without credentials.</p>
 
   <h2>Check your app against it</h2>
   <p>You don't use this site directly — your AI does. Paste this into your
@@ -283,9 +308,10 @@ export function landingPage(host: string, totals: LandingTotals): string {
       <a href="/specs/root-skeleton.md">root vocabulary</a>.</li>
     <li><strong>See what is in it and who put it there.</strong>
       <code>POST /api/tools/lattice_list_context</code> with <code>{}</code> lists every context;
-      <code>lattice_portfolio_report</code> lists every registered app and how it scores.</li>
-    <li><strong>See what people looked for and didn't find.</strong> <code>lattice_demand_report</code>,
-      public, aggregated.</li>
+      <code>lattice_portfolio_report</code> lists every registered app and how it scores;
+      <a href="/sources">/sources</a> lists every public dataset.</li>
+    <li><strong>See what people looked for and didn't find.</strong> <code>lattice_demand_report</code> for
+      concepts and <code>lattice_sources_report</code> for public data, public and aggregated.</li>
     <li><strong>Read the protocol.</strong> <a href="/specs/ai-checkpoints.md">checkpoints</a>,
       <a href="/specs/uri-scheme.md">URI scheme</a>, <a href="/specs/hashing-rules.md">hashing</a>,
       <a href="/specs/mcp-tools.md">tools</a>.</li>
@@ -296,11 +322,11 @@ export function landingPage(host: string, totals: LandingTotals): string {
       Published concepts carry their own publishers' licenses.</li>
   </ul>
 
-  <h2>What gets recorded, honestly</h2>
+  <h2>What gets recorded</h2>
   <table>
-   <tr><td>Recorded</td><td>The text of search queries, the best match and its
-     score, and a random session id. That's it — no account, no name, no code,
-     no schemas.</td></tr>
+   <tr><td>Recorded</td><td>The text of search queries (concepts and public data
+     sources), the best match and its score, and a random session id. That's
+     it — no account, no name, no code, no schemas.</td></tr>
    <tr><td>Shared onward</td><td>Queries that found <em>no</em> match are
      aggregated into a public demand report ("2 sessions asked for a berth
      concept; nothing covers it") so the community can see what vocabulary is
@@ -312,6 +338,9 @@ export function landingPage(host: string, totals: LandingTotals): string {
    <tr><td>Publishing</td><td>Separate, deliberate, key-gated. Anything
      published becomes a permanent, public part of the catalog under the
      license its publisher chose, with attribution — so only do it on purpose.</td></tr>
+   <tr><td>Proposals</td><td>Public data sources and field mappings an AI proposes
+     are field names and URLs only, never records. They are held as claims,
+     shown in the public sources report, and listed once confirmed.</td></tr>
    <tr><td>Feedback</td><td>Notes sent to <code>lattice_feedback</code> go to
      the maintainers only and are not redistributed.</td></tr>
   </table>
@@ -397,6 +426,7 @@ export function llmsText(host: string, totals: LandingTotals): string {
 - Instructions to follow: https://${host}/skill (building on an existing backend: https://${host}/skill/builder)
 - Tools with JSON schemas: https://${host}/api/tools — call with POST /api/tools/{name}, or over MCP at POST /mcp
 - Building with a hosted app generator (Lovable, AI Studio, Bolt, v0) that cannot use MCP: paste-ready vocabulary at https://${host}/pack (one domain: /pack/{context}; by description: /pack?q=..., recorded as demand unless &private=1)
+- Working with public data (open-data portals, GIS layers): https://${host}/sources lists known datasets by jurisdiction; /sources/{slug} gives the endpoint, what each field means in catalog terms, and join keys to related datasets (search: /sources?q=...&jurisdiction=US-CT/new-haven). Found one that isn't listed? lattice_propose_source, then lattice_map_source.
 - Search: GET https://${host}/discover?description=...&ephemeral=true (reads need no key)
 - Every context: POST https://${host}/api/tools/lattice_list_context with {}
 - Resolve a concept: GET the URI's path on this host, e.g. https://${host}${EXAMPLE_CONCEPT}
@@ -407,8 +437,11 @@ Before defining a data structure, search the catalog. Adopt an existing concept 
 ## Integrating two apps
 Each app keeps schemalattice.json (local names -> concept URIs). Shared URI = same meaning. Fork = the changeset is the mapping; lattice_compare shows any two concepts side by side (renames, sensitivity, capture provenance, lifecycle states). Common ancestor = agreement at that level. No relation = not translatable. lattice_portfolio_report scores overlap between registered apps. The integrating AI writes the translation as code at build time; the lattice is never on the request path. Not built yet: automatic reconcile and generated translators (v0.2).
 
+## Public data
+The catalog also documents public datasets (open-data portals, GIS layers, federal APIs). Before scraping a portal or guessing at column names: lattice_find_sources (or GET /sources?q=...&jurisdiction=US-CT/new-haven), then lattice_resolve_source for the endpoint, an example request, every field with the concept field it carries, and join keys to related sources (key, attribute or spatial overlay). A dataset the catalog lacks: lattice_propose_source with its API URL (the field list is read from the publisher), then lattice_map_source for the fields you understand. Field names only, never records. Seeded with Connecticut and New Haven property data.
+
 ## What is recorded
-Search query text (unless ephemeral:true), best match and score, a random session id. Never code or schemas. Unmet queries appear aggregated in lattice_demand_report.
+Search query text for concepts and sources (unless ephemeral:true), best match and score, a random session id. Never code or schemas. Unmet queries appear aggregated in lattice_demand_report and lattice_sources_report. Proposed sources and mappings are claims, public in lattice_sources_report, listed once confirmed.
 
 ## Source
 Open source under Apache-2.0: https://github.com/jrlogan/Schema-Lattice (published concepts carry their own publishers' licenses).
@@ -419,6 +452,7 @@ Open source under Apache-2.0: https://github.com/jrlogan/Schema-Lattice (publish
 - https://${host}/specs/uri-scheme.md
 - https://${host}/specs/data-classification.md
 - https://${host}/specs/mcp-tools.md
+- https://${host}/specs/public-sources.md
 `;
 }
 

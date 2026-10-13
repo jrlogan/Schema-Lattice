@@ -144,7 +144,7 @@ When modeling any persistent or cross-boundary data structure:
      registries, the open web) for existing work in the same domain.
      Read 2–5 promising repositories' data models directly. Synthesize
      a draft concept from what you find. Only originate after you've
-     honestly attempted this mining step.
+     actually attempted this mining step.
    After deciding, report the verdict with `lattice_propose`
    (`{ sessionId, conceptUri, verdict: "right" | "wrong", reason }`) —
    right if you adopted or forked from it, wrong (with a reason) if you
@@ -321,7 +321,7 @@ If the user brings in a second project and wants them to interop:
 5. Find concepts linked by `coRefersWith` → same real-world referent,
    different perspective. Report as "related but not interchangeable."
 6. Find concepts with no relationship → report as non-translatable.
-   This is not a failure — it is an honest outcome.
+   This is not a failure; it is a valid outcome.
 
 For any pair of concepts that look related, call `lattice_compare`
 (`a` = their concept, `b` = yours). It pairs renamed fields through the
@@ -432,6 +432,33 @@ If a publish comes back with a `weak-external-match` warning, your only
 external anchor is a catch-all like `schema:Thing`. Add the specific
 term from the standard your source follows when there is one.
 
+## Working with public data
+
+When the app reads a public dataset (an open-data portal, a city or
+state GIS layer, a federal API), check whether the catalog already
+knows it before you scrape, guess at an API or ask the person for a CSV:
+
+1. `lattice_find_sources` with what you need and where
+   (`jurisdiction: "US-CT/new-haven"` also returns statewide and
+   national sources that cover the city). Or `GET {host}/sources?q=...`.
+2. `lattice_resolve_source` on a hit: the endpoint, an example request,
+   every field with the concept field it carries, and join keys to
+   related sources. Use the field names exactly as listed.
+3. If you found a dataset the catalog doesn't list, add it:
+   `lattice_propose_source` with its API URL (the server reads the
+   field list from the publisher), then `lattice_map_source` for the
+   fields whose meaning you worked out. Map only what you are sure of,
+   and use `role: "reference"` for fields that point at another
+   concept (a sale row's address points at a parcel).
+4. If a listed mapping is wrong, send that pair back with
+   `verdict: "wrong"`.
+
+Mapping is how the catalog learns how datasets relate: when two sources
+map fields onto the same concept field, the next builder is told they
+join there. Send field names only, never record values. Owner names and
+addresses in a public table are still personal data: don't copy them
+into notes.
+
 ## When the catalog comes up empty
 
 An empty or sparse catalog is expected early — concepts enter it
@@ -502,7 +529,7 @@ the similarity scores alone:
   analogs. The only acceptable reason to skip 1D is that the
   concept is too specific to have analogs.
 - **Never fabricate source URLs for inspiredBySources.** If JIT
-  mining finds no relevant sources, document that honestly in
+  mining finds no relevant sources, say so in
   `sourceNotes` and leave `inspiredBySources` empty. Inventing
   URLs is a protocol violation worse than omitting them entirely.
 - Never emit inline markers whose short names are not in the

@@ -83,6 +83,11 @@ When discover finds nothing that fits, that is signal:
   `lattice_contribute`: label, root kind (`broader`), a one-sentence
   definition and fields. Never send records, customer data or field
   descriptions. Nothing is published until independent builders agree.
+- If the app reads public data (an open-data portal, a GIS layer), look it
+  up first with `lattice_find_sources`, and use the field names and join
+  keys `lattice_resolve_source` gives. A dataset that isn't listed:
+  `lattice_propose_source`, then `lattice_map_source` for the fields you
+  understand. Field names only, never records.
 - Use `lattice_feedback` for anything else the maintainers should know,
   such as a wrong match, a confusing result or a missing domain.
 
