@@ -128,3 +128,51 @@ npm run demo:new-haven  # multi-department civic walkthrough
 
 Individual suites: `smoke:ancestry`, `smoke:friction`, `smoke:discover`,
 `smoke:classification`, `smoke:registry`, `smoke:tools`, `smoke:http`.
+
+## API design advisor
+
+The registered-app advisor compares exact source-field/concept alignments and
+produces a reviewable OpenAPI 3.1 draft. It separates standards from implementations,
+shows unmapped fields and conversion risks, and keeps authority/adoption signals
+separate. No LLM, embedding or publisher-network calls occur during advice.
+
+Run `npm run demo:api-advisor` for an isolated example or `npm run advise:api --
+--target http://localhost:7000 --request request.json --out ./api-proposal` for a
+registered app. HTTP and MCP share `lattice_advise_api`,
+`lattice_accept_api_design` and `lattice_api_design_history`. Only explicit owner or
+operator acceptance records a decision, with stale-proposal checks; it does not
+assert deployed conformance. See [the workflow](examples/api-advisor/README.md) and
+[the specification](../../specs/api-design-advisor.md).
+
+### Report performance and client computation
+
+HTTP and MCP app/portfolio reports run in one read-only worker. The worker loads
+stored vectors, not the embedding model. Identical concurrent requests share a
+job; at most 16 distinct jobs can wait/run. Each job has a 60-second deadline;
+the worker's V8 old-generation heap is limited to 128 MiB. Reports are cached
+in memory (32 entries, at most 10 MB of serialized reports) until database
+triggers detect relevant registry/concept/vector-key changes. Events do not
+invalidate the cache. Reports reflect a consistent SQLite read snapshot; a
+write during computation is picked up by the next request. Cold reports still
+have pairwise complexity; this is not an unlimited-capacity implementation.
+
+Advisor selection uses indexed concept mappings and latest decisions, excludes
+source join-graph generation, and rejects requests above 30 concepts or 100
+candidate sources before resolving them. `lattice_api_design_snapshot` exports
+that evidence. The CLI's `--target` mode downloads the snapshot and generates
+OpenAPI locally, saving `snapshot.json` alongside the proposal for offline
+replay. Accepting a design still rechecks current server evidence.
+
+Outbound source fetches are limited to two concurrent URLs and 32 waiting URLs.
+Repeated in-flight URLs and source checks coalesce; there is no stale upstream
+response cache. Hourly evidence maintenance runs in batches of 25 claim keys,
+yielding between batches. Source refreshes rescore only that source's mappings.
+An individual claim's scoring and other synchronous evidence operations can
+still consume server CPU. Queues are in-process, not durable scheduled jobs.
+
+`npm run smoke:scaling` checks cache invalidation, shared concurrent work,
+worker/HTTP behavior, source-fetch bounds, batched rescoring and snapshot replay.
+`npm run bench:reports -- --target https://schemalattice.com` runs a small,
+read-only probe (one initial report, eight concurrent repeated reports, and
+health requests). Its timings include network latency; it is not a capacity
+or sustained-load test.

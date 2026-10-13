@@ -1,0 +1,25 @@
+API DESIGN REVIEW — FICTIONAL WASTE-SERVICE APP
+Advisor: api-design-advisor-v1
+Proposal: fecaeffb0d6fd7537c02c17e2ecd6bac886728f7ce45422a9b72a76bbf07d238
+
+Generated OpenAPI 3.1 validated with Swagger Parser. No API deployed. No decision accepted.
+
+Open311 GeoReport v2
+  standard; 6/8 app fields aligned by recorded meaning.
+  Unmapped app fields: jurisdiction, collectionDay
+  6 mappings require conversion/type/constraint review.
+  Provide service discovery and the service/service-request methods required for the chosen implementation role.
+  XML support is required by GeoReport v2; JSON alone is not full conformance.
+  Request creation uses form-encoded input; the native JSON read API proposed here does not implement request creation.
+  Preserve timezone information on request timestamps.
+  Request status is open or closed. Preserve finer workflow states separately rather than silently discarding them.
+  Use jurisdiction_id when serving multiple jurisdictions; establish identifier scope explicitly.
+
+Legacy export (fictional comparison fixture)
+  dataset; 3/8 app fields aligned by recorded meaning.
+  Unmapped app fields: jurisdiction, createdAt, latitude, longitude, collectionDay
+  2 mappings require conversion/type/constraint review.
+
+No executable cross-source adapter emitted: catalog mappings do not establish lossless reversible conversions.
+
+All app/peer/legacy examples are fictional. Open311 source definitions come from the repository’s captured official-specification field list.

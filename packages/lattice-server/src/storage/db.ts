@@ -6,6 +6,7 @@ import type { ConceptRecord, ContextRecord } from "../hashing/types.ts";
 export interface StoreOptions {
   dbPath: string;
   blobDir: string;
+  readonly?: boolean;
 }
 
 export class Store {
@@ -13,13 +14,13 @@ export class Store {
   readonly blobDir: string;
 
   constructor(opts: StoreOptions) {
-    mkdirSync(dirname(opts.dbPath), { recursive: true });
-    mkdirSync(opts.blobDir, { recursive: true });
-    this.db = new Database(opts.dbPath);
-    this.db.pragma("journal_mode = WAL");
+    if (!opts.readonly) mkdirSync(dirname(opts.dbPath), { recursive: true });
+    if (!opts.readonly) mkdirSync(opts.blobDir, { recursive: true });
+    this.db = new Database(opts.dbPath, { readonly: opts.readonly ?? false });
+    if (!opts.readonly) this.db.pragma("journal_mode = WAL");
     this.db.pragma("foreign_keys = ON");
     this.blobDir = opts.blobDir;
-    this.migrate();
+    if (!opts.readonly) this.migrate();
   }
 
   private migrate(): void {

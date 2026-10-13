@@ -895,3 +895,19 @@ are in [api-design-advisor.md](api-design-advisor.md).
 
 These tools do not deploy APIs, publish concepts, execute adapters or certify a
 standard. Recorded choices mean design intent, distinct from verified adoption.
+
+### `lattice_api_design_snapshot`
+
+Public read. Uses the same input schema as `lattice_advise_api`. Returns the
+registered app, selected concept records, relevant listed source fields and
+mappings, shared-concept peers, and latest relevant accepted design choices.
+No embeddings, external fetches, AI calls or catalog events are generated.
+Pass the result and the same request to the offline advisor engine to reproduce
+a proposal. Acceptance revalidates current evidence; a downloaded snapshot does
+not authorize a write. The CLI downloads snapshots rather than requesting
+server-side proposal generation.
+
+App and portfolio report tools retain their response contracts but run through
+a shared background worker and revision-aware cache. Overload rejects queued
+work rather than growing an unbounded queue. Reports are consistent as of their
+read snapshot, not a guarantee that no concurrent write has happened.

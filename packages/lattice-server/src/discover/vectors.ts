@@ -24,8 +24,10 @@ export class VectorIndex {
     private db: Database.Database,
     private dim: number,
     private model: string,
+    readonly = false,
   ) {
     sqliteVec.load(db);
+    if (readonly) return;
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS embedding_keys (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

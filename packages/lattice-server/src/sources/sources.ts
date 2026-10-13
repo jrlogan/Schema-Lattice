@@ -8,6 +8,7 @@
 // corroborated. Relationships between sources (shared concepts, join keys) are
 // worked out from listed mappings on every read and never stored.
 
+import {queuedFetcher} from "../jobs/fetch-queue.ts";
 import type Database from "better-sqlite3";
 import type { Store } from "../storage/db.ts";
 import type { Embedder } from "../discover/embedder.ts";
@@ -161,6 +162,7 @@ export class Sources {
     private fetchJson: JsonFetcher = safeFetchJson,
   ) {
     this.db = store.db;
+    this.fetchJson = queuedFetcher(this.fetchJson);
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS sources (
         slug               TEXT PRIMARY KEY,
@@ -189,6 +191,11 @@ export class Sources {
         updated_at         TEXT NOT NULL
       );
       CREATE INDEX IF NOT EXISTS idx_sources_jurisdiction ON sources(jurisdiction);
+      CREATE INDEX IF NOT EXISTS idx_mapping_concept ON evidence(json_extract(claim, '$.conceptUri'), claim_key) WHERE kind='field-mapping';
+      CREATE INDEX IF NOT EXISTS idx_mapping_source ON evidence(json_extract(claim, '$.source'), claim_key) WHERE kind='field-mapping';
+      CREATE INDEX IF NOT EXISTS idx_claim_lookup ON claim_state(claim_key, direction, status);
+      CREATE INDEX IF NOT EXISTS idx_evidence_latest ON evidence(claim_key, updated_at DESC);
+
     `);
 
     evidence.registerKind("source", {
@@ -550,11 +557,39 @@ export class Sources {
     return { similarity: Number(best.toFixed(4)), via };
   }
 
-  resolve(slug: string) {
+  /** Bound advisor selection before resolving fields; no catalog-wide join graph. */
+  advisorCandidates(concepts: string[], explicit?: string[]): string[] {
+    if (!explicit && !concepts.length) return [];
+    const predicate = explicit
+      ? `s.slug IN (SELECT value FROM json_each(?))`
+      : `s.slug IN (SELECT json_extract(e.claim, '$.source') FROM evidence e
+          JOIN claim_state c ON c.claim_key=e.claim_key AND c.direction='right' AND c.status='promoted'
+          WHERE e.kind='field-mapping' AND json_extract(e.claim, '$.conceptUri') IN (SELECT value FROM json_each(?)))`;
+    return (this.db.prepare(`SELECT s.slug FROM sources s
+      WHERE s.withdrawn_reason IS NULL AND ${predicate}
+        AND EXISTS (SELECT 1 FROM claim_state c WHERE c.claim_key='source|' || s.slug AND c.direction='right' AND c.status='promoted')
+      ORDER BY s.slug LIMIT 101`).all(JSON.stringify(explicit ?? concepts)) as Array<{slug:string}>).map(r => r.slug);
+  }
+
+  private advisorPairs(slug: string): ListedPair[] {
+    const rows = this.db.prepare(`SELECT DISTINCT c.claim_key AS claimKey, c.reason, c.sources
+      FROM evidence e JOIN claim_state c ON c.claim_key=e.claim_key
+      WHERE e.kind='field-mapping' AND json_extract(e.claim, '$.source')=?
+        AND c.direction='right' AND c.status='promoted'`).all(slug) as Array<{claimKey:string;reason:string|null;sources:number}>;
+    return rows.map(({claimKey, reason, sources}) => {
+      const claim = this.evidence.latestClaim(claimKey) as unknown as MappingClaim;
+      const [, source, sourceField, conceptUri, conceptField] = claimKey.split('|');
+      return {source, sourceField, conceptUri, conceptField, role:claim.role ?? 'record',
+        ...(claim.conversion ? {conversion:claim.conversion} : {}),
+        curatedBy:reason?.startsWith('curated by ') ? reason.slice('curated by '.length) : null, sources};
+    });
+  }
+
+  resolve(slug: string, advisorOnly = false) {
     const r = this.row(slug);
     if (!r) return null;
-    const listed = this.listedSlugs();
-    const allPairs = this.listedPairs();
+    const listed = advisorOnly ? new Set(this.advisorCandidates([], [slug])) : this.listedSlugs();
+    const allPairs = advisorOnly ? this.advisorPairs(slug) : this.listedPairs();
     const pairs = allPairs.filter((p) => p.source === slug);
     const fields = (JSON.parse(r.fields) as SourceField[]).map((f) => {
       const meanings = pairs
@@ -592,7 +627,7 @@ export class Sources {
       carries: this.carries(slug, allPairs),
       fields,
       unmappedFields: fields.filter((f) => !("means" in f)).length,
-      ...this.relatedSplit(slug, allPairs),
+      ...(advisorOnly ? {related: [], overlays: []} : this.relatedSplit(slug, allPairs)),
       ...(r.kind === "standard" ? { conformedBy: this.conformers(slug) } : {}),
       notice: UNTRUSTED_NOTICE,
     };
@@ -642,10 +677,10 @@ export class Sources {
 
   /** Listed datasets that declare they follow this standard. */
   private conformers(slug: string) {
-    const listed = this.listedSlugs();
-    return (this.db.prepare("SELECT slug, title, jurisdiction, conforms_to FROM sources WHERE withdrawn_reason IS NULL").all() as Array<{ slug: string; title: string; jurisdiction: string; conforms_to: string }>)
-      .filter((r) => listed.has(r.slug) && (JSON.parse(r.conforms_to) as string[]).includes(slug))
-      .map(({ slug: s, title, jurisdiction }) => ({ slug: s, title, jurisdiction }));
+    return this.db.prepare(`SELECT s.slug, s.title, s.jurisdiction FROM sources s
+      WHERE s.withdrawn_reason IS NULL
+        AND EXISTS (SELECT 1 FROM json_each(s.conforms_to) WHERE value=?)
+        AND EXISTS (SELECT 1 FROM claim_state c WHERE c.claim_key='source|' || s.slug AND c.direction='right' AND c.status='promoted')`).all(slug) as Array<{slug:string;title:string;jurisdiction:string}>;
   }
 
   /**
@@ -768,7 +803,17 @@ export class Sources {
   }
 
   /** Re-read a verified source's field list and report what changed. */
-  async check(slug: string, now: Date = new Date()) {
+  private checks = new Map<string, Promise<unknown>>();
+  check(slug: string, now: Date = new Date()): Promise<any> {
+    const existing = this.checks.get(slug);
+    if (existing) return existing.then(value => structuredClone(value));
+    if (this.checks.size >= 34) return Promise.reject(new SourceRejected('Source check queue is full; retry shortly'));
+    const job = this.checkOnce(slug, now).finally(() => this.checks.delete(slug));
+    this.checks.set(slug, job);
+    return job.then(value => structuredClone(value));
+  }
+
+  private async checkOnce(slug: string, now: Date) {
     const r = this.row(slug);
     if (!r) throw new SourceRejected(`no source "${slug}"`);
     if (r.fields_verified !== 1) {
@@ -788,7 +833,10 @@ export class Sources {
     const removed = [...before.keys()].filter((n) => !after.has(n));
     const retyped = [...after.keys()].filter((n) => before.has(n) && before.get(n)!.type !== after.get(n)!.type);
     this.updateFields(slug, intro.fields, now);
-    this.evidence.rescore(now);
+    const prefix = `field-mapping|${slug}|`;
+    const keys = (this.db.prepare('SELECT DISTINCT claim_key FROM evidence WHERE claim_key>=? AND claim_key<?')
+      .all(prefix, prefix + '\uffff') as Array<{claim_key:string}>).map(r => r.claim_key);
+    this.evidence.rescore(now, keys);
     const broken = removed.length
       ? this.evidence
           .statesOf("field-mapping")

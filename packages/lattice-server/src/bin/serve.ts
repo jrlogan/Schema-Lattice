@@ -24,11 +24,9 @@ async function main(): Promise<void> {
   // Evidence promotion is time-based (a quarantine), so re-score hourly even
   // when nobody submits or reads the report.
   const rescore = setInterval(() => {
-    try {
-      instance.evidence.rescore();
-    } catch (err) {
+    void instance.evidence.rescoreInBackground().catch(err => {
       console.error(`evidence rescore failed: ${(err as Error).message}`);
-    }
+    });
   }, 3_600_000);
   rescore.unref();
 
