@@ -101,7 +101,8 @@ async function main() {
   const loopRefused = await safeFetchJson("https://127.0.0.1/x").then(() => false, (e) => /not public/.test(e.message));
   check("fetch-refuses-private-literal", loopRefused);
   check("coverage", coverage("US-CT", "US-CT/new-haven") === "broader" && coverage("US", "US-CT") === "broader" &&
-    coverage("US-CT/new-haven", "US-CT") === "narrower" && coverage("US-NY", "US-CT") === null && coverage("US-C", "US-CT") === null);
+    coverage("US-CT/new-haven", "US-CT") === "narrower" && coverage("US-NY", "US-CT") === null && coverage("US-C", "US-CT") === null &&
+    coverage("global", "US-CT/new-haven") === "broader" && coverage("US-CT", "global") === "narrower");
   check("join-kinds", fieldJoinKind("pin", { name: "pin", type: "string" }) === "key" &&
     fieldJoinKind("parcelId", undefined) === "key" &&
     fieldJoinKind("address", { name: "address", type: "string" }, true) === "attribute" &&
@@ -182,6 +183,12 @@ async function main() {
     fields: [{ name: "pid", type: "integer" }],
   }, "net:anon-3", T0);
   check("manual-proposed", manual.status === "proposed");
+  const otherCity = await S.propose({
+    accessUrl: "https://assessor.example.gov/Parcel.aspx?town=hamden", platform: "manual", title: "Hamden Property Cards",
+    publisher: "Hamden Assessor", jurisdiction: "US-CT/hamden", recordDescription: "One property record card per parcel, as a web page.",
+    fields: [{ name: "pid", type: "integer" }],
+  }, "operator", T0);
+  check("query-string-names-a-manual-dataset", otherCity.slug !== manual.slug, `${otherCity.slug} vs ${manual.slug}`);
   const manualNoFields = await rejects(() => S.propose({ accessUrl: "https://assessor.example.gov/Other.aspx", publisher: "x", jurisdiction: "US-CT", recordDescription: "A web page about a thing." }, "net:a", T0));
   check("manual-needs-fields", manualNoFields !== null);
 
@@ -263,11 +270,22 @@ async function main() {
   instance.evidence.rescore(at(17));
   check("manual-source-no-structural-route", instance.evidence.outcome(`field-mapping|${manual.slug}|pid|${PARCEL}|address`, "right").status === "pending");
 
+  // --- the daily cap is for strangers, not curators ----------------------------------
+  const many = Array.from({ length: 210 }, (_, i) => ({ claimKey: `source|cap-test-${i}`, subject: `cap-test-${i}`, direction: "right" as const, claim: {} }));
+  let capped = false;
+  try { instance.evidence.proposeClaims("source", many, "net:cap-test", at(9)); } catch { capped = true; }
+  check("daily-cap-stops-strangers", capped);
+  let operatorOk = true;
+  try { instance.evidence.proposeClaims("source", many, "operator", at(9)); } catch { operatorOk = false; }
+  check("daily-cap-spares-curators", operatorOk);
+  instance.store.db.prepare("DELETE FROM evidence WHERE claim_key LIKE 'source|cap-test-%'").run();
+  instance.store.db.prepare("DELETE FROM claim_state WHERE claim_key LIKE 'source|cap-test-%'").run();
+
   // --- relationships ---------------------------------------------------------------
   const related = S.resolve("ct-parcels")!.related;
   const toSales = related.find((r) => r.slug === "real-estate-sales");
   check("attribute-join-found", toSales?.joins[0]?.kind === "attribute" && toSales.joins[0].pairs.length === 2, JSON.stringify(toSales?.joins));
-  check("spatial-overlay-found", related.find((r) => r.slug === zones.slug)?.joins.some((j) => j.kind === "spatial") === true);
+  check("spatial-overlay-found", S.resolve("ct-parcels")!.overlays.some((o) => o.slug === zones.slug));
   check("no-relation-across-states", !related.some((r) => r.slug === "other-state-sales"));
   S.map({ source: zones.slug, conceptUri: PARCEL, role: "reference", fields: [{ from: "zone_code", to: "zoneCode" }] }, "operator", at(9));
   S.map({ source: "ct-parcels", conceptUri: PARCEL, fields: [{ from: "Assessed_Total", to: "zoneCode", verdict: "wrong" }] }, "net:anon-9", at(9));

@@ -1,0 +1,262 @@
+// Seed, round two: New Haven civic sources that fit concepts already in the
+// catalog (NEW-HAVEN-SURVEY.md, "Fits today"). No concepts are minted: sources
+// and mappings are editable register entries. Run with seed-sources.ts.
+//
+// ArcGIS and Socrata field lists are read from the publisher by the server.
+// SeeClickFix and Legistar are not platforms it can read, so their field lists
+// below are the keys of real API responses fetched on 2026-10-13 (records not kept).
+
+import type { MappingSeed, SourceSeed } from "./property-seed.ts";
+
+const C = {
+  issueReport: "https://schemalattice.com/c/civic-issue-reporting/issue-report@6ab5cb338457",
+  reportCategory: "https://schemalattice.com/c/civic-issue-reporting/report-category@b3bdd478944f",
+  civicBody: "https://schemalattice.com/c/civic-issue-reporting/civic-body@ef79d8c6a015",
+  legislativeMatter: "https://schemalattice.com/c/civic-legislation/legislative-matter@12ee73b08c8b",
+  publicMeeting: "https://schemalattice.com/c/civic-legislation/public-meeting@40d5609c6d1e",
+  legislativeBody: "https://schemalattice.com/c/civic-legislation/legislative-body@d858ba1ebd63",
+  electedOfficial: "https://schemalattice.com/c/civic-legislation/elected-official@6f116bd20867",
+  cityDistrict: "https://schemalattice.com/c/civic-participation/city-district@bd808dfd5db4",
+  serviceSite: "https://schemalattice.com/c/human-services/service-site@fbc44c01d13c",
+  zoningDistrict: "https://schemalattice.com/c/real-property/zoning-district@c3b19c7eff25",
+  municipality: "https://schemalattice.com/c/public-geography/municipality@f24602cb066b",
+  censusTract: "https://schemalattice.com/c/public-geography/census-tract@602e860c2513",
+};
+
+const CITY_TERMS = "City of New Haven terms: approved for public use; not a survey; for planning purposes only";
+
+export const SOURCES: SourceSeed[] = [
+  {
+    slug: "new-haven-seeclickfix-issues",
+    accessUrl: "https://seeclickfix.com/api/v2/issues?place_url=new-haven",
+    platform: "manual",
+    title: "New Haven 311 issues (SeeClickFix)",
+    publisher: "City of New Haven, via SeeClickFix",
+    jurisdiction: "US-CT/new-haven",
+    recordDescription: "One problem a resident reported to the city through SeeClickFix, with its category, location, status and timestamps.",
+    landingPage: "https://seeclickfix.com/new-haven",
+    license: "not stated",
+    updateFrequency: "live",
+    fields: [{"name": "id", "type": "integer"}, {"name": "status", "type": "string"}, {"name": "summary", "type": "string"}, {"name": "description", "type": "string"}, {"name": "rating", "type": "integer"}, {"name": "lat", "type": "number"}, {"name": "lng", "type": "number"}, {"name": "address", "type": "string"}, {"name": "created_at", "type": "string"}, {"name": "acknowledged_at", "type": "string"}, {"name": "closed_at", "type": "string"}, {"name": "reopened_at", "type": "string"}, {"name": "updated_at", "type": "string"}, {"name": "url", "type": "string"}, {"name": "point", "type": "object"}, {"name": "point.type", "type": "string"}, {"name": "point.coordinates", "type": "array"}, {"name": "private_visibility", "type": "boolean"}, {"name": "html_url", "type": "string"}, {"name": "show_blocked_issue_text", "type": "boolean"}, {"name": "request_type", "type": "object"}, {"name": "request_type.id", "type": "integer"}, {"name": "request_type.title", "type": "string"}, {"name": "request_type.organization", "type": "string"}, {"name": "request_type.url", "type": "string"}, {"name": "request_type.related_issues_url", "type": "string"}, {"name": "comment_url", "type": "string"}, {"name": "flag_url", "type": "string"}, {"name": "transitions", "type": "object"}, {"name": "reporter", "type": "object"}, {"name": "reporter.id", "type": "integer"}, {"name": "reporter.name", "type": "string"}, {"name": "reporter.role", "type": "string"}, {"name": "reporter.avatar", "type": "object"}, {"name": "reporter.witty_title", "type": "string"}, {"name": "reporter.civic_points", "type": "integer"}, {"name": "media", "type": "object"}, {"name": "media.video_url", "type": "string"}, {"name": "media.image_full", "type": "string"}, {"name": "media.image_square_100x100", "type": "string"}, {"name": "media.representative_image_url", "type": "string"}],
+    note: "Paginated JSON (page, per_page). Repeated quick calls start answering 403; the Open311 endpoint does not. reporter.* holds residents' names: personal.",
+  },
+  {
+    slug: "new-haven-open311-services",
+    accessUrl: "https://seeclickfix.com/open311/v2/services.json?lat=41.3083&long=-72.9279",
+    platform: "manual",
+    title: "New Haven 311 request types (Open311)",
+    publisher: "City of New Haven, via SeeClickFix",
+    jurisdiction: "US-CT/new-haven",
+    recordDescription: "One type of problem residents can report to New Haven through 311, with the organization that handles it.",
+    landingPage: "https://seeclickfix.com/new-haven",
+    license: "not stated",
+    updateFrequency: "live",
+    fields: [{"name": "service_name", "type": "string"}, {"name": "organization", "type": "string"}, {"name": "service_code", "type": "integer"}, {"name": "description", "type": "string"}, {"name": "metadata", "type": "boolean"}, {"name": "type", "type": "string"}, {"name": "keywords", "type": "string"}, {"name": "group", "type": "string"}],
+    note: "Open311 GeoReport v2; requests.json at the same base lists requests, with service_request_id equal to the SeeClickFix issue id.",
+  },
+  {
+    slug: "new-haven-legistar-matters",
+    accessUrl: "https://webapi.legistar.com/v1/newhaven-ct/matters",
+    platform: "manual",
+    title: "New Haven Board of Alders legislation (Legistar)",
+    publisher: "City of New Haven, Board of Alders",
+    jurisdiction: "US-CT/new-haven",
+    recordDescription: "One ordinance, order, resolution or communication before the Board of Alders, with its file number, type, status and dates.",
+    landingPage: "https://newhaven-ct.legistar.com/",
+    license: "not stated",
+    updateFrequency: "live",
+    fields: [{"name": "MatterId", "type": "integer"}, {"name": "MatterGuid", "type": "string"}, {"name": "MatterLastModifiedUtc", "type": "string"}, {"name": "MatterRowVersion", "type": "string"}, {"name": "MatterFile", "type": "string"}, {"name": "MatterName", "type": "string"}, {"name": "MatterTitle", "type": "string"}, {"name": "MatterTypeId", "type": "integer"}, {"name": "MatterTypeName", "type": "string"}, {"name": "MatterStatusId", "type": "integer"}, {"name": "MatterStatusName", "type": "string"}, {"name": "MatterBodyId", "type": "integer"}, {"name": "MatterBodyName", "type": "string"}, {"name": "MatterIntroDate", "type": "string"}, {"name": "MatterAgendaDate", "type": "string"}, {"name": "MatterPassedDate", "type": "string"}, {"name": "MatterEnactmentDate", "type": "string"}, {"name": "MatterEnactmentNumber", "type": "string"}, {"name": "MatterRequester", "type": "string"}, {"name": "MatterNotes", "type": "string"}, {"name": "MatterVersion", "type": "string"}, {"name": "MatterCost", "type": "string"}, {"name": "MatterText1", "type": "string"}, {"name": "MatterText2", "type": "string"}, {"name": "MatterText3", "type": "string"}, {"name": "MatterText4", "type": "string"}, {"name": "MatterText5", "type": "string"}, {"name": "MatterDate1", "type": "string"}, {"name": "MatterDate2", "type": "string"}, {"name": "MatterEXText1", "type": "string"}, {"name": "MatterEXText2", "type": "string"}, {"name": "MatterEXText3", "type": "string"}, {"name": "MatterEXText4", "type": "string"}, {"name": "MatterEXText5", "type": "string"}, {"name": "MatterEXText6", "type": "string"}, {"name": "MatterEXText7", "type": "string"}, {"name": "MatterEXText8", "type": "string"}, {"name": "MatterEXText9", "type": "string"}, {"name": "MatterEXText10", "type": "string"}, {"name": "MatterEXText11", "type": "string"}, {"name": "MatterEXDate1", "type": "string"}, {"name": "MatterEXDate2", "type": "string"}, {"name": "MatterEXDate3", "type": "string"}, {"name": "MatterEXDate4", "type": "string"}, {"name": "MatterEXDate5", "type": "string"}, {"name": "MatterEXDate6", "type": "string"}, {"name": "MatterEXDate7", "type": "string"}, {"name": "MatterEXDate8", "type": "string"}, {"name": "MatterEXDate9", "type": "string"}, {"name": "MatterEXDate10", "type": "string"}, {"name": "MatterAgiloftId", "type": "integer"}, {"name": "MatterReference", "type": "string"}, {"name": "MatterRestrictViewViaWeb", "type": "boolean"}, {"name": "MatterReports", "type": "array"}],
+    note: "OData query options ($top, $filter). matters/{id}/histories gives actions; individual votes are not published. Some titles name taxpayers (tax abatements).",
+  },
+  {
+    slug: "new-haven-legistar-events",
+    accessUrl: "https://webapi.legistar.com/v1/newhaven-ct/events",
+    platform: "manual",
+    title: "New Haven Board of Alders meetings (Legistar)",
+    publisher: "City of New Haven, Board of Alders",
+    jurisdiction: "US-CT/new-haven",
+    recordDescription: "One meeting of the Board of Alders or one of its committees, with date, place, agenda and minutes.",
+    landingPage: "https://newhaven-ct.legistar.com/Calendar.aspx",
+    license: "not stated",
+    updateFrequency: "live",
+    fields: [{"name": "EventId", "type": "integer"}, {"name": "EventGuid", "type": "string"}, {"name": "EventLastModifiedUtc", "type": "string"}, {"name": "EventRowVersion", "type": "string"}, {"name": "EventBodyId", "type": "integer"}, {"name": "EventBodyName", "type": "string"}, {"name": "EventDate", "type": "string"}, {"name": "EventTime", "type": "string"}, {"name": "EventVideoStatus", "type": "string"}, {"name": "EventAgendaStatusId", "type": "integer"}, {"name": "EventAgendaStatusName", "type": "string"}, {"name": "EventMinutesStatusId", "type": "integer"}, {"name": "EventMinutesStatusName", "type": "string"}, {"name": "EventLocation", "type": "string"}, {"name": "EventAgendaFile", "type": "string"}, {"name": "EventMinutesFile", "type": "string"}, {"name": "EventAgendaLastPublishedUTC", "type": "string"}, {"name": "EventMinutesLastPublishedUTC", "type": "string"}, {"name": "EventComment", "type": "string"}, {"name": "EventVideoPath", "type": "string"}, {"name": "EventMedia", "type": "string"}, {"name": "EventInSiteURL", "type": "string"}, {"name": "EventItems", "type": "array"}],
+    note: "events/{id}/eventitems lists agenda items with EventItemMatterId linking to matters.",
+  },
+  {
+    slug: "new-haven-legistar-bodies",
+    accessUrl: "https://webapi.legistar.com/v1/newhaven-ct/bodies",
+    platform: "manual",
+    title: "New Haven Board of Alders and committees (Legistar)",
+    publisher: "City of New Haven, Board of Alders",
+    jurisdiction: "US-CT/new-haven",
+    recordDescription: "One legislative body in New Haven: the Board of Alders or one of its committees.",
+    landingPage: "https://newhaven-ct.legistar.com/Departments.aspx",
+    license: "not stated",
+    updateFrequency: "live",
+    fields: [{"name": "BodyId", "type": "integer"}, {"name": "BodyGuid", "type": "string"}, {"name": "BodyLastModifiedUtc", "type": "string"}, {"name": "BodyRowVersion", "type": "string"}, {"name": "BodyName", "type": "string"}, {"name": "BodyTypeId", "type": "integer"}, {"name": "BodyTypeName", "type": "string"}, {"name": "BodyMeetFlag", "type": "integer"}, {"name": "BodyActiveFlag", "type": "integer"}, {"name": "BodySort", "type": "integer"}, {"name": "BodyDescription", "type": "string"}, {"name": "BodyContactNameId", "type": "string"}, {"name": "BodyContactFullName", "type": "string"}, {"name": "BodyContactPhone", "type": "string"}, {"name": "BodyContactEmail", "type": "string"}, {"name": "BodyUsedControlFlag", "type": "integer"}, {"name": "BodyNumberOfMembers", "type": "integer"}, {"name": "BodyUsedActingFlag", "type": "integer"}, {"name": "BodyUsedTargetFlag", "type": "integer"}, {"name": "BodyUsedSponsorFlag", "type": "integer"}],
+  },
+  {
+    slug: "new-haven-wards",
+    accessUrl: "https://gis.newhavenct.gov/server/rest/services/Hosted/Wards_2022/FeatureServer/0",
+    title: "New Haven Wards (2022)",
+    publisher: "City of New Haven",
+    jurisdiction: "US-CT/new-haven",
+    recordDescription: "One of New Haven's 30 aldermanic wards, with its boundary, 2020 population and its alder.",
+    license: CITY_TERMS,
+  },
+  {
+    slug: "new-haven-police-districts",
+    accessUrl: "https://gis.newhavenct.gov/server/rest/services/Hosted/Police_Districts_(View)/FeatureServer/0",
+    title: "New Haven Police Districts",
+    publisher: "City of New Haven",
+    jurisdiction: "US-CT/new-haven",
+    recordDescription: "One of New Haven's 10 police districts, with its boundary, district manager and community management team meeting.",
+    license: CITY_TERMS,
+  },
+  {
+    slug: "new-haven-neighborhoods",
+    accessUrl: "https://gis.newhavenct.gov/server/rest/services/Hosted/Neighborhoods_(View)/FeatureServer/0",
+    title: "New Haven Neighborhoods",
+    publisher: "City of New Haven",
+    jurisdiction: "US-CT/new-haven",
+    recordDescription: "One of New Haven's 23 neighborhoods, with its boundary and area.",
+    license: CITY_TERMS,
+  },
+  {
+    slug: "new-haven-planned-development-units",
+    accessUrl: "https://gis.newhavenct.gov/server/rest/services/Hosted/NH_PDU_Polygon_%28View%29/FeatureServer/0",
+    title: "New Haven Planned Development Units",
+    publisher: "City of New Haven",
+    jurisdiction: "US-CT/new-haven",
+    recordDescription: "One planned development unit: a site-specific zoning district that overrides the base zone.",
+    license: CITY_TERMS,
+  },
+  {
+    slug: "new-haven-senior-centers",
+    accessUrl: "https://gis.newhavenct.gov/server/rest/services/Hosted/Senior_Centers_(View)/FeatureServer/0",
+    title: "New Haven Senior Centers",
+    publisher: "City of New Haven",
+    jurisdiction: "US-CT/new-haven",
+    recordDescription: "One senior center in New Haven, with its address, status and cooling-center hours.",
+    license: CITY_TERMS,
+  },
+  {
+    slug: "ct-town-codes",
+    accessUrl: "https://data.ct.gov/resource/5hqs-h5c3.json",
+    title: "Connecticut town tax codes and FIPS codes",
+    publisher: "Connecticut Office of Policy and Management",
+    jurisdiction: "US-CT",
+    recordDescription: "One Connecticut town with its state tax code and its federal FIPS code: the crosswalk between the two numbering systems.",
+  },
+  {
+    slug: "ct-evictions-by-tract",
+    accessUrl: "https://data.ct.gov/resource/j5dt-tcp7.json",
+    title: "Connecticut weekly eviction filings by census tract",
+    publisher: "Connecticut Data Collaborative",
+    jurisdiction: "US-CT",
+    recordDescription: "Eviction filings in one Connecticut census tract in one week, with the pre-pandemic baseline for comparison.",
+  },
+  {
+    slug: "ct-affordable-housing-appeals-list",
+    accessUrl: "https://data.ct.gov/resource/3udy-56vi.json",
+    title: "Connecticut Affordable Housing Appeals List",
+    publisher: "Connecticut Department of Housing",
+    jurisdiction: "US-CT",
+    recordDescription: "One Connecticut town in one year, with its counts of government-assisted, rental-assistance, CHFA/USDA-mortgage and deed-restricted housing units.",
+  },
+  {
+    slug: "ct-landcover-by-town",
+    accessUrl: "https://cteco.uconn.edu/ctmaps/rest/services/Landcover/ByTown_1985_2023/MapServer/0",
+    title: "Connecticut land cover by town, 1985-2023",
+    publisher: "UConn CLEAR (CT ECO)",
+    jurisdiction: "US-CT",
+    recordDescription: "One Connecticut town with its forest, developed, turf, agriculture, wetland, water and impervious cover, by year from 1985 to 2023.",
+  },
+];
+
+export const MAPPINGS: Array<Omit<MappingSeed, "concept"> & { conceptUri: string }> = [
+  {
+    source: "new-haven-seeclickfix-issues", conceptUri: C.issueReport, role: "record",
+    fields: [
+      { from: "summary", to: "title" },
+      { from: "description", to: "detail" },
+      { from: "lat", to: "latitude" },
+      { from: "lng", to: "longitude" },
+      { from: "status", to: "state", conversion: "Open, Acknowledged, Closed, Archived" },
+      { from: "created_at", to: "created" },
+      { from: "request_type.title", to: "category" },
+      { from: "reporter.name", to: "reporter", conversion: "a resident's display name: personal" },
+      { from: "media.image_full", to: "photo", conversion: "URL of the photo" },
+    ],
+  },
+  {
+    source: "new-haven-seeclickfix-issues", conceptUri: C.reportCategory, role: "reference",
+    fields: [{ from: "request_type.title", to: "category" }, { from: "request_type.organization", to: "body" }],
+  },
+  { source: "new-haven-seeclickfix-issues", conceptUri: C.civicBody, role: "reference", fields: [{ from: "request_type.organization", to: "name" }] },
+  {
+    source: "new-haven-open311-services", conceptUri: C.reportCategory, role: "record",
+    fields: [{ from: "service_name", to: "category" }, { from: "organization", to: "body" }],
+  },
+  { source: "new-haven-open311-services", conceptUri: C.civicBody, role: "reference", fields: [{ from: "organization", to: "name" }] },
+  {
+    source: "new-haven-legistar-matters", conceptUri: C.legislativeMatter, role: "record",
+    fields: [
+      { from: "MatterFile", to: "identifier", conversion: "public file number, e.g. LM-2026-0456" },
+      { from: "MatterTitle", to: "title" },
+      { from: "MatterTypeName", to: "classification" },
+      { from: "MatterBodyName", to: "fromOrganization" },
+    ],
+  },
+  { source: "new-haven-legistar-matters", conceptUri: C.legislativeBody, role: "reference", fields: [{ from: "MatterBodyName", to: "name" }] },
+  {
+    source: "new-haven-legistar-events", conceptUri: C.publicMeeting, role: "record",
+    fields: [
+      { from: "EventBodyName", to: "organization" },
+      { from: "EventDate", to: "startDate", conversion: "date only; the time is in EventTime as text" },
+      { from: "EventLocation", to: "locationName" },
+      { from: "EventAgendaFile", to: "agenda", conversion: "URL of the agenda PDF" },
+      { from: "EventAgendaStatusName", to: "status" },
+    ],
+  },
+  { source: "new-haven-legistar-events", conceptUri: C.legislativeBody, role: "reference", fields: [{ from: "EventBodyName", to: "name" }] },
+  {
+    source: "new-haven-legistar-bodies", conceptUri: C.legislativeBody, role: "record",
+    fields: [{ from: "BodyName", to: "name" }, { from: "BodyTypeName", to: "chamberClassification" }, { from: "BodyNumberOfMembers", to: "seats" }],
+  },
+  {
+    source: "new-haven-wards", conceptUri: C.cityDistrict, role: "record",
+    fields: [{ from: "formal_name", to: "name" }, { from: "ward", to: "externalCode", conversion: "ward number 1-30" }],
+  },
+  {
+    source: "new-haven-wards", conceptUri: C.electedOfficial, role: "reference",
+    fields: [{ from: "alder_name", to: "name" }, { from: "party", to: "party" }, { from: "ward", to: "district" }],
+  },
+  {
+    source: "new-haven-police-districts", conceptUri: C.cityDistrict, role: "record",
+    fields: [{ from: "district_name", to: "name" }, { from: "district_num", to: "externalCode", conversion: "police district number" }],
+  },
+  { source: "new-haven-neighborhoods", conceptUri: C.cityDistrict, role: "record", fields: [{ from: "neighborhood", to: "name" }] },
+  {
+    source: "new-haven-planned-development-units", conceptUri: C.zoningDistrict, role: "record",
+    fields: [{ from: "zone_code", to: "zoneCode", conversion: "e.g. 'PDU 108'; overrides the base zone in the zoning layer" }],
+  },
+  { source: "new-haven-senior-centers", conceptUri: C.serviceSite, role: "record", fields: [{ from: "name", to: "name" }] },
+  {
+    source: "ct-town-codes", conceptUri: C.municipality, role: "record",
+    fields: [
+      { from: "town_name", to: "name" },
+      { from: "tax_code", to: "localCode", conversion: "zero-padded, '093'; other datasets write 93" },
+      { from: "fips_code", to: "fipsCode", conversion: "10-digit FIPS with the pre-2022 county, '0900952070'; newer datasets use 0917052070" },
+    ],
+  },
+  { source: "ct-evictions-by-tract", conceptUri: C.censusTract, role: "reference", fields: [{ from: "geoid", to: "geoid", conversion: "2020 tract GEOID with the pre-2022 county code (09009...)" }] },
+  {
+    source: "ct-affordable-housing-appeals-list", conceptUri: C.municipality, role: "reference",
+    fields: [{ from: "code", to: "localCode", conversion: "CT town number, unpadded (93)" }, { from: "town", to: "name" }],
+  },
+  {
+    source: "ct-landcover-by-town", conceptUri: C.municipality, role: "reference",
+    fields: [{ from: "TOWN_NAME", to: "name" }, { from: "CNTY_NAME", to: "county" }],
+  },
+];

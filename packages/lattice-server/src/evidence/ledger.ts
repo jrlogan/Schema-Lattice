@@ -228,7 +228,9 @@ export class EvidenceLedger {
         .prepare("SELECT COUNT(*) AS n FROM evidence WHERE source = ? AND updated_at >= ?")
         .get(source, new Date(now.getTime() - DAY).toISOString()) as { n: number }
     ).n;
-    if (recent + claims.length > EVIDENCE_CONFIG.dailyCapPerSource) {
+    // The cap is an abuse brake for strangers. Curators' claims take effect at
+    // once anyway, and a seed of one city's sources runs to hundreds of pairs.
+    if (!this.isCurator(source) && recent + claims.length > EVIDENCE_CONFIG.dailyCapPerSource) {
       throw new EvidenceRejected("daily evidence limit reached for this source; try again tomorrow");
     }
     const upsert = this.db.prepare(

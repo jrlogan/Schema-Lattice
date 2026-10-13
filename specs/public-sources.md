@@ -67,7 +67,8 @@ permanent and are never changed by anything here.
   are refused, which catches the typo the trail pilot showed passing
   silently.
 - `jurisdiction`: an ISO 3166-2 code, optionally followed by a locality
-  slug: `US`, `US-CT`, `US-CT/new-haven`. A search for `US-CT` matches
+  slug: `US`, `US-CT`, `US-CT/new-haven`; or `global` for international
+  standards and datasets, which covers everywhere. A search for `US-CT` matches
   all three of the last two.
 - `fields` comes from the publisher whenever the platform allows it
   (see "Field lists"). Field names are exact, case included, because
@@ -185,6 +186,10 @@ they follow corroboration and retraction automatically.
 
   Two fields that make up one key together (`town` + `address`) are
   reported as one composite join.
+- **Overlays:** map layers that share no identifying field but cover the
+  same area are listed once, as `overlays`, rather than as related
+  sources. Every layer overlays every other, and listing each one
+  separately buries the field joins.
 
 ## Tools
 

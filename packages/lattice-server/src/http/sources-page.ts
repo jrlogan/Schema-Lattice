@@ -89,6 +89,15 @@ export function renderSourcePage(s: Resolved, host: string): string {
     }
   }
 
+  if (s.overlays.length) {
+    out.push("## Map layers it overlays", "");
+    out.push(
+      "No shared field: relate records by intersecting geometries. " +
+        s.overlays.map((o) => `[${line(o.title)}](https://${host}/sources/${o.slug})`).join(", ") + ".",
+      "",
+    );
+  }
+
   out.push("## Help the next builder", "");
   out.push(
     "If you work out what an unmapped field means, or find a mapping above is wrong, record it with " +

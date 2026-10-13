@@ -45,8 +45,12 @@ export type SourceKind = (typeof KINDS)[number];
 const ROLES = ["record", "reference"] as const;
 export type SourceRole = (typeof ROLES)[number];
 
-/** ISO 3166 country, optional subdivision, optional locality slug: US, US-CT, US-CT/new-haven. */
-const JURISDICTION_RE = /^[A-Z]{2}(-[A-Z0-9]{1,3})?(\/[a-z0-9][a-z0-9-]{0,39})?$/;
+/**
+ * ISO 3166 country, optional subdivision, optional locality slug: US, US-CT,
+ * US-CT/new-haven. `global` is for international standards and datasets
+ * (GTFS, Open311), and covers every jurisdiction.
+ */
+const JURISDICTION_RE = /^(global|[A-Z]{2}(-[A-Z0-9]{1,3})?(\/[a-z0-9][a-z0-9-]{0,39})?)$/;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,59}$/;
 const GEOMETRY_TYPES = new Set([
   "geometry", "point", "multipoint", "line", "multiline", "polygon", "multipolygon", "location", "shape",
@@ -276,7 +280,7 @@ export class Sources {
     if (!publisher) throw new SourceRejected('"publisher" is required: the agency or organisation that publishes it');
     const jurisdiction = optionalText(input.jurisdiction, "jurisdiction", 60) ?? existing?.jurisdiction;
     if (!jurisdiction || !JURISDICTION_RE.test(jurisdiction)) {
-      throw new SourceRejected('"jurisdiction" is required, as US, US-CT or US-CT/new-haven (ISO 3166 code, optional locality slug)');
+      throw new SourceRejected('"jurisdiction" is required, as US, US-CT or US-CT/new-haven (ISO 3166 code, optional locality slug), or global');
     }
     const recordDescription =
       optionalText(input.recordDescription, "recordDescription", SOURCE_CONFIG.recordDescriptionMax) ?? existing?.record_description;
@@ -588,7 +592,7 @@ export class Sources {
       carries: this.carries(slug, allPairs),
       fields,
       unmappedFields: fields.filter((f) => !("means" in f)).length,
-      related: this.related(slug, allPairs),
+      ...this.relatedSplit(slug, allPairs),
       notice: UNTRUSTED_NOTICE,
     };
   }
@@ -633,6 +637,20 @@ export class Sources {
         conceptFields: total,
       };
     });
+  }
+
+  /**
+   * Field joins are listed source by source. Overlay-only relations are listed
+   * once, compactly: every map layer overlays every other in the same area, and
+   * thirty of those would bury the two joins that matter.
+   */
+  private relatedSplit(slug: string, allPairs: ListedPair[]) {
+    const all = this.related(slug, allPairs);
+    const fieldJoin = (r: (typeof all)[number]) => r.joins.some((j) => j.kind !== "spatial" || j.pairs.length > 0);
+    return {
+      related: all.filter(fieldJoin),
+      overlays: all.filter((r) => !fieldJoin(r)).map((r) => ({ slug: r.slug, title: r.title, jurisdiction: r.jurisdiction })),
+    };
   }
 
   /**
@@ -954,6 +972,8 @@ export function fieldJoinKind(path: string, field: ConceptField | undefined, ref
 /** How a source's jurisdiction relates to the one asked for, or null when it doesn't cover it. */
 export function coverage(sourceJurisdiction: string, asked: string): "exact" | "broader" | "narrower" | null {
   if (sourceJurisdiction === asked) return "exact";
+  if (sourceJurisdiction === "global") return "broader";
+  if (asked === "global") return "narrower";
   const within = (inner: string, outer: string) => inner.startsWith(`${outer}-`) || inner.startsWith(`${outer}/`);
   if (within(asked, sourceJurisdiction)) return "broader";
   if (within(sourceJurisdiction, asked)) return "narrower";
@@ -978,9 +998,18 @@ function exampleQuery(r: SourceRow): string | null {
   return null;
 }
 
+/**
+ * What makes two access URLs the same dataset. For ArcGIS and Socrata the
+ * path names it and the query string is only a request. For other APIs the
+ * query can be the dataset itself (SeeClickFix's `?place_url=new-haven`), so
+ * it is kept, sorted.
+ */
 function normalizeAccessUrl(url: URL): string {
   const path = url.pathname.replace(/\/+$/, "").replace(/\/query$/i, "");
-  return `${url.hostname.toLowerCase()}${path.toLowerCase()}`;
+  const base = `${url.hostname.toLowerCase()}${path.toLowerCase()}`;
+  if (platformOf(url.href)) return base;
+  const params = [...url.searchParams].sort(([a], [b]) => a.localeCompare(b));
+  return params.length ? `${base}?${new URLSearchParams(params).toString()}` : base;
 }
 
 /**
