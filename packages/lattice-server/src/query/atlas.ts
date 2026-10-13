@@ -39,15 +39,30 @@ export interface AtlasData {
 const DEMAND_TEXT_MAX = 120;
 
 let cache: { at: number; totals: string; data: AtlasData } | null = null;
+let rebuilding: Promise<AtlasData> | null = null;
 const CACHE_MS = 5 * 60_000;
 
+/**
+ * The atlas, from cache whenever possible. Building it clusters every unmet
+ * search, which takes seconds on a small box, so a stale map is served at once
+ * while a fresh one builds in the background. Only a change to what the map
+ * draws (concepts, contexts, sources) makes a caller wait for the rebuild.
+ * Keyed on those counts, not the event count: every search is an event.
+ */
 export async function buildAtlas(instance: LatticeInstance): Promise<AtlasData> {
-  // Keyed on what the map draws, not on the event count: every search is an
-  // event, so keying on it rebuilt the atlas (and its seconds-long demand
-  // clustering) on nearly every request. Unmet searches refresh with the TTL.
   const { concepts, contexts } = instance.totals();
   const totals = `${concepts}/${contexts}/${instance.sources.listAll().length}`;
-  if (cache && Date.now() - cache.at < CACHE_MS && cache.totals === totals) return cache.data;
+  if (cache && cache.totals === totals) {
+    if (Date.now() - cache.at >= CACHE_MS && !rebuilding) {
+      rebuilding = rebuild(instance, totals).finally(() => (rebuilding = null));
+      rebuilding.catch(() => {}); // a failed refresh keeps the stale map
+    }
+    return cache.data;
+  }
+  return rebuilding ?? (rebuilding = rebuild(instance, totals).finally(() => (rebuilding = null)));
+}
+
+async function rebuild(instance: LatticeInstance, totals: string): Promise<AtlasData> {
 
   const db = instance.store.db;
   const roots = instance.ancestryCtx.skeletonUris;

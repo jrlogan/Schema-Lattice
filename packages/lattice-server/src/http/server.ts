@@ -182,6 +182,8 @@ export async function startHttpServer(
   });
 
   await new Promise<void>((resolve) => server.listen(config.port, config.host, resolve));
+  // Build the atlas once now, so the first visitor after a restart doesn't wait for it.
+  buildAtlas(instance).catch(() => {});
   const address = server.address();
   const port = typeof address === "object" && address ? address.port : config.port;
 
