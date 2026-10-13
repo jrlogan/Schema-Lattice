@@ -1,0 +1,4469 @@
+{
+ "contexts": [
+  {
+   "slug": "nonprofit-crm",
+   "title": "Nonprofit CRM",
+   "definition": "Records a nonprofit, association or membership organization keeps about its constituents: contacts, gifts and recurring gifts, logged interactions, relationships between contacts, lists and segments, and memberships. Generic to any constituent relationship management system."
+  }
+ ],
+ "concepts": [
+  {
+   "context": "nonprofit-crm",
+   "conceptSlug": "constituent",
+   "prefLabel": "Constituent",
+   "altLabels": [
+    "CRM Contact",
+    "Supporter",
+    "Contact Record",
+    "Donor Record"
+   ],
+   "definition": "A person, organization or household that a nonprofit or association keeps one record for in its relationship database, whatever its roles (donor, member, volunteer, participant, vendor), with names, contact channels, communication preferences and do-not-contact flags.",
+   "conceptKind": "agent",
+   "broaderRoot": "agent",
+   "broadMatch": [
+    "foaf:Agent",
+    "wd:Q4434361"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "externalIdentifier",
+      "type": "string",
+      "classification": "internal",
+      "description": "Unique id from another system (legacy database, website user, payment platform)."
+     },
+     {
+      "name": "contactType",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "Individual",
+       "Organization",
+       "Household"
+      ]
+     },
+     {
+      "name": "contactSubType",
+      "type": "array",
+      "classification": "internal",
+      "description": "Site-defined subtypes, e.g. Student, Staff, Sponsor, Funder."
+     },
+     {
+      "name": "displayName",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "prefix",
+      "type": "string",
+      "classification": "personal-identity",
+      "description": "Ms., Mr., Dr. …"
+     },
+     {
+      "name": "firstName",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "middleName",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "lastName",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "suffix",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "nickName",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "formalTitle",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "organizationName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "householdName",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "legalName",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "legalIdentifier",
+      "type": "string",
+      "classification": "personal-identity",
+      "description": "SSN, EIN/TIN or other legal id."
+     },
+     {
+      "name": "jobTitle",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "employer",
+      "type": "reference",
+      "classification": "personal-identity",
+      "description": "The organization constituent this individual works for."
+     },
+     {
+      "name": "gender",
+      "type": "string",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "birthDate",
+      "type": "date",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "isDeceased",
+      "type": "boolean",
+      "classification": "personal-identity",
+      "description": "Deceased (individual) or closed (organization)."
+     },
+     {
+      "name": "deceasedDate",
+      "type": "date",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "email",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "emailOnHold",
+      "type": "boolean",
+      "classification": "personal-contact",
+      "description": "Address is bouncing or held."
+     },
+     {
+      "name": "phone",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "phoneType",
+      "type": "enum",
+      "classification": "personal-contact",
+      "values": [
+       "Phone",
+       "Mobile",
+       "Fax",
+       "Pager",
+       "Voicemail"
+      ]
+     },
+     {
+      "name": "streetAddress",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "supplementalAddress",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "city",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "stateProvince",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "postalCode",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "country",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "latitude",
+      "type": "number",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "longitude",
+      "type": "number",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "website",
+      "type": "url",
+      "classification": "internal"
+     },
+     {
+      "name": "imageUrl",
+      "type": "url",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "preferredCommunicationMethod",
+      "type": "array",
+      "classification": "personal-contact",
+      "description": "Any of Phone, Email, Postal Mail, SMS, Fax."
+     },
+     {
+      "name": "preferredLanguage",
+      "type": "string",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "doNotEmail",
+      "type": "boolean",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "doNotPhone",
+      "type": "boolean",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "doNotMail",
+      "type": "boolean",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "doNotSms",
+      "type": "boolean",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "doNotTrade",
+      "type": "boolean",
+      "classification": "personal-contact",
+      "description": "Do not share or sell this contact's details."
+     },
+     {
+      "name": "bulkEmailOptOut",
+      "type": "boolean",
+      "classification": "personal-contact"
+     },
+     {
+      "name": "source",
+      "type": "string",
+      "classification": "internal",
+      "description": "Where the record came from: import, web form, event registration."
+     },
+     {
+      "name": "tags",
+      "type": "array",
+      "classification": "internal",
+      "description": "Labels applied to the record."
+     },
+     {
+      "name": "isDeleted",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "createdDate",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "modifiedDate",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://raw.githubusercontent.com/civicrm/civicrm-core/6.19.0/schema/Contact/Contact.entityType.php",
+    "authoredBy": [
+     "SchemaLattice nonprofit-crm pilot"
+    ],
+    "sourceNotes": "Fields from CiviCRM core 6.19.0 schema (Contact, Email, Phone, Address, Website, Tag.entityType.php). Contact carries contact_type Individual/Organization/Household (Individual-only: names, gender, birth date; Organization: organization_name, legal_name, sic_code; Household: household_name). Email/Phone/Address/Website are child rows; the primary one of each is folded in. Consent flags do_not_* and is_opt_out kept. schema.org Person/Organization and FOAF Agent share the name, email, telephone, address and url fields."
+   }
+  },
+  {
+   "context": "nonprofit-crm",
+   "conceptSlug": "donation",
+   "prefLabel": "Donation",
+   "altLabels": [
+    "Gift",
+    "Contribution",
+    "Charitable Gift",
+    "Donor Gift"
+   ],
+   "definition": "A gift of money, goods or services that an organization receives from a person or organization without giving back anything of equal value, recorded with its amount, date received, fund or financial type, payment method, campaign, receipting and any tribute such as in honor or in memory of someone.",
+   "conceptKind": "event",
+   "broaderRoot": "transaction",
+   "closeMatch": [
+    "wd:Q1124860",
+    "schema:DonateAction"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "donor",
+      "type": "reference",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "amount",
+      "type": "number",
+      "classification": "personal-financial",
+      "description": "Total amount given; market value for in-kind gifts."
+     },
+     {
+      "name": "currency",
+      "type": "string",
+      "classification": "public",
+      "description": "ISO 4217 code."
+     },
+     {
+      "name": "receivedDate",
+      "type": "datetime",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "financialType",
+      "type": "string",
+      "classification": "internal",
+      "description": "Fund or revenue category, e.g. Donation, Member Dues, Event Fee, Campaign Contribution; decides tax deductibility."
+     },
+     {
+      "name": "paymentMethod",
+      "type": "string",
+      "classification": "personal-financial",
+      "description": "Credit card, check, cash, EFT, in-kind …"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "Completed",
+       "Pending",
+       "In Progress",
+       "Partially paid",
+       "Overdue",
+       "Failed",
+       "Cancelled",
+       "Refunded",
+       "Pending refund",
+       "Chargeback"
+      ]
+     },
+     {
+      "name": "campaign",
+      "type": "string",
+      "classification": "internal",
+      "description": "Appeal or campaign the gift responded to."
+     },
+     {
+      "name": "source",
+      "type": "string",
+      "classification": "internal",
+      "description": "Where the gift came from: donation page, import, phonebank."
+     },
+     {
+      "name": "nonDeductibleAmount",
+      "type": "number",
+      "classification": "personal-financial",
+      "description": "Portion not tax deductible (value of goods or services received)."
+     },
+     {
+      "name": "feeAmount",
+      "type": "number",
+      "classification": "personal-financial",
+      "description": "Payment processor fee."
+     },
+     {
+      "name": "netAmount",
+      "type": "number",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "taxAmount",
+      "type": "number",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "transactionId",
+      "type": "string",
+      "classification": "personal-financial",
+      "description": "Processor or bank transaction id."
+     },
+     {
+      "name": "invoiceNumber",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "checkNumber",
+      "type": "string",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "receiptDate",
+      "type": "datetime",
+      "classification": "internal",
+      "description": "When the tax receipt was sent."
+     },
+     {
+      "name": "thankYouDate",
+      "type": "datetime",
+      "classification": "internal",
+      "description": "When the donor was thanked."
+     },
+     {
+      "name": "cancelDate",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "cancelReason",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "recurringDonation",
+      "type": "reference",
+      "classification": "internal",
+      "description": "The standing commitment this installment belongs to, if any."
+     },
+     {
+      "name": "tributeType",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "in honor of",
+       "in memory of"
+      ]
+     },
+     {
+      "name": "tributeHonoree",
+      "type": "reference",
+      "classification": "personal-identity",
+      "description": "Person or organization the gift honors or memorializes."
+     },
+     {
+      "name": "softCreditContact",
+      "type": "reference",
+      "classification": "personal-identity",
+      "description": "Someone credited for the gift without being the payer (solicitor, workplace giving, personal fundraiser)."
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "internal",
+      "description": "Free-text memo about the gift."
+     },
+     {
+      "name": "isTest",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "createdDate",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://raw.githubusercontent.com/civicrm/civicrm-core/6.19.0/schema/Contribute/Contribution.entityType.php",
+    "authoredBy": [
+     "SchemaLattice nonprofit-crm pilot"
+    ],
+    "sourceNotes": "CiviCRM core 6.19.0 Contribution (contact_id, total_amount, currency, receive_date, financial_type_id, payment_instrument_id, contribution_status_id, campaign_id, source, non_deductible_amount, fee_amount, net_amount, tax_amount, trxn_id, invoice_number, check_number, receipt_date, thankyou_date, cancel_date/reason, contribution_recur_id) and ContributionSoft (soft_credit_type in_honor_of/in_memory_of/solicited). Cross-checked against the Open Collective GraphQL API v2 Order type (https://raw.githubusercontent.com/opencollective/opencollective-frontend/main/lib/graphql/schemaV2.graphql: fromAccount, toAccount, amount, totalAmount, taxAmount, paymentProcessorFee, status, frequency, paymentMethod, processedAt, description, memo, tags) and schema.org DonateAction (agent, recipient, price, priceCurrency). Not 360Giving: that standard describes grants a funder awards, not gifts an organization receives (see grantmaking/grant-award)."
+   }
+  },
+  {
+   "context": "nonprofit-crm",
+   "conceptSlug": "recurring-donation",
+   "prefLabel": "Recurring Donation",
+   "altLabels": [
+    "Recurring Gift",
+    "Sustaining Gift",
+    "Monthly Giving Pledge",
+    "Recurring Contribution"
+   ],
+   "definition": "A donor's standing authorization to give a set amount at a regular interval (monthly, yearly) until cancelled or a number of installments is reached; each successful charge creates a separate gift record. It carries the schedule, next charge date, failure count and the processor's subscription reference.",
+   "conceptKind": "entity",
+   "broaderRoot": "transaction",
+   "broadMatch": [
+    "wd:Q13723387"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "donor",
+      "type": "reference",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "amount",
+      "type": "number",
+      "classification": "personal-financial",
+      "description": "Amount collected each installment."
+     },
+     {
+      "name": "currency",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "frequencyUnit",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "day",
+       "week",
+       "month",
+       "year"
+      ]
+     },
+     {
+      "name": "frequencyInterval",
+      "type": "integer",
+      "classification": "internal",
+      "description": "Number of units between installments (1 month, 3 months)."
+     },
+     {
+      "name": "installments",
+      "type": "integer",
+      "classification": "internal",
+      "description": "Total installments; empty or 0 for open-ended."
+     },
+     {
+      "name": "cycleDay",
+      "type": "integer",
+      "classification": "internal",
+      "description": "Day of the period the charge is made."
+     },
+     {
+      "name": "startDate",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "endDate",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "nextScheduledDate",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "lastChargedDate",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "Pending",
+       "In Progress",
+       "Completed",
+       "Overdue",
+       "Failed",
+       "Cancelled",
+       "Processing"
+      ]
+     },
+     {
+      "name": "cancelDate",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "cancelReason",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "failureCount",
+      "type": "integer",
+      "classification": "internal",
+      "description": "Failed charge attempts since the last success."
+     },
+     {
+      "name": "failureRetryDate",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "financialType",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "paymentMethod",
+      "type": "string",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "processorReference",
+      "type": "string",
+      "classification": "personal-financial",
+      "description": "Subscription id at the payment processor."
+     },
+     {
+      "name": "campaign",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "autoRenew",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "emailReceipt",
+      "type": "boolean",
+      "classification": "internal",
+      "description": "Send a receipt after each installment."
+     },
+     {
+      "name": "createdDate",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://raw.githubusercontent.com/civicrm/civicrm-core/6.19.0/schema/Contribute/ContributionRecur.entityType.php",
+    "authoredBy": [
+     "SchemaLattice nonprofit-crm pilot"
+    ],
+    "sourceNotes": "CiviCRM core 6.19.0 ContributionRecur (amount, currency, frequency_unit, frequency_interval, installments, cycle_day, start_date, end_date, next_sched_contribution_date, contribution_status_id, cancel_date/reason, failure_count, failure_retry_date, processor_id, auto_renew, is_email_receipt); Open Collective API v2 Order with frequency MONTHLY/YEARLY, nextChargeDate, lastChargedAt, status (https://raw.githubusercontent.com/opencollective/opencollective-frontend/main/lib/graphql/schemaV2.graphql). Kept separate from Donation because both models store the commitment as its own record, with its own status and lifecycle, that spawns one gift per installment."
+   }
+  },
+  {
+   "context": "nonprofit-crm",
+   "conceptSlug": "contact-activity",
+   "prefLabel": "Contact Activity",
+   "altLabels": [
+    "Interaction",
+    "Touchpoint",
+    "Logged Activity",
+    "Engagement Record"
+   ],
+   "definition": "A logged interaction or task involving one or more people an organization keeps records on, such as a phone call, meeting, email, follow-up or tour, with its type, date, duration, status, medium and the contacts who did it, were its subject, or are assigned to it.",
+   "conceptKind": "event",
+   "broaderRoot": "activity",
+   "broadMatch": [
+    "wd:Q609298",
+    "schema:InteractAction"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "activityType",
+      "type": "string",
+      "classification": "internal",
+      "description": "Meeting, Phone Call, Email, SMS, Follow up, Tour, Contribution, Event Registration, or site-defined types."
+     },
+     {
+      "name": "subject",
+      "type": "string",
+      "classification": "confidential"
+     },
+     {
+      "name": "activityDateTime",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "durationMinutes",
+      "type": "integer",
+      "classification": "internal",
+      "unit": "min"
+     },
+     {
+      "name": "location",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "details",
+      "type": "string",
+      "classification": "confidential",
+      "description": "Notes, agenda or message body."
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "Scheduled",
+       "Completed",
+       "Cancelled",
+       "Left Message",
+       "Unreachable",
+       "Not Required",
+       "Available",
+       "No-show"
+      ]
+     },
+     {
+      "name": "priority",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "Urgent",
+       "Normal",
+       "Low"
+      ]
+     },
+     {
+      "name": "medium",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "In Person",
+       "Phone",
+       "Email",
+       "Fax",
+       "Letter Mail"
+      ]
+     },
+     {
+      "name": "sourceContact",
+      "type": "reference",
+      "classification": "personal-identity",
+      "description": "Who logged or performed it."
+     },
+     {
+      "name": "targetContacts",
+      "type": "array",
+      "classification": "personal-identity",
+      "description": "Who it was with or about."
+     },
+     {
+      "name": "assigneeContacts",
+      "type": "array",
+      "classification": "personal-identity",
+      "description": "Who must do it (tasks, follow-ups)."
+     },
+     {
+      "name": "result",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "engagementLevel",
+      "type": "integer",
+      "classification": "internal"
+     },
+     {
+      "name": "campaign",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "parentActivity",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Activity this is a follow-up of."
+     },
+     {
+      "name": "sourceRecord",
+      "type": "string",
+      "classification": "internal",
+      "description": "Id of the record (gift, membership, registration) that generated it."
+     },
+     {
+      "name": "isDeleted",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "createdDate",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "modifiedDate",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://raw.githubusercontent.com/civicrm/civicrm-core/6.19.0/schema/Activity/Activity.entityType.php",
+    "authoredBy": [
+     "SchemaLattice nonprofit-crm pilot"
+    ],
+    "sourceNotes": "Fields from CiviCRM core 6.19.0 schema (Activity, ActivityContact.entityType.php). ActivityContact.record_type_id gives each linked contact's role: Activity Source, Activity Targets, Activity Assignees. schema.org InteractAction/CommunicateAction (agent, participant, recipient, startTime, endTime, instrument, location) cover the same ground."
+   }
+  },
+  {
+   "context": "nonprofit-crm",
+   "conceptSlug": "contact-relationship",
+   "prefLabel": "Contact Relationship",
+   "altLabels": [
+    "Constituent Relationship",
+    "Affiliation",
+    "Connection"
+   ],
+   "definition": "A typed, dated, two-way link between two people or organizations in a relationship database, read one way from the first party and the other way from the second: employee of / employer of, spouse of, parent of / child of, board member of, volunteer for.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "broadMatch": [
+    "wd:Q853725",
+    "schema:Role"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "contactA",
+      "type": "reference",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "contactB",
+      "type": "reference",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "relationshipType",
+      "type": "string",
+      "classification": "internal",
+      "description": "Machine name of the A-to-B direction, e.g. Employee of, Spouse of, Head of Household for."
+     },
+     {
+      "name": "labelAToB",
+      "type": "string",
+      "classification": "public",
+      "description": "How A relates to B, e.g. Employee of."
+     },
+     {
+      "name": "labelBToA",
+      "type": "string",
+      "classification": "public",
+      "description": "How B relates to A, e.g. Employer of."
+     },
+     {
+      "name": "contactTypeA",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "Individual",
+       "Organization",
+       "Household"
+      ]
+     },
+     {
+      "name": "contactTypeB",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "Individual",
+       "Organization",
+       "Household"
+      ]
+     },
+     {
+      "name": "startDate",
+      "type": "date",
+      "classification": "internal"
+     },
+     {
+      "name": "endDate",
+      "type": "date",
+      "classification": "internal"
+     },
+     {
+      "name": "isActive",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "confidential"
+     },
+     {
+      "name": "createdDate",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "modifiedDate",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://raw.githubusercontent.com/civicrm/civicrm-core/6.19.0/schema/Contact/Relationship.entityType.php",
+    "authoredBy": [
+     "SchemaLattice nonprofit-crm pilot"
+    ],
+    "sourceNotes": "Fields from CiviCRM core 6.19.0 schema (Relationship, RelationshipType.entityType.php). Relationship (contact_id_a, contact_id_b, relationship_type_id, start_date, end_date, is_active, description) with RelationshipType (name_a_b, label_a_b, label_b_a, contact_type_a/b). schema.org Role/OrganizationRole adds startDate, endDate and roleName to a link the same way."
+   }
+  },
+  {
+   "context": "nonprofit-crm",
+   "conceptSlug": "contact-group",
+   "prefLabel": "Contact Group",
+   "altLabels": [
+    "Contact List",
+    "Segment",
+    "Mailing List",
+    "Smart Group"
+   ],
+   "definition": "A named set of people and organizations kept in a relationship database, either listed by hand or computed from a saved search, used as a mailing list, access-control group or segment for outreach, with each member's added, removed or pending status.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "broadMatch": [
+    "wd:Q4434361",
+    "wd:Q714827"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "name",
+      "type": "string",
+      "classification": "internal",
+      "description": "Machine name."
+     },
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "publicTitle",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "publicDescription",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "groupType",
+      "type": "array",
+      "classification": "internal",
+      "description": "Any of Access Control, Mailing List."
+     },
+     {
+      "name": "isSmartGroup",
+      "type": "boolean",
+      "classification": "internal",
+      "description": "Membership computed from a saved search rather than listed."
+     },
+     {
+      "name": "visibility",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "User and User Admin Only",
+       "Public Pages"
+      ]
+     },
+     {
+      "name": "parentGroups",
+      "type": "array",
+      "classification": "internal"
+     },
+     {
+      "name": "isActive",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "isHidden",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "source",
+      "type": "string",
+      "classification": "internal",
+      "description": "Module or process that created it."
+     },
+     {
+      "name": "createdBy",
+      "type": "reference",
+      "classification": "internal"
+     },
+     {
+      "name": "memberContact",
+      "type": "reference",
+      "classification": "personal-identity",
+      "description": "A member (one row per member in the membership list)."
+     },
+     {
+      "name": "memberStatus",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "Added",
+       "Removed",
+       "Pending"
+      ]
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://raw.githubusercontent.com/civicrm/civicrm-core/6.19.0/schema/Contact/Group.entityType.php",
+    "authoredBy": [
+     "SchemaLattice nonprofit-crm pilot"
+    ],
+    "sourceNotes": "Fields from CiviCRM core 6.19.0 schema (Group, GroupContact.entityType.php). Group (name, title, description, frontend_title, frontend_description, group_type, saved_search_id, visibility, parents, is_active, is_hidden, source, created_id) and GroupContact (group_id, contact_id, status Added/Removed/Pending)."
+   }
+  },
+  {
+   "context": "nonprofit-crm",
+   "conceptSlug": "organizational-membership",
+   "prefLabel": "Organizational Membership",
+   "altLabels": [
+    "Association Membership",
+    "Membership Record",
+    "Member Subscription",
+    "Dues Membership"
+   ],
+   "definition": "A person's or organization's paid or complimentary standing as a member of an association, society or nonprofit, of a given type and status, with join date, current period start and end, renewal terms and where it came from. Generic to any membership body; access to a shop or facility is not implied.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "closeMatch": [
+    "wd:Q60844538"
+   ],
+   "broadMatch": [
+    "schema:ProgramMembership"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "member",
+      "type": "reference",
+      "classification": "personal-identity"
+     },
+     {
+      "name": "membershipOrganization",
+      "type": "reference",
+      "classification": "public",
+      "description": "The organization the membership is in."
+     },
+     {
+      "name": "membershipType",
+      "type": "string",
+      "classification": "public",
+      "description": "e.g. Individual, Family, Student, Organizational, Lifetime."
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "New",
+       "Current",
+       "Grace",
+       "Expired",
+       "Pending",
+       "Cancelled",
+       "Deceased"
+      ]
+     },
+     {
+      "name": "isCurrent",
+      "type": "boolean",
+      "classification": "internal",
+      "description": "Status counts as a current member."
+     },
+     {
+      "name": "joinDate",
+      "type": "date",
+      "classification": "internal",
+      "description": "Start of the first membership period (member since)."
+     },
+     {
+      "name": "startDate",
+      "type": "date",
+      "classification": "internal",
+      "description": "Start of the current unbroken period."
+     },
+     {
+      "name": "endDate",
+      "type": "date",
+      "classification": "internal",
+      "description": "When the current period expires; renewal moves it."
+     },
+     {
+      "name": "source",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "statusOverridden",
+      "type": "boolean",
+      "classification": "internal",
+      "description": "Status set by hand instead of computed from dates."
+     },
+     {
+      "name": "statusOverrideEndDate",
+      "type": "date",
+      "classification": "internal"
+     },
+     {
+      "name": "primaryMembership",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Membership this one is inherited from (family or employee memberships)."
+     },
+     {
+      "name": "minimumFee",
+      "type": "number",
+      "classification": "public"
+     },
+     {
+      "name": "durationUnit",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "day",
+       "month",
+       "year",
+       "lifetime"
+      ]
+     },
+     {
+      "name": "durationInterval",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "periodType",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "rolling",
+       "fixed"
+      ]
+     },
+     {
+      "name": "autoRenew",
+      "type": "boolean",
+      "classification": "internal"
+     },
+     {
+      "name": "recurringDonation",
+      "type": "reference",
+      "classification": "internal",
+      "description": "Recurring payment that renews it."
+     },
+     {
+      "name": "campaign",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "isPayLater",
+      "type": "boolean",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://raw.githubusercontent.com/civicrm/civicrm-core/6.19.0/schema/Member/Membership.entityType.php",
+    "authoredBy": [
+     "SchemaLattice nonprofit-crm pilot"
+    ],
+    "sourceNotes": "Fields from CiviCRM core 6.19.0 schema (Membership, MembershipType, MembershipStatus.entityType.php). Membership (contact_id, membership_type_id, join_date, start_date, end_date, source, status_id, is_override, status_override_end_date, owner_membership_id, contribution_recur_id, campaign_id) with MembershipType (member_of_contact_id, minimum_fee, duration_unit, duration_interval, period_type, auto_renew) and MembershipStatus (name, is_current_member). schema.org ProgramMembership (member, hostingOrganization, programName, membershipNumber) is the same shape. Distinct from makerspace-operations/member, which adds access cards, waivers and facility access."
+   }
+  }
+ ],
+ "sources": [
+  {
+   "slug": "civicrm-core",
+   "kind": "standard",
+   "platform": "manual",
+   "accessUrl": "https://github.com/civicrm/civicrm-core/tree/6.19.0/schema",
+   "title": "CiviCRM core data model",
+   "publisher": "CiviCRM",
+   "jurisdiction": "global",
+   "recordDescription": "One row of a CiviCRM core entity: a contact (individual, organization or household) or one of its emails, phones, addresses, activities, relationships, group and tag links, notes, contributions, recurring contributions, memberships, events or event participants.",
+   "landingPage": "https://docs.civicrm.org/dev/en/latest/api/v4/",
+   "license": "AGPL-3.0",
+   "updateFrequency": "monthly releases",
+   "fields": [
+    {
+     "name": "Contact.id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "Unique Contact ID"
+    },
+    {
+     "name": "Contact.contact_type",
+     "type": "string",
+     "label": "Contact Type",
+     "description": "Type of Contact."
+    },
+    {
+     "name": "Contact.external_identifier",
+     "type": "string",
+     "label": "External Identifier",
+     "description": "Unique trusted external ID (generally from a legacy app/datasource). Particularly useful for deduping operations."
+    },
+    {
+     "name": "Contact.display_name",
+     "type": "string",
+     "label": "Display Name",
+     "description": "Formatted name representing preferred format for display/print/other output."
+    },
+    {
+     "name": "Contact.organization_name",
+     "type": "string",
+     "label": "Organization Name",
+     "description": "Organization Name."
+    },
+    {
+     "name": "Contact.contact_sub_type",
+     "type": "string",
+     "label": "Contact Subtype",
+     "description": "May be used to over-ride contact view and edit templates."
+    },
+    {
+     "name": "Contact.first_name",
+     "type": "string",
+     "label": "First Name",
+     "description": "First Name."
+    },
+    {
+     "name": "Contact.middle_name",
+     "type": "string",
+     "label": "Middle Name",
+     "description": "Middle Name."
+    },
+    {
+     "name": "Contact.last_name",
+     "type": "string",
+     "label": "Last Name",
+     "description": "Last Name."
+    },
+    {
+     "name": "Contact.do_not_email",
+     "type": "boolean",
+     "label": "Do Not Email"
+    },
+    {
+     "name": "Contact.do_not_phone",
+     "type": "boolean",
+     "label": "Do Not Phone"
+    },
+    {
+     "name": "Contact.do_not_mail",
+     "type": "boolean",
+     "label": "Do Not Mail"
+    },
+    {
+     "name": "Contact.do_not_sms",
+     "type": "boolean",
+     "label": "Do Not Sms"
+    },
+    {
+     "name": "Contact.do_not_trade",
+     "type": "boolean",
+     "label": "Do Not Trade"
+    },
+    {
+     "name": "Contact.is_opt_out",
+     "type": "boolean",
+     "label": "No Bulk Emails (User Opt Out)",
+     "description": "Has the contact opted out from receiving all bulk email from the organization or site domain?"
+    },
+    {
+     "name": "Contact.legal_identifier",
+     "type": "string",
+     "label": "Legal Identifier",
+     "description": "May be used for SSN, EIN/TIN, Household ID (census) or other applicable unique legal/government ID."
+    },
+    {
+     "name": "Contact.sort_name",
+     "type": "string",
+     "label": "Sort Name",
+     "description": "Name used for sorting different contact types"
+    },
+    {
+     "name": "Contact.nick_name",
+     "type": "string",
+     "label": "Nickname",
+     "description": "Nickname."
+    },
+    {
+     "name": "Contact.legal_name",
+     "type": "string",
+     "label": "Legal Name",
+     "description": "Legal Name."
+    },
+    {
+     "name": "Contact.image_URL",
+     "type": "string",
+     "label": "Image Url",
+     "description": "optional URL for preferred image (photo, logo, etc.) to display for this contact."
+    },
+    {
+     "name": "Contact.preferred_communication_method",
+     "type": "string",
+     "label": "Preferred Communication Method",
+     "description": "What is the preferred mode of communication. (option group preferred_communication_method)"
+    },
+    {
+     "name": "Contact.preferred_language",
+     "type": "string",
+     "label": "Preferred Language",
+     "description": "Which language is preferred for communication. FK to languages in civicrm_option_value. (option group languages)"
+    },
+    {
+     "name": "Contact.source",
+     "type": "string",
+     "label": "Contact Source",
+     "description": "where contact come from, e.g. import, donate module insert..."
+    },
+    {
+     "name": "Contact.prefix_id",
+     "type": "integer",
+     "label": "Individual Prefix",
+     "description": "Prefix or Title for name (Ms, Mr...). FK to prefix ID (option group individual_prefix)"
+    },
+    {
+     "name": "Contact.suffix_id",
+     "type": "integer",
+     "label": "Individual Suffix",
+     "description": "Suffix for name (Jr, Sr...). FK to suffix ID (option group individual_suffix)"
+    },
+    {
+     "name": "Contact.formal_title",
+     "type": "string",
+     "label": "Formal Title",
+     "description": "Formal (academic or similar) title in front of name. (Prof., Dr. etc.)"
+    },
+    {
+     "name": "Contact.communication_style_id",
+     "type": "integer",
+     "label": "Communication Style",
+     "description": "Communication style (e.g. formal vs. familiar) to use with this contact. FK to communication styles in civicrm_option_value. (option group communication_style)"
+    },
+    {
+     "name": "Contact.email_greeting_id",
+     "type": "integer",
+     "label": "Email Greeting ID",
+     "description": "FK to civicrm_option_value.value, that has to be valid registered Email Greeting. (option group email_greeting)"
+    },
+    {
+     "name": "Contact.email_greeting_custom",
+     "type": "string",
+     "label": "Email Greeting Custom",
+     "description": "Custom Email Greeting."
+    },
+    {
+     "name": "Contact.email_greeting_display",
+     "type": "string",
+     "label": "Email Greeting",
+     "description": "Cache Email Greeting."
+    },
+    {
+     "name": "Contact.postal_greeting_id",
+     "type": "integer",
+     "label": "Postal Greeting ID",
+     "description": "FK to civicrm_option_value.value, that has to be valid registered Postal Greeting. (option group postal_greeting)"
+    },
+    {
+     "name": "Contact.postal_greeting_custom",
+     "type": "string",
+     "label": "Postal Greeting Custom",
+     "description": "Custom Postal greeting."
+    },
+    {
+     "name": "Contact.postal_greeting_display",
+     "type": "string",
+     "label": "Postal Greeting",
+     "description": "Cache Postal greeting."
+    },
+    {
+     "name": "Contact.addressee_id",
+     "type": "integer",
+     "label": "Addressee ID",
+     "description": "FK to civicrm_option_value.value, that has to be valid registered Addressee. (option group addressee)"
+    },
+    {
+     "name": "Contact.addressee_custom",
+     "type": "string",
+     "label": "Addressee Custom",
+     "description": "Custom Addressee."
+    },
+    {
+     "name": "Contact.addressee_display",
+     "type": "string",
+     "label": "Addressee",
+     "description": "Cache Addressee."
+    },
+    {
+     "name": "Contact.job_title",
+     "type": "string",
+     "label": "Job Title",
+     "description": "Job Title"
+    },
+    {
+     "name": "Contact.gender_id",
+     "type": "integer",
+     "label": "Gender ID",
+     "description": "FK to gender ID (option group gender)"
+    },
+    {
+     "name": "Contact.birth_date",
+     "type": "date",
+     "label": "Birth Date",
+     "description": "Date of birth"
+    },
+    {
+     "name": "Contact.is_deceased",
+     "type": "boolean",
+     "label": "Deceased / Closed"
+    },
+    {
+     "name": "Contact.deceased_date",
+     "type": "date",
+     "label": "Deceased / Closed Date",
+     "description": "Date deceased / closed"
+    },
+    {
+     "name": "Contact.household_name",
+     "type": "string",
+     "label": "Household Name",
+     "description": "Household Name."
+    },
+    {
+     "name": "Contact.primary_contact_id",
+     "type": "integer",
+     "label": "Household Primary Contact ID",
+     "description": "Optional FK to Primary Contact for this household. (references Contact)"
+    },
+    {
+     "name": "Contact.sic_code",
+     "type": "string",
+     "label": "Sic Code",
+     "description": "Standard Industry Classification Code."
+    },
+    {
+     "name": "Contact.employer_id",
+     "type": "integer",
+     "label": "Current Employer ID",
+     "description": "OPTIONAL FK to civicrm_contact record. (references Contact)"
+    },
+    {
+     "name": "Contact.is_deleted",
+     "type": "boolean",
+     "label": "Contact is in Trash"
+    },
+    {
+     "name": "Contact.created_date",
+     "type": "datetime",
+     "label": "Created Date",
+     "description": "When was the contact was created."
+    },
+    {
+     "name": "Contact.modified_date",
+     "type": "datetime",
+     "label": "Modified Date",
+     "description": "When was the contact (or closely related entity) was created or modified or deleted."
+    },
+    {
+     "name": "Email.id",
+     "type": "integer",
+     "label": "Email ID",
+     "description": "Unique Email ID"
+    },
+    {
+     "name": "Email.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "FK to Contact ID (references Contact)"
+    },
+    {
+     "name": "Email.location_type_id",
+     "type": "integer",
+     "label": "Email Location Type",
+     "description": "Which Location does this email belong to."
+    },
+    {
+     "name": "Email.email",
+     "type": "string",
+     "label": "Email",
+     "description": "Email address"
+    },
+    {
+     "name": "Email.is_primary",
+     "type": "boolean",
+     "label": "Is Primary",
+     "description": "Is this the primary email address"
+    },
+    {
+     "name": "Email.is_billing",
+     "type": "boolean",
+     "label": "Is Billing Email?",
+     "description": "Is this the billing?"
+    },
+    {
+     "name": "Email.on_hold",
+     "type": "integer",
+     "label": "On Hold",
+     "description": "Implicit FK to civicrm_option_value where option_group = email_on_hold."
+    },
+    {
+     "name": "Email.is_bulkmail",
+     "type": "boolean",
+     "label": "Use for Bulk Mail",
+     "description": "Is this address for bulk mail ?"
+    },
+    {
+     "name": "Email.hold_date",
+     "type": "datetime",
+     "label": "Hold Date",
+     "description": "When the address went on bounce hold"
+    },
+    {
+     "name": "Email.reset_date",
+     "type": "datetime",
+     "label": "Reset Date",
+     "description": "When the address bounce status was last reset"
+    },
+    {
+     "name": "Email.signature_text",
+     "type": "string",
+     "label": "Signature Text",
+     "description": "Text formatted signature for the email."
+    },
+    {
+     "name": "Email.signature_html",
+     "type": "string",
+     "label": "Signature Html",
+     "description": "HTML formatted signature for the email."
+    },
+    {
+     "name": "Phone.id",
+     "type": "integer",
+     "label": "Phone ID",
+     "description": "Unique Phone ID"
+    },
+    {
+     "name": "Phone.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "FK to Contact ID (references Contact)"
+    },
+    {
+     "name": "Phone.location_type_id",
+     "type": "integer",
+     "label": "Location Type ID",
+     "description": "Which Location does this phone belong to."
+    },
+    {
+     "name": "Phone.is_primary",
+     "type": "boolean",
+     "label": "Is Primary",
+     "description": "Is this the primary phone for this contact and location."
+    },
+    {
+     "name": "Phone.is_billing",
+     "type": "boolean",
+     "label": "Is Billing Phone",
+     "description": "Is this the billing?"
+    },
+    {
+     "name": "Phone.phone",
+     "type": "string",
+     "label": "Phone",
+     "description": "Complete phone number."
+    },
+    {
+     "name": "Phone.phone_ext",
+     "type": "string",
+     "label": "Phone Extension",
+     "description": "Optional extension for a phone number."
+    },
+    {
+     "name": "Phone.phone_numeric",
+     "type": "string",
+     "label": "Phone Numeric",
+     "description": "Phone number stripped of all whitespace, letters, and punctuation."
+    },
+    {
+     "name": "Phone.phone_type_id",
+     "type": "integer",
+     "label": "Phone Type ID",
+     "description": "Which type of phone does this number belongs. (option group phone_type)"
+    },
+    {
+     "name": "Address.id",
+     "type": "integer",
+     "label": "Address ID",
+     "description": "Unique Address ID"
+    },
+    {
+     "name": "Address.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "FK to Contact ID (references Contact)"
+    },
+    {
+     "name": "Address.location_type_id",
+     "type": "integer",
+     "label": "Address Location Type",
+     "description": "Which Location does this address belong to."
+    },
+    {
+     "name": "Address.is_primary",
+     "type": "boolean",
+     "label": "Is Primary",
+     "description": "Is this the primary address."
+    },
+    {
+     "name": "Address.is_billing",
+     "type": "boolean",
+     "label": "Is Billing Address",
+     "description": "Is this the billing address."
+    },
+    {
+     "name": "Address.street_address",
+     "type": "string",
+     "label": "Street Address",
+     "description": "Concatenation of all routable street address components (prefix, street number, street name, suffix, unit number OR P.O. Box). Apps should be able to determine physical location with this data (for mapping, mail delivery, etc.)."
+    },
+    {
+     "name": "Address.street_number",
+     "type": "integer",
+     "label": "Street Number",
+     "description": "Numeric portion of address number on the street, e.g. For 112A Main St, the street_number = 112."
+    },
+    {
+     "name": "Address.street_number_suffix",
+     "type": "string",
+     "label": "Street Number Suffix",
+     "description": "Non-numeric portion of address number on the street, e.g. For 112A Main St, the street_number_suffix = A"
+    },
+    {
+     "name": "Address.street_number_predirectional",
+     "type": "string",
+     "label": "Street Direction Prefix",
+     "description": "Directional prefix, e.g. SE Main St, SE is the prefix."
+    },
+    {
+     "name": "Address.street_name",
+     "type": "string",
+     "label": "Street Name",
+     "description": "Actual street name, excluding St, Dr, Rd, Ave, e.g. For 112 Main St, the street_name = Main."
+    },
+    {
+     "name": "Address.street_type",
+     "type": "string",
+     "label": "Street Type",
+     "description": "St, Rd, Dr, etc."
+    },
+    {
+     "name": "Address.street_number_postdirectional",
+     "type": "string",
+     "label": "Street Direction Suffix",
+     "description": "Directional prefix, e.g. Main St S, S is the suffix."
+    },
+    {
+     "name": "Address.street_unit",
+     "type": "string",
+     "label": "Street Unit",
+     "description": "Secondary unit designator, e.g. Apt 3 or Unit # 14, or Bldg 1200"
+    },
+    {
+     "name": "Address.supplemental_address_1",
+     "type": "string",
+     "label": "Supplemental Address 1",
+     "description": "Supplemental Address Information, Line 1"
+    },
+    {
+     "name": "Address.supplemental_address_2",
+     "type": "string",
+     "label": "Supplemental Address 2",
+     "description": "Supplemental Address Information, Line 2"
+    },
+    {
+     "name": "Address.supplemental_address_3",
+     "type": "string",
+     "label": "Supplemental Address 3",
+     "description": "Supplemental Address Information, Line 3"
+    },
+    {
+     "name": "Address.city",
+     "type": "string",
+     "label": "City",
+     "description": "City, Town or Village Name."
+    },
+    {
+     "name": "Address.county_id",
+     "type": "integer",
+     "label": "County ID",
+     "description": "Which County does this address belong to. (references County)"
+    },
+    {
+     "name": "Address.state_province_id",
+     "type": "integer",
+     "label": "State/Province ID",
+     "description": "Which State_Province does this address belong to. (references StateProvince)"
+    },
+    {
+     "name": "Address.postal_code_suffix",
+     "type": "string",
+     "label": "Postal Code Suffix",
+     "description": "Store the suffix, like the +4 part in the USPS system."
+    },
+    {
+     "name": "Address.postal_code",
+     "type": "string",
+     "label": "Postal Code",
+     "description": "Store both US (zip5) AND international postal codes. App is responsible for country/region appropriate validation."
+    },
+    {
+     "name": "Address.country_id",
+     "type": "integer",
+     "label": "Country ID",
+     "description": "Which Country does this address belong to. (references Country)"
+    },
+    {
+     "name": "Address.geo_code_1",
+     "type": "number",
+     "label": "Latitude",
+     "description": "Latitude"
+    },
+    {
+     "name": "Address.geo_code_2",
+     "type": "number",
+     "label": "Longitude",
+     "description": "Longitude"
+    },
+    {
+     "name": "Address.manual_geo_code",
+     "type": "boolean",
+     "label": "Is Manually Geocoded",
+     "description": "Is this a manually entered geo code"
+    },
+    {
+     "name": "Address.timezone",
+     "type": "string",
+     "label": "Timezone",
+     "description": "Timezone expressed as a UTC offset - e.g. United States CST would be written as \"UTC-6\"."
+    },
+    {
+     "name": "Address.name",
+     "type": "string",
+     "label": "Address Name"
+    },
+    {
+     "name": "Address.master_id",
+     "type": "integer",
+     "label": "Master Address ID",
+     "description": "FK to Address ID (references Address)"
+    },
+    {
+     "name": "Website.id",
+     "type": "integer",
+     "label": "Website ID",
+     "description": "Unique Website ID"
+    },
+    {
+     "name": "Website.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "FK to Contact ID (references Contact)"
+    },
+    {
+     "name": "Website.url",
+     "type": "string",
+     "label": "Website",
+     "description": "Website"
+    },
+    {
+     "name": "Website.website_type_id",
+     "type": "integer",
+     "label": "Website Type",
+     "description": "Which Website type does this website belong to. (option group website_type)"
+    },
+    {
+     "name": "Activity.id",
+     "type": "integer",
+     "label": "Activity ID",
+     "description": "Unique Other Activity ID"
+    },
+    {
+     "name": "Activity.source_record_id",
+     "type": "integer",
+     "label": "Source Record",
+     "description": "Artificial FK to original transaction (e.g. contribution) IF it is not an Activity. Entity table is discovered by filtering by the appropriate activity_type_id."
+    },
+    {
+     "name": "Activity.activity_type_id",
+     "type": "integer",
+     "label": "Activity Type ID",
+     "description": "FK to civicrm_option_value.value, that has to be valid, registered activity type. (option group activity_type)"
+    },
+    {
+     "name": "Activity.subject",
+     "type": "string",
+     "label": "Subject",
+     "description": "The subject/purpose/short description of the activity."
+    },
+    {
+     "name": "Activity.activity_date_time",
+     "type": "datetime",
+     "label": "Activity Date",
+     "description": "Date and time this activity is scheduled to occur. Formerly named scheduled_date_time."
+    },
+    {
+     "name": "Activity.duration",
+     "type": "integer",
+     "label": "Duration",
+     "description": "Planned or actual duration of activity expressed in minutes. Conglomerate of former duration_hours and duration_minutes."
+    },
+    {
+     "name": "Activity.location",
+     "type": "string",
+     "label": "Location",
+     "description": "Location of the activity (optional, open text)."
+    },
+    {
+     "name": "Activity.details",
+     "type": "string",
+     "label": "Details",
+     "description": "Details about the activity (agenda, notes, etc)."
+    },
+    {
+     "name": "Activity.status_id",
+     "type": "integer",
+     "label": "Activity Status",
+     "description": "ID of the status this activity is currently in. Foreign key to civicrm_option_value. (option group activity_status)"
+    },
+    {
+     "name": "Activity.priority_id",
+     "type": "integer",
+     "label": "Priority",
+     "description": "ID of the priority given to this activity. Foreign key to civicrm_option_value. (option group priority)"
+    },
+    {
+     "name": "Activity.parent_id",
+     "type": "integer",
+     "label": "Parent Activity ID",
+     "description": "Parent meeting ID (if this is a follow-up item). (references Activity)"
+    },
+    {
+     "name": "Activity.is_test",
+     "type": "boolean",
+     "label": "Test"
+    },
+    {
+     "name": "Activity.medium_id",
+     "type": "integer",
+     "label": "Activity Medium",
+     "description": "Activity Medium, Implicit FK to civicrm_option_value where option_group = encounter_medium. (option group encounter_medium)"
+    },
+    {
+     "name": "Activity.is_auto",
+     "type": "boolean",
+     "label": "Auto"
+    },
+    {
+     "name": "Activity.result",
+     "type": "string",
+     "label": "Result",
+     "description": "Currently being used to store result id for survey activity, FK to option value."
+    },
+    {
+     "name": "Activity.is_deleted",
+     "type": "boolean",
+     "label": "Activity is in the Trash"
+    },
+    {
+     "name": "Activity.campaign_id",
+     "type": "integer",
+     "label": "Campaign ID",
+     "description": "The campaign for which this activity has been triggered. (references Campaign)"
+    },
+    {
+     "name": "Activity.engagement_level",
+     "type": "integer",
+     "label": "Engagement Index",
+     "description": "Assign a specific level of engagement to this activity. Used for tracking constituents in ladder of engagement. (option group engagement_index)"
+    },
+    {
+     "name": "Activity.weight",
+     "type": "integer",
+     "label": "Order"
+    },
+    {
+     "name": "Activity.is_star",
+     "type": "boolean",
+     "label": "Is Starred",
+     "description": "Activity marked as favorite."
+    },
+    {
+     "name": "Activity.created_date",
+     "type": "datetime",
+     "label": "Created Date",
+     "description": "When was the activity was created."
+    },
+    {
+     "name": "Activity.modified_date",
+     "type": "datetime",
+     "label": "Modified Date",
+     "description": "When was the activity (or closely related entity) was created or modified or deleted."
+    },
+    {
+     "name": "ActivityContact.id",
+     "type": "integer",
+     "label": "Activity Contact ID",
+     "description": "Activity contact id"
+    },
+    {
+     "name": "ActivityContact.activity_id",
+     "type": "integer",
+     "label": "Activity ID",
+     "description": "Foreign key to the activity for this record. (references Activity)"
+    },
+    {
+     "name": "ActivityContact.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "Foreign key to the contact for this record. (references Contact)"
+    },
+    {
+     "name": "ActivityContact.record_type_id",
+     "type": "integer",
+     "label": "Activity Contact Type",
+     "description": "Determines the contact's role in the activity (source, target, or assignee). (option group activity_contacts)"
+    },
+    {
+     "name": "Relationship.id",
+     "type": "integer",
+     "label": "Relationship ID",
+     "description": "Relationship ID"
+    },
+    {
+     "name": "Relationship.contact_id_a",
+     "type": "integer",
+     "label": "Contact A ID",
+     "description": "id of the first contact (references Contact)"
+    },
+    {
+     "name": "Relationship.contact_id_b",
+     "type": "integer",
+     "label": "Contact B ID",
+     "description": "id of the second contact (references Contact)"
+    },
+    {
+     "name": "Relationship.relationship_type_id",
+     "type": "integer",
+     "label": "Relationship Type ID",
+     "description": "Type of relationship (references RelationshipType)"
+    },
+    {
+     "name": "Relationship.start_date",
+     "type": "date",
+     "label": "Relationship Start Date",
+     "description": "date when the relationship started"
+    },
+    {
+     "name": "Relationship.end_date",
+     "type": "date",
+     "label": "Relationship End Date",
+     "description": "date when the relationship ended"
+    },
+    {
+     "name": "Relationship.is_active",
+     "type": "boolean",
+     "label": "Relationship Is Active",
+     "description": "is the relationship active ?"
+    },
+    {
+     "name": "Relationship.description",
+     "type": "string",
+     "label": "Relationship Description",
+     "description": "Optional verbose description for the relationship."
+    },
+    {
+     "name": "Relationship.is_permission_a_b",
+     "type": "integer",
+     "label": "Contact A has Permission Over Contact B",
+     "description": "Permission that Contact A has to view/update Contact B"
+    },
+    {
+     "name": "Relationship.is_permission_b_a",
+     "type": "integer",
+     "label": "Contact B has Permission Over Contact A",
+     "description": "Permission that Contact B has to view/update Contact A"
+    },
+    {
+     "name": "Relationship.case_id",
+     "type": "integer",
+     "label": "Case ID",
+     "description": "FK to civicrm_case (references Case)"
+    },
+    {
+     "name": "Relationship.created_date",
+     "type": "datetime",
+     "label": "Created Date",
+     "description": "Relationship created date."
+    },
+    {
+     "name": "Relationship.modified_date",
+     "type": "datetime",
+     "label": "Relationship Modified Date",
+     "description": "Relationship last modified."
+    },
+    {
+     "name": "RelationshipType.id",
+     "type": "integer",
+     "label": "Relationship Type ID",
+     "description": "Primary key"
+    },
+    {
+     "name": "RelationshipType.name_a_b",
+     "type": "string",
+     "label": "Relationship Type Name A to B",
+     "description": "name for relationship of contact_a to contact_b."
+    },
+    {
+     "name": "RelationshipType.label_a_b",
+     "type": "string",
+     "label": "Relationship Type Label A to B",
+     "description": "label for relationship of contact_a to contact_b."
+    },
+    {
+     "name": "RelationshipType.name_b_a",
+     "type": "string",
+     "label": "Relationship Type Name B to A",
+     "description": "Optional name for relationship of contact_b to contact_a."
+    },
+    {
+     "name": "RelationshipType.label_b_a",
+     "type": "string",
+     "label": "Relationship Type Label B to A",
+     "description": "Optional label for relationship of contact_b to contact_a."
+    },
+    {
+     "name": "RelationshipType.description",
+     "type": "string",
+     "label": "Relationship Description",
+     "description": "Optional verbose description of the relationship type."
+    },
+    {
+     "name": "RelationshipType.contact_type_a",
+     "type": "string",
+     "label": "Contact Type for Contact A",
+     "description": "If defined, contact_a in a relationship of this type must be a specific contact_type."
+    },
+    {
+     "name": "RelationshipType.contact_type_b",
+     "type": "string",
+     "label": "Contact Type for Contact B",
+     "description": "If defined, contact_b in a relationship of this type must be a specific contact_type."
+    },
+    {
+     "name": "RelationshipType.contact_sub_type_a",
+     "type": "string",
+     "label": "Contact Subtype A",
+     "description": "If defined, contact_sub_type_a in a relationship of this type must be a specific contact_sub_type."
+    },
+    {
+     "name": "RelationshipType.contact_sub_type_b",
+     "type": "string",
+     "label": "Contact Subtype B",
+     "description": "If defined, contact_sub_type_b in a relationship of this type must be a specific contact_sub_type."
+    },
+    {
+     "name": "RelationshipType.is_reserved",
+     "type": "boolean",
+     "label": "Relationship Type is Reserved",
+     "description": "Is this relationship type a predefined system type (can not be changed or de-activated)?"
+    },
+    {
+     "name": "RelationshipType.is_active",
+     "type": "boolean",
+     "label": "Relationship Type is Active",
+     "description": "Is this relationship type currently active (i.e. can be used when creating or editing relationships)?"
+    },
+    {
+     "name": "RelationshipType.weight",
+     "type": "integer",
+     "label": "Order",
+     "description": "Ordering of the relationship types."
+    },
+    {
+     "name": "Group.id",
+     "type": "integer",
+     "label": "Group ID",
+     "description": "Group ID"
+    },
+    {
+     "name": "Group.name",
+     "type": "string",
+     "label": "Group Name",
+     "description": "Internal name of Group."
+    },
+    {
+     "name": "Group.title",
+     "type": "string",
+     "label": "Group Title",
+     "description": "Name of Group."
+    },
+    {
+     "name": "Group.description",
+     "type": "string",
+     "label": "Group Description",
+     "description": "Optional verbose description of the group."
+    },
+    {
+     "name": "Group.source",
+     "type": "string",
+     "label": "Group Source",
+     "description": "Module or process which created this group."
+    },
+    {
+     "name": "Group.saved_search_id",
+     "type": "integer",
+     "label": "Saved Search ID",
+     "description": "FK to saved search table. (references SavedSearch)"
+    },
+    {
+     "name": "Group.is_active",
+     "type": "boolean",
+     "label": "Group Enabled",
+     "description": "Is this group active?"
+    },
+    {
+     "name": "Group.visibility",
+     "type": "string",
+     "label": "Group Visibility Setting",
+     "description": "In what context(s) is this field visible."
+    },
+    {
+     "name": "Group.group_type",
+     "type": "string",
+     "label": "Group Type",
+     "description": "FK to group type (option group group_type)"
+    },
+    {
+     "name": "Group.parents",
+     "type": "string",
+     "label": "Group Parents",
+     "description": "List of parent groups"
+    },
+    {
+     "name": "Group.is_hidden",
+     "type": "boolean",
+     "label": "Group is Hidden",
+     "description": "Is this group hidden?"
+    },
+    {
+     "name": "Group.is_reserved",
+     "type": "boolean",
+     "label": "Group is Reserved"
+    },
+    {
+     "name": "Group.created_id",
+     "type": "integer",
+     "label": "Created By Contact ID",
+     "description": "FK to contact table. (references Contact)"
+    },
+    {
+     "name": "Group.modified_id",
+     "type": "integer",
+     "label": "Modified By Contact ID",
+     "description": "FK to contact table. (references Contact)"
+    },
+    {
+     "name": "Group.frontend_title",
+     "type": "string",
+     "label": "Public Group Title",
+     "description": "Alternative public title for this Group."
+    },
+    {
+     "name": "Group.frontend_description",
+     "type": "string",
+     "label": "Public Group Description",
+     "description": "Alternative public description of the group."
+    },
+    {
+     "name": "GroupContact.id",
+     "type": "integer",
+     "label": "Group Contact ID",
+     "description": "primary key"
+    },
+    {
+     "name": "GroupContact.group_id",
+     "type": "integer",
+     "label": "Group ID",
+     "description": "FK to civicrm_group (references Group)"
+    },
+    {
+     "name": "GroupContact.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "FK to civicrm_contact (references Contact)"
+    },
+    {
+     "name": "GroupContact.status",
+     "type": "string",
+     "label": "Group Contact Status",
+     "description": "status of contact relative to membership in group"
+    },
+    {
+     "name": "GroupContact.location_id",
+     "type": "integer",
+     "label": "Location ID",
+     "description": "Optional location to associate with this membership (references LocBlock)"
+    },
+    {
+     "name": "GroupContact.email_id",
+     "type": "integer",
+     "label": "Email ID",
+     "description": "Optional email to associate with this membership (references Email)"
+    },
+    {
+     "name": "Tag.id",
+     "type": "integer",
+     "label": "Tag ID",
+     "description": "Tag ID"
+    },
+    {
+     "name": "Tag.name",
+     "type": "string",
+     "label": "Tag Name",
+     "description": "Unique machine name"
+    },
+    {
+     "name": "Tag.label",
+     "type": "string",
+     "label": "Tag Label",
+     "description": "User-facing tag name"
+    },
+    {
+     "name": "Tag.description",
+     "type": "string",
+     "label": "Description",
+     "description": "Optional verbose description of the tag."
+    },
+    {
+     "name": "Tag.parent_id",
+     "type": "integer",
+     "label": "Parent Tag ID",
+     "description": "Optional parent id for this tag. (references Tag)"
+    },
+    {
+     "name": "Tag.is_selectable",
+     "type": "boolean",
+     "label": "Display Tag?",
+     "description": "Is this tag selectable / displayed"
+    },
+    {
+     "name": "Tag.is_reserved",
+     "type": "boolean",
+     "label": "Reserved"
+    },
+    {
+     "name": "Tag.is_tagset",
+     "type": "boolean",
+     "label": "Tagset"
+    },
+    {
+     "name": "Tag.used_for",
+     "type": "string",
+     "label": "Used For",
+     "description": "(option group tag_used_for)"
+    },
+    {
+     "name": "Tag.created_id",
+     "type": "integer",
+     "label": "Created By Contact ID",
+     "description": "FK to civicrm_contact, who created this tag (references Contact)"
+    },
+    {
+     "name": "Tag.color",
+     "type": "string",
+     "label": "Color",
+     "description": "Hex color value e.g. #ffffff"
+    },
+    {
+     "name": "Tag.created_date",
+     "type": "datetime",
+     "label": "Tag Created Date",
+     "description": "Date and time that tag was created."
+    },
+    {
+     "name": "EntityTag.id",
+     "type": "integer",
+     "label": "Entity Tag ID",
+     "description": "primary key"
+    },
+    {
+     "name": "EntityTag.entity_table",
+     "type": "string",
+     "label": "Entity Table",
+     "description": "physical tablename for entity being joined to file, e.g. civicrm_contact (option group tag_used_for)"
+    },
+    {
+     "name": "EntityTag.entity_id",
+     "type": "integer",
+     "label": "Entity ID",
+     "description": "FK to entity table specified in entity_table column."
+    },
+    {
+     "name": "EntityTag.tag_id",
+     "type": "integer",
+     "label": "Tag ID",
+     "description": "FK to civicrm_tag (references Tag)"
+    },
+    {
+     "name": "Note.id",
+     "type": "integer",
+     "label": "Note ID",
+     "description": "Note ID"
+    },
+    {
+     "name": "Note.entity_table",
+     "type": "string",
+     "label": "Note Entity",
+     "description": "Name of table where item being referenced is stored. (option group note_used_for)"
+    },
+    {
+     "name": "Note.entity_id",
+     "type": "integer",
+     "label": "Note Entity ID",
+     "description": "Foreign key to the referenced item."
+    },
+    {
+     "name": "Note.note",
+     "type": "string",
+     "label": "Note",
+     "description": "Note and/or Comment."
+    },
+    {
+     "name": "Note.contact_id",
+     "type": "integer",
+     "label": "Created By Contact ID",
+     "description": "FK to Contact ID creator (references Contact)"
+    },
+    {
+     "name": "Note.note_date",
+     "type": "datetime",
+     "label": "Note Date",
+     "description": "Date attached to the note"
+    },
+    {
+     "name": "Note.created_date",
+     "type": "datetime",
+     "label": "Created Date",
+     "description": "When the note was created."
+    },
+    {
+     "name": "Note.modified_date",
+     "type": "datetime",
+     "label": "Note Modified Date",
+     "description": "When was this note last modified/edited"
+    },
+    {
+     "name": "Note.subject",
+     "type": "string",
+     "label": "Subject",
+     "description": "subject of note description"
+    },
+    {
+     "name": "Note.privacy",
+     "type": "string",
+     "label": "Privacy",
+     "description": "Foreign Key to Note Privacy Level (which is an option value pair and hence an implicit FK) (option group note_privacy)"
+    },
+    {
+     "name": "Contribution.id",
+     "type": "integer",
+     "label": "Contribution ID",
+     "description": "Contribution ID"
+    },
+    {
+     "name": "Contribution.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "FK to Contact ID (references Contact)"
+    },
+    {
+     "name": "Contribution.financial_type_id",
+     "type": "integer",
+     "label": "Financial Type ID",
+     "description": "FK to Financial Type for (total_amount - non_deductible_amount). (references FinancialType)"
+    },
+    {
+     "name": "Contribution.contribution_page_id",
+     "type": "integer",
+     "label": "Contribution Page ID",
+     "description": "The Contribution Page which triggered this contribution (references ContributionPage)"
+    },
+    {
+     "name": "Contribution.payment_instrument_id",
+     "type": "integer",
+     "label": "Payment Method ID",
+     "description": "FK to Payment Instrument (option group payment_instrument)"
+    },
+    {
+     "name": "Contribution.receive_date",
+     "type": "datetime",
+     "label": "Contribution Date"
+    },
+    {
+     "name": "Contribution.non_deductible_amount",
+     "type": "number",
+     "label": "Non-deductible Amount",
+     "description": "Portion of total amount which is NOT tax deductible. Equal to total_amount for non-deductible financial types."
+    },
+    {
+     "name": "Contribution.total_amount",
+     "type": "number",
+     "label": "Total Amount",
+     "description": "Total amount of this contribution. Use market value for non-monetary gifts."
+    },
+    {
+     "name": "Contribution.fee_amount",
+     "type": "number",
+     "label": "Fee Amount",
+     "description": "actual processor fee if known - may be 0."
+    },
+    {
+     "name": "Contribution.net_amount",
+     "type": "number",
+     "label": "Net Amount",
+     "description": "actual funds transfer amount. total less fees. if processor does not report actual fee during transaction, this is set to total_amount."
+    },
+    {
+     "name": "Contribution.trxn_id",
+     "type": "string",
+     "label": "Transaction ID",
+     "description": "unique transaction id. may be processor id, bank id + trans id, or account number + check number... depending on payment_method"
+    },
+    {
+     "name": "Contribution.invoice_id",
+     "type": "string",
+     "label": "Invoice Reference",
+     "description": "unique invoice id, system generated or passed in"
+    },
+    {
+     "name": "Contribution.invoice_number",
+     "type": "string",
+     "label": "Invoice Number",
+     "description": "Human readable invoice number"
+    },
+    {
+     "name": "Contribution.currency",
+     "type": "string",
+     "label": "Currency",
+     "description": "3 character string, value from config setting or input via user. (references Currency)"
+    },
+    {
+     "name": "Contribution.cancel_date",
+     "type": "datetime",
+     "label": "Cancelled / Refunded Date",
+     "description": "when was gift cancelled"
+    },
+    {
+     "name": "Contribution.cancel_reason",
+     "type": "string",
+     "label": "Cancellation / Refund Reason"
+    },
+    {
+     "name": "Contribution.receipt_date",
+     "type": "datetime",
+     "label": "Receipt Date",
+     "description": "when (if) receipt was sent. populated automatically for online donations w/ automatic receipting"
+    },
+    {
+     "name": "Contribution.thankyou_date",
+     "type": "datetime",
+     "label": "Thank-you Date",
+     "description": "when (if) was donor thanked"
+    },
+    {
+     "name": "Contribution.source",
+     "type": "string",
+     "label": "Contribution Source",
+     "description": "Origin of this Contribution."
+    },
+    {
+     "name": "Contribution.amount_level",
+     "type": "string",
+     "label": "Amount Label"
+    },
+    {
+     "name": "Contribution.contribution_recur_id",
+     "type": "integer",
+     "label": "Recurring Contribution ID",
+     "description": "Conditional foreign key to civicrm_contribution_recur id. Each contribution made in connection with a recurring contribution carries a foreign key to the recurring contribution record. This assumes we can track these processor initiated events. (references ContributionRecur)"
+    },
+    {
+     "name": "Contribution.is_test",
+     "type": "boolean",
+     "label": "Test Mode"
+    },
+    {
+     "name": "Contribution.is_pay_later",
+     "type": "boolean",
+     "label": "Is Pay Later"
+    },
+    {
+     "name": "Contribution.contribution_status_id",
+     "type": "integer",
+     "label": "Contribution Status ID",
+     "description": "(option group contribution_status)"
+    },
+    {
+     "name": "Contribution.address_id",
+     "type": "integer",
+     "label": "Address ID",
+     "description": "Conditional foreign key to civicrm_address.id. We insert an address record for each contribution when we have associated billing name and address data. (references Address)"
+    },
+    {
+     "name": "Contribution.check_number",
+     "type": "string",
+     "label": "Check Number"
+    },
+    {
+     "name": "Contribution.campaign_id",
+     "type": "integer",
+     "label": "Campaign ID",
+     "description": "The campaign for which this contribution has been triggered. (references Campaign)"
+    },
+    {
+     "name": "Contribution.creditnote_id",
+     "type": "string",
+     "label": "Credit Note ID",
+     "description": "unique credit note id, system generated or passed in"
+    },
+    {
+     "name": "Contribution.tax_amount",
+     "type": "number",
+     "label": "Tax Amount",
+     "description": "Total tax amount of this contribution."
+    },
+    {
+     "name": "Contribution.revenue_recognition_date",
+     "type": "datetime",
+     "label": "Revenue Recognition Date",
+     "description": "Stores the date when revenue should be recognized."
+    },
+    {
+     "name": "Contribution.is_template",
+     "type": "boolean",
+     "label": "Is a Template Contribution",
+     "description": "Shows this is a template for recurring contributions."
+    },
+    {
+     "name": "Contribution.created_date",
+     "type": "datetime",
+     "label": "Created Date",
+     "description": "When was the contribution created."
+    },
+    {
+     "name": "Contribution.modified_date",
+     "type": "datetime",
+     "label": "Modified Date",
+     "description": "When was the contribution created or modified or deleted."
+    },
+    {
+     "name": "ContributionSoft.id",
+     "type": "integer",
+     "label": "Soft Credit ID",
+     "description": "Soft Credit ID"
+    },
+    {
+     "name": "ContributionSoft.contribution_id",
+     "type": "integer",
+     "label": "Contribution ID",
+     "description": "FK to contribution table. (references Contribution)"
+    },
+    {
+     "name": "ContributionSoft.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "FK to Contact ID (references Contact)"
+    },
+    {
+     "name": "ContributionSoft.amount",
+     "type": "number",
+     "label": "Soft Credit Amount",
+     "description": "Amount of this soft credit."
+    },
+    {
+     "name": "ContributionSoft.currency",
+     "type": "string",
+     "label": "Soft Contribution Currency",
+     "description": "3 character string, value from config setting or input via user. (references Currency)"
+    },
+    {
+     "name": "ContributionSoft.pcp_id",
+     "type": "integer",
+     "label": "PCP ID",
+     "description": "FK to civicrm_pcp.id (references PCP)"
+    },
+    {
+     "name": "ContributionSoft.pcp_display_in_roll",
+     "type": "boolean",
+     "label": "Soft Contribution Display on PCP"
+    },
+    {
+     "name": "ContributionSoft.pcp_roll_nickname",
+     "type": "string",
+     "label": "Soft Contribution PCP Nickname"
+    },
+    {
+     "name": "ContributionSoft.pcp_personal_note",
+     "type": "string",
+     "label": "Soft Contribution PCP Note"
+    },
+    {
+     "name": "ContributionSoft.soft_credit_type_id",
+     "type": "integer",
+     "label": "Soft Credit Type",
+     "description": "Soft Credit Type ID.Implicit FK to civicrm_option_value where option_group = soft_credit_type. (option group soft_credit_type)"
+    },
+    {
+     "name": "ContributionRecur.id",
+     "type": "integer",
+     "label": "Recurring Contribution ID",
+     "description": "Contribution Recur ID"
+    },
+    {
+     "name": "ContributionRecur.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "Foreign key to civicrm_contact.id. (references Contact)"
+    },
+    {
+     "name": "ContributionRecur.amount",
+     "type": "number",
+     "label": "Amount",
+     "description": "Amount to be collected (including any sales tax) by payment processor each recurrence."
+    },
+    {
+     "name": "ContributionRecur.currency",
+     "type": "string",
+     "label": "Currency",
+     "description": "3 character string, value from config setting or input via user. (references Currency)"
+    },
+    {
+     "name": "ContributionRecur.frequency_unit",
+     "type": "string",
+     "label": "Frequency Unit",
+     "description": "Time units for recurrence of payment. (option group recur_frequency_units)"
+    },
+    {
+     "name": "ContributionRecur.frequency_interval",
+     "type": "integer",
+     "label": "Interval (number of units)",
+     "description": "Number of time units for recurrence of payment."
+    },
+    {
+     "name": "ContributionRecur.installments",
+     "type": "integer",
+     "label": "Number of Installments",
+     "description": "Total number of payments to be made. Set this to 0 if this is an open-ended commitment i.e. no set end date."
+    },
+    {
+     "name": "ContributionRecur.start_date",
+     "type": "datetime",
+     "label": "Start Date",
+     "description": "The date the first scheduled recurring contribution occurs."
+    },
+    {
+     "name": "ContributionRecur.create_date",
+     "type": "datetime",
+     "label": "Created Date",
+     "description": "When this recurring contribution record was created."
+    },
+    {
+     "name": "ContributionRecur.modified_date",
+     "type": "datetime",
+     "label": "Modified Date",
+     "description": "Last updated date for this record. mostly the last time a payment was received"
+    },
+    {
+     "name": "ContributionRecur.cancel_date",
+     "type": "datetime",
+     "label": "Cancel Date",
+     "description": "Date this recurring contribution was cancelled by contributor- if we can get access to it"
+    },
+    {
+     "name": "ContributionRecur.cancel_reason",
+     "type": "string",
+     "label": "Cancellation Reason",
+     "description": "Free text field for a reason for cancelling"
+    },
+    {
+     "name": "ContributionRecur.end_date",
+     "type": "datetime",
+     "label": "Recurring Contribution End Date",
+     "description": "Date this recurring contribution finished successfully"
+    },
+    {
+     "name": "ContributionRecur.processor_id",
+     "type": "string",
+     "label": "Processor ID",
+     "description": "Possibly needed to store a unique identifier for this recurring payment order - if this is available from the processor??"
+    },
+    {
+     "name": "ContributionRecur.payment_token_id",
+     "type": "integer",
+     "label": "Payment Token ID",
+     "description": "Optionally used to store a link to a payment token used for this recurring contribution. (references PaymentToken)"
+    },
+    {
+     "name": "ContributionRecur.trxn_id",
+     "type": "string",
+     "label": "Transaction ID",
+     "description": "unique transaction id (deprecated - use processor_id)"
+    },
+    {
+     "name": "ContributionRecur.invoice_id",
+     "type": "string",
+     "label": "Invoice ID",
+     "description": "unique invoice id, system generated or passed in"
+    },
+    {
+     "name": "ContributionRecur.contribution_status_id",
+     "type": "integer",
+     "label": "Status",
+     "description": "(option group contribution_recur_status)"
+    },
+    {
+     "name": "ContributionRecur.is_test",
+     "type": "boolean",
+     "label": "Test"
+    },
+    {
+     "name": "ContributionRecur.cycle_day",
+     "type": "integer",
+     "label": "Cycle Day",
+     "description": "Day in the period when the payment should be charged e.g. 1st of month, 15th etc."
+    },
+    {
+     "name": "ContributionRecur.next_sched_contribution_date",
+     "type": "datetime",
+     "label": "Next Scheduled Contribution Date",
+     "description": "Next scheduled date"
+    },
+    {
+     "name": "ContributionRecur.failure_count",
+     "type": "integer",
+     "label": "Number of Failures",
+     "description": "Number of failed charge attempts since last success. Business rule could be set to deactivate on more than x failures."
+    },
+    {
+     "name": "ContributionRecur.failure_retry_date",
+     "type": "datetime",
+     "label": "Retry Failed Attempt Date",
+     "description": "Date to retry failed attempt"
+    },
+    {
+     "name": "ContributionRecur.auto_renew",
+     "type": "boolean",
+     "label": "Auto Renew",
+     "description": "Some systems allow contributor to set a number of installments - but then auto-renew the subscription or commitment if they do not cancel."
+    },
+    {
+     "name": "ContributionRecur.payment_processor_id",
+     "type": "integer",
+     "label": "Payment Processor ID",
+     "description": "Foreign key to civicrm_payment_processor.id (references PaymentProcessor)"
+    },
+    {
+     "name": "ContributionRecur.financial_type_id",
+     "type": "integer",
+     "label": "Financial Type ID",
+     "description": "FK to Financial Type (references FinancialType)"
+    },
+    {
+     "name": "ContributionRecur.payment_instrument_id",
+     "type": "integer",
+     "label": "Payment Method",
+     "description": "FK to Payment Instrument (option group payment_instrument)"
+    },
+    {
+     "name": "ContributionRecur.campaign_id",
+     "type": "integer",
+     "label": "Campaign ID",
+     "description": "The campaign for which this contribution has been triggered. (references Campaign)"
+    },
+    {
+     "name": "ContributionRecur.is_email_receipt",
+     "type": "boolean",
+     "label": "Send email Receipt?",
+     "description": "if TRUE, receipt is automatically emailed to contact on each successful payment"
+    },
+    {
+     "name": "FinancialType.id",
+     "type": "integer",
+     "label": "Financial Type ID",
+     "description": "ID of original financial_type so you can search this table by the financial_type.id and then select the relevant version based on the timestamp"
+    },
+    {
+     "name": "FinancialType.name",
+     "type": "string",
+     "label": "Financial Type Name",
+     "description": "Financial Type Name."
+    },
+    {
+     "name": "FinancialType.label",
+     "type": "string",
+     "label": "Financial Type Label",
+     "description": "User-facing financial type label"
+    },
+    {
+     "name": "FinancialType.description",
+     "type": "string",
+     "label": "Description",
+     "description": "Financial Type Description."
+    },
+    {
+     "name": "FinancialType.is_deductible",
+     "type": "boolean",
+     "label": "Is Tax Deductible?",
+     "description": "Is this financial type tax-deductible? If TRUE, contributions of this type may be fully OR partially deductible - non-deductible amount is stored in the Contribution record."
+    },
+    {
+     "name": "FinancialType.is_reserved",
+     "type": "boolean",
+     "label": "Financial Type is Reserved?",
+     "description": "Is this a predefined system object?"
+    },
+    {
+     "name": "FinancialType.is_active",
+     "type": "boolean",
+     "label": "Financial Type Is Active?",
+     "description": "Is this property active?"
+    },
+    {
+     "name": "Membership.id",
+     "type": "integer",
+     "label": "Membership ID",
+     "description": "Membership ID"
+    },
+    {
+     "name": "Membership.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "FK to Contact ID (references Contact)"
+    },
+    {
+     "name": "Membership.membership_type_id",
+     "type": "integer",
+     "label": "Membership Type ID",
+     "description": "FK to Membership Type (references MembershipType)"
+    },
+    {
+     "name": "Membership.join_date",
+     "type": "date",
+     "label": "Member Since",
+     "description": "Beginning of initial membership period (member since...)."
+    },
+    {
+     "name": "Membership.start_date",
+     "type": "date",
+     "label": "Membership Start Date",
+     "description": "Beginning of current uninterrupted membership period."
+    },
+    {
+     "name": "Membership.end_date",
+     "type": "date",
+     "label": "Membership Expiration Date",
+     "description": "Current membership period expire date."
+    },
+    {
+     "name": "Membership.source",
+     "type": "string",
+     "label": "Membership Source"
+    },
+    {
+     "name": "Membership.status_id",
+     "type": "integer",
+     "label": "Status ID",
+     "description": "FK to Membership Status (references MembershipStatus)"
+    },
+    {
+     "name": "Membership.is_override",
+     "type": "boolean",
+     "label": "Status Override",
+     "description": "Admin users may set a manual status which overrides the calculated status. When this flag is TRUE, automated status update scripts should NOT modify status for the record."
+    },
+    {
+     "name": "Membership.status_override_end_date",
+     "type": "date",
+     "label": "Status Override End Date",
+     "description": "Then end date of membership status override if 'Override until selected date' override type is selected."
+    },
+    {
+     "name": "Membership.owner_membership_id",
+     "type": "integer",
+     "label": "Primary Member ID",
+     "description": "Optional FK to Parent Membership. (references Membership)"
+    },
+    {
+     "name": "Membership.max_related",
+     "type": "integer",
+     "label": "Max Related",
+     "description": "Maximum number of related memberships (membership_type override)."
+    },
+    {
+     "name": "Membership.is_test",
+     "type": "boolean",
+     "label": "Test"
+    },
+    {
+     "name": "Membership.is_pay_later",
+     "type": "boolean",
+     "label": "Is Pay Later"
+    },
+    {
+     "name": "Membership.contribution_recur_id",
+     "type": "integer",
+     "label": "Recurring Contribution ID",
+     "description": "Conditional foreign key to civicrm_contribution_recur id. Each membership in connection with a recurring contribution carries a foreign key to the recurring contribution record. This assumes we can track these processor initiated events. (references ContributionRecur)"
+    },
+    {
+     "name": "Membership.campaign_id",
+     "type": "integer",
+     "label": "Campaign ID",
+     "description": "The campaign for which this membership is attached. (references Campaign)"
+    },
+    {
+     "name": "MembershipType.id",
+     "type": "integer",
+     "label": "Membership Type ID",
+     "description": "Membership ID"
+    },
+    {
+     "name": "MembershipType.domain_id",
+     "type": "integer",
+     "label": "Domain ID",
+     "description": "Domain to which this membership type belongs. (references Domain)"
+    },
+    {
+     "name": "MembershipType.name",
+     "type": "string",
+     "label": "Membership Type",
+     "description": "Name of Membership Type"
+    },
+    {
+     "name": "MembershipType.title",
+     "type": "string",
+     "label": "Membership Type Title",
+     "description": "Title of Membership Type when shown to CiviCRM administrators."
+    },
+    {
+     "name": "MembershipType.frontend_title",
+     "type": "string",
+     "label": "Membership Type Frontend Title",
+     "description": "Title of Membership Type when shown on public pages etc."
+    },
+    {
+     "name": "MembershipType.description",
+     "type": "string",
+     "label": "Description",
+     "description": "Description of Membership Type"
+    },
+    {
+     "name": "MembershipType.member_of_contact_id",
+     "type": "integer",
+     "label": "Organization ID",
+     "description": "Owner organization for this membership type. FK to Contact ID (references Contact)"
+    },
+    {
+     "name": "MembershipType.financial_type_id",
+     "type": "integer",
+     "label": "Financial Type ID",
+     "description": "If membership is paid by a contribution - what financial type should be used. FK to civicrm_financial_type.id (references FinancialType)"
+    },
+    {
+     "name": "MembershipType.minimum_fee",
+     "type": "number",
+     "label": "Minimum Fee",
+     "description": "Minimum fee for this membership (0 for free/complimentary memberships)."
+    },
+    {
+     "name": "MembershipType.duration_unit",
+     "type": "string",
+     "label": "Membership Type Duration Unit",
+     "description": "Unit in which membership period is expressed."
+    },
+    {
+     "name": "MembershipType.duration_interval",
+     "type": "integer",
+     "label": "Membership Type Duration Interval",
+     "description": "Number of duration units in membership period (e.g. 1 year, 12 months)."
+    },
+    {
+     "name": "MembershipType.period_type",
+     "type": "string",
+     "label": "Membership Type Plan",
+     "description": "Rolling membership period starts on signup date. Fixed membership periods start on fixed_period_start_day."
+    },
+    {
+     "name": "MembershipType.fixed_period_start_day",
+     "type": "integer",
+     "label": "Fixed Period Start Day",
+     "description": "For fixed period memberships, month and day (mmdd) on which subscription/membership will start. Period start is back-dated unless after rollover day."
+    },
+    {
+     "name": "MembershipType.fixed_period_rollover_day",
+     "type": "integer",
+     "label": "Fixed Period Rollover Day",
+     "description": "For fixed period memberships, signups after this day (mmdd) rollover to next period."
+    },
+    {
+     "name": "MembershipType.relationship_type_id",
+     "type": "string",
+     "label": "Membership Type Relationship",
+     "description": "FK to Relationship Type ID"
+    },
+    {
+     "name": "MembershipType.relationship_direction",
+     "type": "string",
+     "label": "Relationship Direction"
+    },
+    {
+     "name": "MembershipType.max_related",
+     "type": "integer",
+     "label": "Max Related Members for Type",
+     "description": "Maximum number of related memberships."
+    },
+    {
+     "name": "MembershipType.visibility",
+     "type": "string",
+     "label": "Visible"
+    },
+    {
+     "name": "MembershipType.weight",
+     "type": "integer",
+     "label": "Order"
+    },
+    {
+     "name": "MembershipType.receipt_text_signup",
+     "type": "string",
+     "label": "Membership Type Receipt Text",
+     "description": "Receipt Text for membership signup"
+    },
+    {
+     "name": "MembershipType.receipt_text_renewal",
+     "type": "string",
+     "label": "Membership Type Renewal Text",
+     "description": "Receipt Text for membership renewal"
+    },
+    {
+     "name": "MembershipType.auto_renew",
+     "type": "integer",
+     "label": "Auto Renew",
+     "description": "0 = No auto-renew option; 1 = Give option, but not required; 2 = Auto-renew required;"
+    },
+    {
+     "name": "MembershipType.is_active",
+     "type": "boolean",
+     "label": "Is Active",
+     "description": "Is this membership_type enabled"
+    },
+    {
+     "name": "MembershipStatus.id",
+     "type": "integer",
+     "label": "Membership Status ID",
+     "description": "Membership ID"
+    },
+    {
+     "name": "MembershipStatus.name",
+     "type": "string",
+     "label": "Membership Status",
+     "description": "Name for Membership Status"
+    },
+    {
+     "name": "MembershipStatus.label",
+     "type": "string",
+     "label": "Label",
+     "description": "Label for Membership Status"
+    },
+    {
+     "name": "MembershipStatus.start_event",
+     "type": "string",
+     "label": "Start Event",
+     "description": "Event when this status starts."
+    },
+    {
+     "name": "MembershipStatus.start_event_adjust_unit",
+     "type": "string",
+     "label": "Start Event Adjust Unit",
+     "description": "Unit used for adjusting from start_event."
+    },
+    {
+     "name": "MembershipStatus.start_event_adjust_interval",
+     "type": "integer",
+     "label": "Start Event Adjust Interval",
+     "description": "Status range begins this many units from start_event."
+    },
+    {
+     "name": "MembershipStatus.end_event",
+     "type": "string",
+     "label": "End Event",
+     "description": "Event after which this status ends."
+    },
+    {
+     "name": "MembershipStatus.end_event_adjust_unit",
+     "type": "string",
+     "label": "End Event Adjust Unit",
+     "description": "Unit used for adjusting from the ending event."
+    },
+    {
+     "name": "MembershipStatus.end_event_adjust_interval",
+     "type": "integer",
+     "label": "End Event Adjust Interval",
+     "description": "Status range ends this many units from end_event."
+    },
+    {
+     "name": "MembershipStatus.is_current_member",
+     "type": "boolean",
+     "label": "Current Membership?",
+     "description": "Does this status aggregate to current members (e.g. New, Renewed, Grace might all be TRUE... while Unrenewed, Lapsed, Inactive would be FALSE)."
+    },
+    {
+     "name": "MembershipStatus.is_admin",
+     "type": "boolean",
+     "label": "Administrator Only?",
+     "description": "Is this status for admin/manual assignment only."
+    },
+    {
+     "name": "MembershipStatus.weight",
+     "type": "integer",
+     "label": "Order"
+    },
+    {
+     "name": "MembershipStatus.is_default",
+     "type": "boolean",
+     "label": "Default Status?",
+     "description": "Assign this status to a membership record if no other status match is found."
+    },
+    {
+     "name": "MembershipStatus.is_active",
+     "type": "boolean",
+     "label": "Is Active",
+     "description": "Is this membership_status enabled."
+    },
+    {
+     "name": "MembershipStatus.is_reserved",
+     "type": "boolean",
+     "label": "Is Reserved",
+     "description": "Is this membership_status reserved."
+    },
+    {
+     "name": "Event.id",
+     "type": "integer",
+     "label": "Event ID",
+     "description": "Event"
+    },
+    {
+     "name": "Event.title",
+     "type": "string",
+     "label": "Event Title",
+     "description": "Event Title (e.g. Fall Fundraiser Dinner)"
+    },
+    {
+     "name": "Event.summary",
+     "type": "string",
+     "label": "Event Summary",
+     "description": "Brief summary of event. Text and html allowed. Displayed on Event Registration form and can be used on other CMS pages which need an event summary."
+    },
+    {
+     "name": "Event.description",
+     "type": "string",
+     "label": "Event Description",
+     "description": "Full description of event. Text and html allowed. Displayed on built-in Event Information screens."
+    },
+    {
+     "name": "Event.event_type_id",
+     "type": "integer",
+     "label": "Event Type",
+     "description": "Event Type ID.Implicit FK to civicrm_option_value where option_group = event_type. (option group event_type)"
+    },
+    {
+     "name": "Event.participant_listing_id",
+     "type": "integer",
+     "label": "Participant Listing",
+     "description": "Should we expose the participant list? Implicit FK to civicrm_option_value where option_group = participant_listing. (option group participant_listing)"
+    },
+    {
+     "name": "Event.is_public",
+     "type": "boolean",
+     "label": "Is Event Public",
+     "description": "Public events will be included in the iCal feeds. Access to private event information may be limited using ACLs."
+    },
+    {
+     "name": "Event.start_date",
+     "type": "datetime",
+     "label": "Event Start Date",
+     "description": "Date and time that event starts."
+    },
+    {
+     "name": "Event.end_date",
+     "type": "datetime",
+     "label": "Event End Date",
+     "description": "Date and time that event ends. May be NULL if no defined end date/time"
+    },
+    {
+     "name": "Event.is_online_registration",
+     "type": "boolean",
+     "label": "Is Online Registration",
+     "description": "If TRUE, include registration link on Event Info page."
+    },
+    {
+     "name": "Event.registration_start_date",
+     "type": "datetime",
+     "label": "Registration Start Date",
+     "description": "Date and time that online registration starts."
+    },
+    {
+     "name": "Event.registration_end_date",
+     "type": "datetime",
+     "label": "Registration End Date",
+     "description": "Date and time that online registration ends."
+    },
+    {
+     "name": "Event.max_participants",
+     "type": "integer",
+     "label": "Max Participants",
+     "description": "Maximum number of registered participants to allow. After max is reached, a custom Event Full message is displayed. If NULL, allow unlimited number of participants."
+    },
+    {
+     "name": "Event.is_monetary",
+     "type": "boolean",
+     "label": "Is this a PAID event?",
+     "description": "If TRUE, one or more fee amounts must be set and a Payment Processor must be configured for Online Event Registration."
+    },
+    {
+     "name": "Event.financial_type_id",
+     "type": "integer",
+     "label": "Financial Type",
+     "description": "Financial type assigned to paid event registrations for this event. Required if is_monetary is true."
+    },
+    {
+     "name": "Event.is_active",
+     "type": "boolean",
+     "label": "Is Active",
+     "description": "Is this Event enabled or disabled/cancelled?"
+    },
+    {
+     "name": "Event.is_show_location",
+     "type": "boolean",
+     "label": "Show Location",
+     "description": "If TRUE, show event location."
+    },
+    {
+     "name": "Event.loc_block_id",
+     "type": "integer",
+     "label": "Location Block ID",
+     "description": "FK to Location Block ID (references LocBlock)"
+    },
+    {
+     "name": "Event.default_role_id",
+     "type": "integer",
+     "label": "Default Role",
+     "description": "Participant role ID. Implicit FK to civicrm_option_value where option_group = participant_role. (option group participant_role)"
+    },
+    {
+     "name": "Event.is_email_confirm",
+     "type": "boolean",
+     "label": "Is confirm email",
+     "description": "If TRUE, confirmation is automatically emailed to contact on successful registration."
+    },
+    {
+     "name": "Event.is_pay_later",
+     "type": "boolean",
+     "label": "Pay Later Allowed",
+     "description": "if true - allows the user to send payment directly to the org later"
+    },
+    {
+     "name": "Event.is_partial_payment",
+     "type": "boolean",
+     "label": "Partial Payments Enabled",
+     "description": "is partial payment enabled for this event"
+    },
+    {
+     "name": "Event.min_initial_amount",
+     "type": "number",
+     "label": "Minimum Initial Amount",
+     "description": "Minimum initial amount for partial payment"
+    },
+    {
+     "name": "Event.is_multiple_registrations",
+     "type": "boolean",
+     "label": "Allow Multiple Registrations",
+     "description": "if true - allows the user to register multiple participants for event"
+    },
+    {
+     "name": "Event.max_additional_participants",
+     "type": "integer",
+     "label": "Maximum number of additional participants per registration",
+     "description": "Maximum number of additional participants that can be registered on a single booking"
+    },
+    {
+     "name": "Event.allow_same_participant_emails",
+     "type": "boolean",
+     "label": "Does Event allow multiple registrations from same email address?",
+     "description": "if true - allows the user to register multiple registrations from same email address."
+    },
+    {
+     "name": "Event.has_waitlist",
+     "type": "boolean",
+     "label": "Waitlist Enabled",
+     "description": "Whether the event has waitlist support."
+    },
+    {
+     "name": "Event.requires_approval",
+     "type": "boolean",
+     "label": "Requires Approval",
+     "description": "Whether participants require approval before they can finish registering."
+    },
+    {
+     "name": "Event.expiration_time",
+     "type": "integer",
+     "label": "Expiration Time",
+     "description": "Expire pending but unconfirmed registrations after this many hours."
+    },
+    {
+     "name": "Event.allow_selfcancelxfer",
+     "type": "boolean",
+     "label": "Allow Self-service Cancellation or Transfer",
+     "description": "Allow self service cancellation or transfer for event?"
+    },
+    {
+     "name": "Event.selfcancelxfer_time",
+     "type": "integer",
+     "label": "Self-service Cancellation or Transfer Time",
+     "description": "Number of hours prior to event start date to allow self-service cancellation or transfer."
+    },
+    {
+     "name": "Event.is_template",
+     "type": "boolean",
+     "label": "Is an Event Template",
+     "description": "whether the event has template"
+    },
+    {
+     "name": "Event.created_id",
+     "type": "integer",
+     "label": "Created By Contact ID",
+     "description": "FK to civicrm_contact, who created this event (references Contact)"
+    },
+    {
+     "name": "Event.created_date",
+     "type": "datetime",
+     "label": "Event Created Date",
+     "description": "Date and time that event was created."
+    },
+    {
+     "name": "Event.currency",
+     "type": "string",
+     "label": "Currency",
+     "description": "3 character string, value from config setting or input via user. (references Currency)"
+    },
+    {
+     "name": "Event.campaign_id",
+     "type": "integer",
+     "label": "Campaign ID",
+     "description": "The campaign for which this event has been created. (references Campaign)"
+    },
+    {
+     "name": "Event.parent_event_id",
+     "type": "integer",
+     "label": "Parent Event ID",
+     "description": "Implicit FK to civicrm_event: parent event"
+    },
+    {
+     "name": "Participant.id",
+     "type": "integer",
+     "label": "Participant ID",
+     "description": "Participant ID"
+    },
+    {
+     "name": "Participant.contact_id",
+     "type": "integer",
+     "label": "Contact ID",
+     "description": "FK to Contact ID (references Contact)"
+    },
+    {
+     "name": "Participant.event_id",
+     "type": "integer",
+     "label": "Event ID",
+     "description": "FK to Event ID (references Event)"
+    },
+    {
+     "name": "Participant.status_id",
+     "type": "integer",
+     "label": "Status ID",
+     "description": "Participant status ID. FK to civicrm_participant_status_type. Default of 1 should map to status = Registered. (references ParticipantStatusType)"
+    },
+    {
+     "name": "Participant.role_id",
+     "type": "string",
+     "label": "Participant Role ID",
+     "description": "Participant role ID. Implicit FK to civicrm_option_value where option_group = participant_role. (option group participant_role)"
+    },
+    {
+     "name": "Participant.register_date",
+     "type": "datetime",
+     "label": "Register date",
+     "description": "When did contact register for event?"
+    },
+    {
+     "name": "Participant.source",
+     "type": "string",
+     "label": "Participant Source",
+     "description": "Source of this event registration."
+    },
+    {
+     "name": "Participant.fee_level",
+     "type": "string",
+     "label": "Fee level",
+     "description": "Populate with the label (text) associated with a fee level for paid events with multiple levels. Note that we store the label value and not the key"
+    },
+    {
+     "name": "Participant.is_test",
+     "type": "boolean",
+     "label": "Test"
+    },
+    {
+     "name": "Participant.is_pay_later",
+     "type": "boolean",
+     "label": "Is Pay Later"
+    },
+    {
+     "name": "Participant.fee_amount",
+     "type": "number",
+     "label": "Fee Amount",
+     "description": "actual processor fee if known - may be 0."
+    },
+    {
+     "name": "Participant.registered_by_id",
+     "type": "integer",
+     "label": "Registered By Participant ID",
+     "description": "FK to Participant ID (references Participant)"
+    },
+    {
+     "name": "Participant.discount_id",
+     "type": "integer",
+     "label": "Discount ID",
+     "description": "FK to Discount ID (references Discount)"
+    },
+    {
+     "name": "Participant.fee_currency",
+     "type": "string",
+     "label": "Fee Currency",
+     "description": "3 character string, value derived from config setting. (references Currency)"
+    },
+    {
+     "name": "Participant.campaign_id",
+     "type": "integer",
+     "label": "Campaign ID",
+     "description": "The campaign for which this participant has been registered. (references Campaign)"
+    },
+    {
+     "name": "Participant.discount_amount",
+     "type": "integer",
+     "label": "Discount Amount",
+     "description": "Discount Amount"
+    },
+    {
+     "name": "Participant.must_wait",
+     "type": "integer",
+     "label": "Must Wait on List",
+     "description": "On Waiting List"
+    },
+    {
+     "name": "Participant.transferred_to_contact_id",
+     "type": "integer",
+     "label": "Transferred to Contact ID",
+     "description": "FK to Contact ID (references Contact)"
+    },
+    {
+     "name": "Participant.created_id",
+     "type": "integer",
+     "label": "Created by Contact ID",
+     "description": "Contact responsible for registering this participant (references Contact)"
+    },
+    {
+     "name": "Participant.created_date",
+     "type": "datetime",
+     "label": "Created Date",
+     "description": "When was the participant record was created."
+    },
+    {
+     "name": "Participant.modified_date",
+     "type": "datetime",
+     "label": "Modified Date",
+     "description": "When was the participant record created or modified or deleted."
+    }
+   ],
+   "note": "Fields read from civicrm-core release 6.19.0, schema/*/*.entityType.php (getFields), named <Entity>.<field> after the APIv4 entity. Deprecated columns, secrets (hash, api_key) and Event page-copy settings omitted. Option-value fields (*_id with an option group) carry ids; APIv4 exposes labels as <field>:label."
+  }
+ ],
+ "mappings": [
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/constituent",
+   "role": "record",
+   "fields": [
+    {
+     "from": "Contact.id",
+     "to": "identifier"
+    },
+    {
+     "from": "Contact.external_identifier",
+     "to": "externalIdentifier"
+    },
+    {
+     "from": "Contact.contact_type",
+     "to": "contactType"
+    },
+    {
+     "from": "Contact.contact_sub_type",
+     "to": "contactSubType",
+     "conversion": "multi-value, separator-delimited subtype names"
+    },
+    {
+     "from": "Contact.display_name",
+     "to": "displayName"
+    },
+    {
+     "from": "Contact.prefix_id",
+     "to": "prefix",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "Contact.first_name",
+     "to": "firstName"
+    },
+    {
+     "from": "Contact.middle_name",
+     "to": "middleName"
+    },
+    {
+     "from": "Contact.last_name",
+     "to": "lastName"
+    },
+    {
+     "from": "Contact.suffix_id",
+     "to": "suffix",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "Contact.nick_name",
+     "to": "nickName"
+    },
+    {
+     "from": "Contact.formal_title",
+     "to": "formalTitle"
+    },
+    {
+     "from": "Contact.organization_name",
+     "to": "organizationName"
+    },
+    {
+     "from": "Contact.household_name",
+     "to": "householdName"
+    },
+    {
+     "from": "Contact.legal_name",
+     "to": "legalName"
+    },
+    {
+     "from": "Contact.legal_identifier",
+     "to": "legalIdentifier"
+    },
+    {
+     "from": "Contact.job_title",
+     "to": "jobTitle"
+    },
+    {
+     "from": "Contact.employer_id",
+     "to": "employer"
+    },
+    {
+     "from": "Contact.gender_id",
+     "to": "gender",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "Contact.birth_date",
+     "to": "birthDate"
+    },
+    {
+     "from": "Contact.is_deceased",
+     "to": "isDeceased"
+    },
+    {
+     "from": "Contact.deceased_date",
+     "to": "deceasedDate"
+    },
+    {
+     "from": "Contact.image_URL",
+     "to": "imageUrl"
+    },
+    {
+     "from": "Contact.preferred_communication_method",
+     "to": "preferredCommunicationMethod",
+     "conversion": "multi-value option ids: 1 Phone, 2 Email, 3 Postal Mail, 4 SMS, 5 Fax"
+    },
+    {
+     "from": "Contact.preferred_language",
+     "to": "preferredLanguage",
+     "conversion": "locale code, e.g. en_US"
+    },
+    {
+     "from": "Contact.do_not_email",
+     "to": "doNotEmail"
+    },
+    {
+     "from": "Contact.do_not_phone",
+     "to": "doNotPhone"
+    },
+    {
+     "from": "Contact.do_not_mail",
+     "to": "doNotMail"
+    },
+    {
+     "from": "Contact.do_not_sms",
+     "to": "doNotSms"
+    },
+    {
+     "from": "Contact.do_not_trade",
+     "to": "doNotTrade"
+    },
+    {
+     "from": "Contact.is_opt_out",
+     "to": "bulkEmailOptOut"
+    },
+    {
+     "from": "Contact.source",
+     "to": "source"
+    },
+    {
+     "from": "Contact.is_deleted",
+     "to": "isDeleted"
+    },
+    {
+     "from": "Contact.created_date",
+     "to": "createdDate"
+    },
+    {
+     "from": "Contact.modified_date",
+     "to": "modifiedDate"
+    },
+    {
+     "from": "Email.email",
+     "to": "email",
+     "conversion": "the row with is_primary = 1"
+    },
+    {
+     "from": "Email.on_hold",
+     "to": "emailOnHold",
+     "conversion": "on_hold > 0 means held (1 bounce, 2 opt-out)"
+    },
+    {
+     "from": "Phone.phone",
+     "to": "phone",
+     "conversion": "the row with is_primary = 1"
+    },
+    {
+     "from": "Phone.phone_type_id",
+     "to": "phoneType",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "Address.street_address",
+     "to": "streetAddress",
+     "conversion": "the row with is_primary = 1"
+    },
+    {
+     "from": "Address.supplemental_address_1",
+     "to": "supplementalAddress",
+     "conversion": "supplemental_address_1..3 joined"
+    },
+    {
+     "from": "Address.city",
+     "to": "city"
+    },
+    {
+     "from": "Address.state_province_id",
+     "to": "stateProvince",
+     "conversion": "id into StateProvince; APIv4 state_province_id:abbr"
+    },
+    {
+     "from": "Address.postal_code",
+     "to": "postalCode",
+     "conversion": "append postal_code_suffix for ZIP+4"
+    },
+    {
+     "from": "Address.country_id",
+     "to": "country",
+     "conversion": "id into Country; APIv4 country_id:abbr gives ISO code"
+    },
+    {
+     "from": "Address.geo_code_1",
+     "to": "latitude"
+    },
+    {
+     "from": "Address.geo_code_2",
+     "to": "longitude"
+    },
+    {
+     "from": "Website.url",
+     "to": "website"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/constituent",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "Tag.name",
+     "to": "tags",
+     "conversion": "via EntityTag rows with entity_table civicrm_contact"
+    },
+    {
+     "from": "EntityTag.entity_id",
+     "to": "identifier",
+     "conversion": "when entity_table = civicrm_contact"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "https://schemalattice.com/c/public-geography/address-point@6c7bfa579dc6",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "Address.street_number",
+     "to": "houseNumber",
+     "conversion": "parsed parts are filled only when street address parsing is enabled; else parse street_address"
+    },
+    {
+     "from": "Address.street_number_predirectional",
+     "to": "prefixDirection"
+    },
+    {
+     "from": "Address.street_name",
+     "to": "streetName"
+    },
+    {
+     "from": "Address.street_type",
+     "to": "streetType"
+    },
+    {
+     "from": "Address.street_number_postdirectional",
+     "to": "suffixDirection"
+    },
+    {
+     "from": "Address.street_unit",
+     "to": "unit"
+    },
+    {
+     "from": "Address.city",
+     "to": "city"
+    },
+    {
+     "from": "Address.state_province_id",
+     "to": "state",
+     "conversion": "id into StateProvince; APIv4 state_province_id:abbr"
+    },
+    {
+     "from": "Address.postal_code",
+     "to": "zip"
+    },
+    {
+     "from": "Address.postal_code_suffix",
+     "to": "zip4"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/donation",
+   "role": "record",
+   "fields": [
+    {
+     "from": "Contribution.id",
+     "to": "identifier"
+    },
+    {
+     "from": "Contribution.contact_id",
+     "to": "donor"
+    },
+    {
+     "from": "Contribution.total_amount",
+     "to": "amount"
+    },
+    {
+     "from": "Contribution.currency",
+     "to": "currency"
+    },
+    {
+     "from": "Contribution.receive_date",
+     "to": "receivedDate"
+    },
+    {
+     "from": "Contribution.financial_type_id",
+     "to": "financialType",
+     "conversion": "id into FinancialType; APIv4 financial_type_id:label"
+    },
+    {
+     "from": "Contribution.payment_instrument_id",
+     "to": "paymentMethod",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "Contribution.contribution_status_id",
+     "to": "status",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "Contribution.campaign_id",
+     "to": "campaign",
+     "conversion": "id into Campaign"
+    },
+    {
+     "from": "Contribution.source",
+     "to": "source"
+    },
+    {
+     "from": "Contribution.non_deductible_amount",
+     "to": "nonDeductibleAmount"
+    },
+    {
+     "from": "Contribution.fee_amount",
+     "to": "feeAmount"
+    },
+    {
+     "from": "Contribution.net_amount",
+     "to": "netAmount"
+    },
+    {
+     "from": "Contribution.tax_amount",
+     "to": "taxAmount"
+    },
+    {
+     "from": "Contribution.trxn_id",
+     "to": "transactionId"
+    },
+    {
+     "from": "Contribution.invoice_number",
+     "to": "invoiceNumber"
+    },
+    {
+     "from": "Contribution.check_number",
+     "to": "checkNumber"
+    },
+    {
+     "from": "Contribution.receipt_date",
+     "to": "receiptDate"
+    },
+    {
+     "from": "Contribution.thankyou_date",
+     "to": "thankYouDate"
+    },
+    {
+     "from": "Contribution.cancel_date",
+     "to": "cancelDate"
+    },
+    {
+     "from": "Contribution.cancel_reason",
+     "to": "cancelReason"
+    },
+    {
+     "from": "Contribution.contribution_recur_id",
+     "to": "recurringDonation"
+    },
+    {
+     "from": "Contribution.is_test",
+     "to": "isTest"
+    },
+    {
+     "from": "Contribution.created_date",
+     "to": "createdDate"
+    },
+    {
+     "from": "ContributionSoft.soft_credit_type_id",
+     "to": "tributeType",
+     "conversion": "option names in_honor_of / in_memory_of; other soft credit types are not tributes"
+    },
+    {
+     "from": "ContributionSoft.contact_id",
+     "to": "tributeHonoree",
+     "conversion": "when soft_credit_type is in_honor_of or in_memory_of"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/donation",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "FinancialType.name",
+     "to": "financialType",
+     "conversion": "FinancialType.is_deductible tells whether gifts of this type are tax deductible"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/recurring-donation",
+   "role": "record",
+   "fields": [
+    {
+     "from": "ContributionRecur.id",
+     "to": "identifier"
+    },
+    {
+     "from": "ContributionRecur.contact_id",
+     "to": "donor"
+    },
+    {
+     "from": "ContributionRecur.amount",
+     "to": "amount"
+    },
+    {
+     "from": "ContributionRecur.currency",
+     "to": "currency"
+    },
+    {
+     "from": "ContributionRecur.frequency_unit",
+     "to": "frequencyUnit"
+    },
+    {
+     "from": "ContributionRecur.frequency_interval",
+     "to": "frequencyInterval"
+    },
+    {
+     "from": "ContributionRecur.installments",
+     "to": "installments"
+    },
+    {
+     "from": "ContributionRecur.cycle_day",
+     "to": "cycleDay"
+    },
+    {
+     "from": "ContributionRecur.start_date",
+     "to": "startDate"
+    },
+    {
+     "from": "ContributionRecur.end_date",
+     "to": "endDate"
+    },
+    {
+     "from": "ContributionRecur.next_sched_contribution_date",
+     "to": "nextScheduledDate"
+    },
+    {
+     "from": "ContributionRecur.contribution_status_id",
+     "to": "status",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "ContributionRecur.cancel_date",
+     "to": "cancelDate"
+    },
+    {
+     "from": "ContributionRecur.cancel_reason",
+     "to": "cancelReason"
+    },
+    {
+     "from": "ContributionRecur.failure_count",
+     "to": "failureCount"
+    },
+    {
+     "from": "ContributionRecur.failure_retry_date",
+     "to": "failureRetryDate"
+    },
+    {
+     "from": "ContributionRecur.financial_type_id",
+     "to": "financialType",
+     "conversion": "APIv4 financial_type_id:label"
+    },
+    {
+     "from": "ContributionRecur.payment_instrument_id",
+     "to": "paymentMethod",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "ContributionRecur.processor_id",
+     "to": "processorReference"
+    },
+    {
+     "from": "ContributionRecur.campaign_id",
+     "to": "campaign"
+    },
+    {
+     "from": "ContributionRecur.auto_renew",
+     "to": "autoRenew"
+    },
+    {
+     "from": "ContributionRecur.is_email_receipt",
+     "to": "emailReceipt"
+    },
+    {
+     "from": "ContributionRecur.create_date",
+     "to": "createdDate"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/contact-activity",
+   "role": "record",
+   "fields": [
+    {
+     "from": "Activity.id",
+     "to": "identifier"
+    },
+    {
+     "from": "Activity.activity_type_id",
+     "to": "activityType",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "Activity.subject",
+     "to": "subject"
+    },
+    {
+     "from": "Activity.activity_date_time",
+     "to": "activityDateTime"
+    },
+    {
+     "from": "Activity.duration",
+     "to": "durationMinutes"
+    },
+    {
+     "from": "Activity.location",
+     "to": "location"
+    },
+    {
+     "from": "Activity.details",
+     "to": "details"
+    },
+    {
+     "from": "Activity.status_id",
+     "to": "status",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "Activity.priority_id",
+     "to": "priority",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "Activity.medium_id",
+     "to": "medium",
+     "conversion": "APIv4 <field>:label gives the option label"
+    },
+    {
+     "from": "Activity.result",
+     "to": "result"
+    },
+    {
+     "from": "Activity.engagement_level",
+     "to": "engagementLevel"
+    },
+    {
+     "from": "Activity.campaign_id",
+     "to": "campaign"
+    },
+    {
+     "from": "Activity.parent_id",
+     "to": "parentActivity"
+    },
+    {
+     "from": "Activity.source_record_id",
+     "to": "sourceRecord"
+    },
+    {
+     "from": "Activity.is_deleted",
+     "to": "isDeleted"
+    },
+    {
+     "from": "Activity.created_date",
+     "to": "createdDate"
+    },
+    {
+     "from": "Activity.modified_date",
+     "to": "modifiedDate"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/contact-activity",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "ActivityContact.activity_id",
+     "to": "identifier"
+    },
+    {
+     "from": "ActivityContact.contact_id",
+     "to": "sourceContact",
+     "conversion": "rows with record_type_id:name = Activity Source"
+    },
+    {
+     "from": "ActivityContact.record_type_id",
+     "to": "targetContacts",
+     "conversion": "Activity Targets rows go to targetContacts, Activity Assignees rows to assigneeContacts"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/contact-relationship",
+   "role": "record",
+   "fields": [
+    {
+     "from": "Relationship.id",
+     "to": "identifier"
+    },
+    {
+     "from": "Relationship.contact_id_a",
+     "to": "contactA"
+    },
+    {
+     "from": "Relationship.contact_id_b",
+     "to": "contactB"
+    },
+    {
+     "from": "Relationship.relationship_type_id",
+     "to": "relationshipType",
+     "conversion": "id into RelationshipType; APIv4 relationship_type_id.name_a_b"
+    },
+    {
+     "from": "Relationship.start_date",
+     "to": "startDate"
+    },
+    {
+     "from": "Relationship.end_date",
+     "to": "endDate"
+    },
+    {
+     "from": "Relationship.is_active",
+     "to": "isActive"
+    },
+    {
+     "from": "Relationship.description",
+     "to": "description"
+    },
+    {
+     "from": "Relationship.created_date",
+     "to": "createdDate"
+    },
+    {
+     "from": "Relationship.modified_date",
+     "to": "modifiedDate"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/contact-relationship",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "RelationshipType.name_a_b",
+     "to": "relationshipType"
+    },
+    {
+     "from": "RelationshipType.label_a_b",
+     "to": "labelAToB"
+    },
+    {
+     "from": "RelationshipType.label_b_a",
+     "to": "labelBToA"
+    },
+    {
+     "from": "RelationshipType.contact_type_a",
+     "to": "contactTypeA"
+    },
+    {
+     "from": "RelationshipType.contact_type_b",
+     "to": "contactTypeB"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/contact-group",
+   "role": "record",
+   "fields": [
+    {
+     "from": "Group.id",
+     "to": "identifier"
+    },
+    {
+     "from": "Group.name",
+     "to": "name"
+    },
+    {
+     "from": "Group.title",
+     "to": "title"
+    },
+    {
+     "from": "Group.description",
+     "to": "description"
+    },
+    {
+     "from": "Group.frontend_title",
+     "to": "publicTitle"
+    },
+    {
+     "from": "Group.frontend_description",
+     "to": "publicDescription"
+    },
+    {
+     "from": "Group.group_type",
+     "to": "groupType",
+     "conversion": "multi-value option ids: 1 Access Control, 2 Mailing List"
+    },
+    {
+     "from": "Group.saved_search_id",
+     "to": "isSmartGroup",
+     "conversion": "non-empty means a smart group"
+    },
+    {
+     "from": "Group.visibility",
+     "to": "visibility"
+    },
+    {
+     "from": "Group.parents",
+     "to": "parentGroups",
+     "conversion": "comma-separated group ids"
+    },
+    {
+     "from": "Group.is_active",
+     "to": "isActive"
+    },
+    {
+     "from": "Group.is_hidden",
+     "to": "isHidden"
+    },
+    {
+     "from": "Group.source",
+     "to": "source"
+    },
+    {
+     "from": "Group.created_id",
+     "to": "createdBy"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/contact-group",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "GroupContact.group_id",
+     "to": "identifier"
+    },
+    {
+     "from": "GroupContact.contact_id",
+     "to": "memberContact"
+    },
+    {
+     "from": "GroupContact.status",
+     "to": "memberStatus"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/organizational-membership",
+   "role": "record",
+   "fields": [
+    {
+     "from": "Membership.id",
+     "to": "identifier"
+    },
+    {
+     "from": "Membership.contact_id",
+     "to": "member"
+    },
+    {
+     "from": "Membership.membership_type_id",
+     "to": "membershipType",
+     "conversion": "id into MembershipType; APIv4 membership_type_id:label"
+    },
+    {
+     "from": "Membership.status_id",
+     "to": "status",
+     "conversion": "id into MembershipStatus; APIv4 status_id:name"
+    },
+    {
+     "from": "Membership.join_date",
+     "to": "joinDate"
+    },
+    {
+     "from": "Membership.start_date",
+     "to": "startDate"
+    },
+    {
+     "from": "Membership.end_date",
+     "to": "endDate"
+    },
+    {
+     "from": "Membership.source",
+     "to": "source"
+    },
+    {
+     "from": "Membership.is_override",
+     "to": "statusOverridden"
+    },
+    {
+     "from": "Membership.status_override_end_date",
+     "to": "statusOverrideEndDate"
+    },
+    {
+     "from": "Membership.owner_membership_id",
+     "to": "primaryMembership"
+    },
+    {
+     "from": "Membership.contribution_recur_id",
+     "to": "recurringDonation"
+    },
+    {
+     "from": "Membership.campaign_id",
+     "to": "campaign"
+    },
+    {
+     "from": "Membership.is_pay_later",
+     "to": "isPayLater"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "nonprofit-crm/organizational-membership",
+   "role": "reference",
+   "fields": [
+    {
+     "from": "MembershipType.name",
+     "to": "membershipType"
+    },
+    {
+     "from": "MembershipType.member_of_contact_id",
+     "to": "membershipOrganization"
+    },
+    {
+     "from": "MembershipType.minimum_fee",
+     "to": "minimumFee"
+    },
+    {
+     "from": "MembershipType.duration_unit",
+     "to": "durationUnit"
+    },
+    {
+     "from": "MembershipType.duration_interval",
+     "to": "durationInterval"
+    },
+    {
+     "from": "MembershipType.period_type",
+     "to": "periodType"
+    },
+    {
+     "from": "MembershipType.auto_renew",
+     "to": "autoRenew",
+     "conversion": "0 no option, 1 optional, 2 required"
+    },
+    {
+     "from": "MembershipStatus.name",
+     "to": "status"
+    },
+    {
+     "from": "MembershipStatus.is_current_member",
+     "to": "isCurrent"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1198 @@
+{
+  "contexts": [
+    {
+      "slug": "member-community",
+      "title": "Member Community",
+      "definition": "Vocabulary for the community life of a membership organization such as a makerspace, coworking space or club: members' public-facing profiles and the people in their care, documented projects, job and gig leads shared among members, wish lists of things the community asks for, and participants' evaluations of the activities they attended."
+    },
+    {
+      "slug": "nonprofit-finance",
+      "title": "Nonprofit Finance",
+      "definition": "Vocabulary for the money a small nonprofit pays out and the requests that lead to it: expense reimbursements to staff and volunteers, fees billed by contractors and instructors, their approval status, the general-ledger account they post to and the bill created in the accounting system."
+    }
+  ],
+  "concepts": [
+    {
+      "context": "member-community",
+      "conceptSlug": "member-profile",
+      "prefLabel": "Member Profile",
+      "altLabels": [
+        "Maker Profile",
+        "Community Profile",
+        "Member Directory Entry"
+      ],
+      "definition": "The self-described, public-facing side of a person who belongs to a community organization: display name, pronouns, photo, bio, links, interests, skills and what they are open to (mentoring, teaching, freelance work), plus who may see it. Distinct from the membership account that governs access and billing.",
+      "conceptKind": "entity",
+      "broaderRoot": "record",
+      "closeMatch": [
+        "wd:Q252500"
+      ],
+      "broadMatch": [
+        "schema:ProfilePage",
+        "schema:Person"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "member",
+            "type": "reference",
+            "classification": "internal",
+            "description": "The membership account this profile belongs to",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/member@cdf94269c607"
+          },
+          {
+            "name": "displayName",
+            "type": "string",
+            "classification": "personal-identity",
+            "description": "Public name, may differ from legal name"
+          },
+          {
+            "name": "pronouns",
+            "type": "string",
+            "classification": "personal-identity",
+            "description": "schema:pronouns, e.g. she/her"
+          },
+          {
+            "name": "namePronunciation",
+            "type": "string",
+            "classification": "personal-identity",
+            "description": "Phonetic spelling of the name"
+          },
+          {
+            "name": "photo",
+            "type": "url",
+            "classification": "personal-identity",
+            "description": "Headshot or avatar image"
+          },
+          {
+            "name": "bio",
+            "type": "string",
+            "classification": "internal",
+            "description": "Self-introduction to the community"
+          },
+          {
+            "name": "links",
+            "type": "array",
+            "classification": "internal",
+            "description": "Personal websites and profile links",
+            "itemType": "url"
+          },
+          {
+            "name": "socialHandles",
+            "type": "array",
+            "classification": "personal-contact",
+            "description": "Social-media usernames the organization may tag",
+            "itemType": "string"
+          },
+          {
+            "name": "chatHandle",
+            "type": "string",
+            "classification": "personal-contact",
+            "description": "User ID in the community chat workspace"
+          },
+          {
+            "name": "interests",
+            "type": "array",
+            "classification": "internal",
+            "description": "Areas of interest and skills the person wants to develop",
+            "itemType": "string"
+          },
+          {
+            "name": "skills",
+            "type": "array",
+            "classification": "internal",
+            "description": "Things the person already knows how to do (schema:knowsAbout)",
+            "itemType": "string"
+          },
+          {
+            "name": "availableFor",
+            "type": "array",
+            "classification": "internal",
+            "description": "What the person is open to being contacted for",
+            "itemType": "enum",
+            "values": [
+              "mentoring",
+              "volunteer-teaching",
+              "paid-teaching",
+              "freelance-work",
+              "employment"
+            ]
+          },
+          {
+            "name": "goals",
+            "type": "array",
+            "classification": "internal",
+            "description": "Why the person joined",
+            "itemType": "enum",
+            "values": [
+              "artist",
+              "skill-builder",
+              "hobbyist",
+              "inventor",
+              "entrepreneur",
+              "seller",
+              "networker",
+              "other"
+            ]
+          },
+          {
+            "name": "jobTitle",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "organizationAffiliations",
+            "type": "array",
+            "classification": "internal",
+            "description": "Companies or organizations the person is affiliated with",
+            "itemType": "string"
+          },
+          {
+            "name": "occupationStatus",
+            "type": "enum",
+            "classification": "personal-identity",
+            "values": [
+              "employed",
+              "self-employed",
+              "student",
+              "retired",
+              "unemployed",
+              "other"
+            ]
+          },
+          {
+            "name": "school",
+            "type": "string",
+            "classification": "personal-identity",
+            "description": "School attended, for students"
+          },
+          {
+            "name": "awards",
+            "type": "array",
+            "classification": "public",
+            "description": "Community awards or recognitions shown on the profile",
+            "itemType": "string"
+          },
+          {
+            "name": "preferredContactMethod",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "email",
+              "chat",
+              "sms",
+              "phone"
+            ]
+          },
+          {
+            "name": "selfIdentifiedCharacteristics",
+            "type": "array",
+            "classification": "personal-health",
+            "description": "Optional self-identification used for program eligibility (veteran, disability, displaced worker)",
+            "itemType": "enum",
+            "values": [
+              "veteran",
+              "disability",
+              "displaced"
+            ]
+          },
+          {
+            "name": "discoverySource",
+            "type": "array",
+            "classification": "internal",
+            "description": "How the person first heard of the organization",
+            "itemType": "enum",
+            "values": [
+              "search",
+              "storefront",
+              "print",
+              "table",
+              "event",
+              "social",
+              "news",
+              "ads",
+              "organization",
+              "word-of-mouth",
+              "member",
+              "other"
+            ]
+          },
+          {
+            "name": "referredBy",
+            "type": "reference",
+            "classification": "internal",
+            "description": "Existing member credited with the referral",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/member@cdf94269c607"
+          },
+          {
+            "name": "visibility",
+            "type": "enum",
+            "classification": "internal",
+            "description": "Who may see the profile",
+            "values": [
+              "public",
+              "members-only",
+              "private"
+            ]
+          },
+          {
+            "name": "updatedAt",
+            "type": "datetime",
+            "classification": "internal"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schema.org/Person",
+        "authoredBy": [
+          "SchemaLattice member-community pilot"
+        ],
+        "sourceNotes": "Fields from a makerspace's Drupal site: config/field.field.profile.main.* (member bio, photo, links, instagram, areas of interest, interests, skills, availability, goal, company, title, occupation, school, awards, contact method, characteristics, discovery, referral, profile privacy, Slack ID) and config/field.field.user.user.field_pronoun_txt / field_user_name_pronunciation / user_picture; aligned with schema.org Person (pronouns, knowsAbout, jobTitle, affiliation, award) and ProfilePage. Access, billing and emergency-contact fields stay on Makerspace Member."
+      }
+    },
+    {
+      "context": "member-community",
+      "conceptSlug": "dependent-participant",
+      "prefLabel": "Dependent Participant",
+      "altLabels": [
+        "Ward",
+        "Minor in Care",
+        "Guardian-Managed Participant"
+      ],
+      "definition": "A child, or an adult in someone's care, who takes part in an organization's activities under a registered guardian rather than on their own account: the guardian signs waivers on their behalf, other authorized adults may check them in, and turning eighteen prompts them to claim an account of their own.",
+      "conceptKind": "agent",
+      "broaderRoot": "person",
+      "broadMatch": [
+        "wd:Q170079",
+        "schema:Person"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "legalName",
+            "type": "string",
+            "classification": "personal-minor",
+            "description": "Full legal name as used on the waiver"
+          },
+          {
+            "name": "dateOfBirth",
+            "type": "date",
+            "classification": "personal-minor",
+            "description": "Used to flag the age-of-majority transition"
+          },
+          {
+            "name": "primaryGuardian",
+            "type": "reference",
+            "classification": "personal-identity",
+            "description": "Account of the guardian who registered the dependent",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/member@cdf94269c607"
+          },
+          {
+            "name": "coGuardians",
+            "type": "array",
+            "classification": "personal-identity",
+            "description": "Other adults authorized to check the dependent in",
+            "itemType": "reference",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/member@cdf94269c607"
+          },
+          {
+            "name": "careNotes",
+            "type": "string",
+            "classification": "personal-health",
+            "description": "Allergies, accommodations and who else may bring them in"
+          },
+          {
+            "name": "waiverSignedAt",
+            "type": "datetime",
+            "classification": "internal",
+            "description": "When the guardian last signed the waiver on their behalf"
+          },
+          {
+            "name": "waiverVersion",
+            "type": "integer",
+            "classification": "internal",
+            "description": "Waiver version signed on their behalf; re-sign when the current version is newer"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schema.org/Person",
+        "authoredBy": [
+          "SchemaLattice member-community pilot"
+        ],
+        "sourceNotes": "Fields from config/field.field.profile.ward.* (legal name, DOB, co-guardians, notes, waiver signed at/version) and web/modules/custom/makerspace_member_navigator (MyGuestsController, WaiverVersionService: guardian one-tap check-in, waiver-on-behalf); also the 'Waiver on Behalf of Minor' and parent-waiver webforms. schema.org Person parent/children relation."
+      }
+    },
+    {
+      "context": "member-community",
+      "conceptSlug": "maker-project",
+      "prefLabel": "Maker Project",
+      "altLabels": [
+        "Build Log",
+        "Project Page",
+        "DIY Project"
+      ],
+      "definition": "Something one or more people designed and built, documented so others can follow or learn from it: a description, ordered build steps with images or video, design and finished photos, files, the tools, materials and equipment used, the skill level it needs and how far along it is.",
+      "conceptKind": "entity",
+      "broaderRoot": "activity",
+      "closeMatch": [
+        "schema:HowTo"
+      ],
+      "broadMatch": [
+        "wd:Q170584",
+        "wd:Q26384"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "title",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "makers",
+            "type": "array",
+            "classification": "personal-identity",
+            "description": "People who made it",
+            "itemType": "reference",
+            "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "classification": "public",
+            "description": "e.g. idea, in progress, completed"
+          },
+          {
+            "name": "projectType",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "interests",
+            "type": "array",
+            "classification": "public",
+            "description": "Areas of interest it relates to",
+            "itemType": "string"
+          },
+          {
+            "name": "skillLevel",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "novice",
+              "intermediate",
+              "advanced"
+            ]
+          },
+          {
+            "name": "steps",
+            "type": "array",
+            "classification": "public",
+            "description": "Ordered build steps (schema:HowToStep)",
+            "itemType": "object",
+            "fields": [
+              {
+                "name": "title",
+                "type": "string"
+              },
+              {
+                "name": "text",
+                "type": "string"
+              },
+              {
+                "name": "image",
+                "type": "url"
+              },
+              {
+                "name": "video",
+                "type": "url"
+              }
+            ]
+          },
+          {
+            "name": "designImages",
+            "type": "array",
+            "classification": "public",
+            "description": "Images of the intended design",
+            "itemType": "url"
+          },
+          {
+            "name": "completedImages",
+            "type": "array",
+            "classification": "public",
+            "description": "Images of the finished result",
+            "itemType": "url"
+          },
+          {
+            "name": "resourceFiles",
+            "type": "array",
+            "classification": "internal",
+            "description": "Patterns, CAD files and other downloads needed to repeat it",
+            "itemType": "url"
+          },
+          {
+            "name": "supplies",
+            "type": "array",
+            "classification": "public",
+            "description": "Materials consumed (schema:supply)",
+            "itemType": "string"
+          },
+          {
+            "name": "equipmentUsed",
+            "type": "array",
+            "classification": "public",
+            "description": "Shared machines used (schema:tool)",
+            "itemType": "reference",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/equipment@73a23efa789f"
+          },
+          {
+            "name": "requiredBadges",
+            "type": "array",
+            "classification": "public",
+            "description": "Equipment badges needed to repeat it",
+            "itemType": "reference",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/equipment-badge@7c1ae4a28229"
+          },
+          {
+            "name": "hoursSpent",
+            "type": "number",
+            "classification": "public",
+            "description": "Time it took (schema:totalTime)",
+            "unit": "hour"
+          },
+          {
+            "name": "advice",
+            "type": "string",
+            "classification": "public",
+            "description": "Lessons learned for others"
+          },
+          {
+            "name": "supportStatement",
+            "type": "string",
+            "classification": "public",
+            "description": "How contributions toward the project would be spent"
+          },
+          {
+            "name": "createdAt",
+            "type": "datetime",
+            "classification": "public"
+          },
+          {
+            "name": "updatedAt",
+            "type": "datetime",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schema.org/HowTo",
+        "authoredBy": [
+          "SchemaLattice member-community pilot"
+        ],
+        "sourceNotes": "Fields from config/field.field.node.project.* (description, advice, area of interest, completed/design images, equipment, hours, instructions, required badges, resources, skill level, status, steps, support statement, type) and paragraph.project_step_image/project_step_text (step title, text, image, video); aligned with schema.org HowTo (step, supply, tool, totalTime)."
+      }
+    },
+    {
+      "context": "member-community",
+      "conceptSlug": "job-posting",
+      "prefLabel": "Job Posting",
+      "altLabels": [
+        "Job Lead",
+        "Gig Listing",
+        "Hire a Maker Request"
+      ],
+      "definition": "An advertised opening for paid or volunteer work, from a full-time position to a one-off commission, shared with a community so suitable people can apply: what the work is, who is hiring, where, the pay or budget, how many people are needed, how to apply and its status.",
+      "conceptKind": "entity",
+      "broaderRoot": "record",
+      "closeMatch": [
+        "wd:Q356251",
+        "schema:JobPosting"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "title",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "hiringOrganization",
+            "type": "string",
+            "classification": "public",
+            "description": "Business or organization behind the request, if any"
+          },
+          {
+            "name": "employmentType",
+            "type": "string",
+            "classification": "public",
+            "description": "e.g. full-time, part-time, contract, commission, volunteer"
+          },
+          {
+            "name": "occupationalCategories",
+            "type": "array",
+            "classification": "public",
+            "description": "Trades or disciplines the work belongs to",
+            "itemType": "string"
+          },
+          {
+            "name": "jobLocation",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "compensation",
+            "type": "string",
+            "classification": "public",
+            "description": "Pay or budget as stated, e.g. $25/hour or $300 for the job"
+          },
+          {
+            "name": "totalJobOpenings",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "schedule",
+            "type": "string",
+            "classification": "public",
+            "description": "Deadline, start date or dates of the work, as stated"
+          },
+          {
+            "name": "applicationInstructions",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "url",
+            "type": "url",
+            "classification": "public",
+            "description": "Full posting elsewhere"
+          },
+          {
+            "name": "attachments",
+            "type": "array",
+            "classification": "public",
+            "itemType": "url"
+          },
+          {
+            "name": "contactName",
+            "type": "string",
+            "classification": "personal-identity"
+          },
+          {
+            "name": "contactEmail",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "contactPhone",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "classification": "public",
+            "description": "e.g. open, filled, expired"
+          },
+          {
+            "name": "intakeChannel",
+            "type": "enum",
+            "classification": "internal",
+            "description": "How the posting arrived",
+            "values": [
+              "form",
+              "staff",
+              "trusted-partner"
+            ]
+          },
+          {
+            "name": "datePosted",
+            "type": "datetime",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schema.org/JobPosting",
+        "authoredBy": [
+          "SchemaLattice member-community pilot"
+        ],
+        "sourceNotes": "Fields from config/field.field.node.job_posting.* (job description, organization, trades, where, pay, people needed, deadline or dates, how to apply, link, attachment, contact name/email/phone, job status, job type, came in through) and the 'Hire a Maker' webform; aligned with schema.org JobPosting (title, hiringOrganization, employmentType, occupationalCategory, jobLocation, baseSalary, totalJobOpenings, applicationContact, datePosted)."
+      }
+    },
+    {
+      "context": "member-community",
+      "conceptSlug": "wish-list-item",
+      "prefLabel": "Wish List Item",
+      "altLabels": [
+        "Wish",
+        "Community Wish",
+        "Equipment Wish"
+      ],
+      "definition": "A tool, capability, piece of infrastructure, activity or policy change that members ask their organization to acquire or adopt, with why it matters, an estimated cost, how many people back it, how it could be funded or donated, and where the decision stands.",
+      "conceptKind": "entity",
+      "broaderRoot": "record",
+      "broadMatch": [
+        "wd:Q4112660",
+        "schema:Demand"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "title",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "rationale",
+            "type": "string",
+            "classification": "public",
+            "description": "Why the community wants it"
+          },
+          {
+            "name": "wishType",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "equipment",
+              "lending",
+              "policy",
+              "infrastructure",
+              "activity",
+              "other"
+            ]
+          },
+          {
+            "name": "estimatedCost",
+            "type": "number",
+            "classification": "public",
+            "description": "Purchase and installation estimate",
+            "unit": "USD"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "declined",
+              "not-now",
+              "researching",
+              "planned",
+              "fundraising",
+              "in-development",
+              "implemented"
+            ]
+          },
+          {
+            "name": "fundraiserUrl",
+            "type": "url",
+            "classification": "public",
+            "description": "Fundraiser or donation page for it"
+          },
+          {
+            "name": "image",
+            "type": "url",
+            "classification": "public"
+          },
+          {
+            "name": "interests",
+            "type": "array",
+            "classification": "public",
+            "description": "Areas of interest it serves",
+            "itemType": "string"
+          },
+          {
+            "name": "supportCount",
+            "type": "integer",
+            "classification": "public",
+            "description": "Number of members who voted for it"
+          },
+          {
+            "name": "requestedBy",
+            "type": "reference",
+            "classification": "personal-identity",
+            "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+          },
+          {
+            "name": "createdAt",
+            "type": "datetime",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schema.org/Demand",
+        "authoredBy": [
+          "SchemaLattice member-community pilot"
+        ],
+        "sourceNotes": "Fields from config/field.field.node.wish.* (why, area of interest, cost, fundraiser link, image, wish status, wish type), the wish_vote flag counted in web/modules/custom/makerspace_dashboard/src/Controller/WorkBoardFeedController.php, and node author/created; the 'Item Donation Inquiry' webform is the donation side."
+      }
+    },
+    {
+      "context": "member-community",
+      "conceptSlug": "participant-evaluation",
+      "prefLabel": "Participant Evaluation",
+      "altLabels": [
+        "Post-Event Survey",
+        "Workshop Evaluation",
+        "Program Feedback Response"
+      ],
+      "definition": "One attendee's feedback after a workshop, meetup, coaching session, mentorship or multi-week program: overall rating, likelihood to recommend, what was most valuable, what to improve, confidence gained and whether they will continue, optionally with demographics for outcome reporting to funders.",
+      "conceptKind": "event",
+      "broaderRoot": "record",
+      "closeMatch": [
+        "wd:Q1813450"
+      ],
+      "broadMatch": [
+        "wd:Q1061410",
+        "schema:Review"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "activityName",
+            "type": "string",
+            "classification": "public",
+            "description": "Workshop, event or program evaluated"
+          },
+          {
+            "name": "activityId",
+            "type": "string",
+            "classification": "internal",
+            "description": "Identifier of the event or program, when known"
+          },
+          {
+            "name": "activityType",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "workshop",
+              "meetup",
+              "program",
+              "badge-session",
+              "coaching",
+              "mentorship",
+              "event"
+            ]
+          },
+          {
+            "name": "facilitatorName",
+            "type": "string",
+            "classification": "personal-identity",
+            "description": "Instructor, coach or mentor evaluated"
+          },
+          {
+            "name": "respondentName",
+            "type": "string",
+            "classification": "personal-identity"
+          },
+          {
+            "name": "respondentEmail",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "isMember",
+            "type": "boolean",
+            "classification": "internal"
+          },
+          {
+            "name": "overallRating",
+            "type": "integer",
+            "classification": "internal",
+            "description": "1 to 5"
+          },
+          {
+            "name": "recommendLikelihood",
+            "type": "integer",
+            "classification": "internal",
+            "description": "0 to 10, Net Promoter style"
+          },
+          {
+            "name": "aspectRatings",
+            "type": "object",
+            "classification": "internal",
+            "description": "Likert ratings of individual aspects (content, pace, instructor)"
+          },
+          {
+            "name": "mostValuable",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "improvementSuggestions",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "confidenceGain",
+            "type": "integer",
+            "classification": "internal",
+            "description": "Self-rated confidence after the activity, 1 to 5"
+          },
+          {
+            "name": "intendsToContinue",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "yes",
+              "no",
+              "unsure"
+            ]
+          },
+          {
+            "name": "discoverySource",
+            "type": "string",
+            "classification": "internal",
+            "description": "How they heard about the activity"
+          },
+          {
+            "name": "followUpConsent",
+            "type": "boolean",
+            "classification": "internal"
+          },
+          {
+            "name": "gender",
+            "type": "string",
+            "classification": "personal-identity"
+          },
+          {
+            "name": "ageBand",
+            "type": "string",
+            "classification": "personal-identity"
+          },
+          {
+            "name": "ethnicity",
+            "type": "array",
+            "classification": "personal-identity",
+            "itemType": "string"
+          },
+          {
+            "name": "submittedAt",
+            "type": "datetime",
+            "classification": "internal"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schema.org/Review",
+        "authoredBy": [
+          "SchemaLattice member-community pilot"
+        ],
+        "sourceNotes": "Pattern shared by ~25 webforms on a makerspace site (config/webform.webform.evaluation, webform_26478 Event Evaluation, webform_1181 Event Feedback, webform_24054 Coach Evaluation, webform_8242 Facilitator Evaluation, webform_9283 Foundations Course Evaluation, gems_program_exit_survey, post_program_survey_pathway_to_t, webform_14335, webform_17973 mentor feedback): event/instructor, how heard, currently a member, likert rating, overall, most valuable, improvements, recommend likelihood, confidence, continue, demographics fieldset."
+      }
+    },
+    {
+      "context": "board-governance",
+      "conceptSlug": "organizational-policy",
+      "prefLabel": "Organizational Policy",
+      "altLabels": [
+        "Policy Document",
+        "Code of Conduct",
+        "Bylaw Policy"
+      ],
+      "definition": "A written rule an organization has adopted to guide how it and its members act, such as a safety rule, membership terms, a code of conduct or a financial control, kept as a versioned document with a category and a canonical source. Signatures to a version are recorded separately as attestations.",
+      "conceptKind": "entity",
+      "broaderRoot": "record",
+      "closeMatch": [
+        "wd:Q69973888"
+      ],
+      "broadMatch": [
+        "wd:Q1156854",
+        "schema:DigitalDocument"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "title",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "category",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "safety",
+              "membership",
+              "code-of-conduct",
+              "operations",
+              "financial-legal",
+              "events-programs",
+              "governance",
+              "other"
+            ]
+          },
+          {
+            "name": "body",
+            "type": "string",
+            "classification": "public",
+            "description": "Published text of the current version"
+          },
+          {
+            "name": "sourceDocumentUrl",
+            "type": "url",
+            "classification": "public",
+            "description": "Canonical document the text is published from"
+          },
+          {
+            "name": "version",
+            "type": "integer",
+            "classification": "public",
+            "description": "Revision number; attestations cite it"
+          },
+          {
+            "name": "published",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "lastSyncedAt",
+            "type": "datetime",
+            "classification": "internal",
+            "description": "When the text was last refreshed from its source"
+          },
+          {
+            "name": "updatedAt",
+            "type": "datetime",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schema.org/DigitalDocument",
+        "authoredBy": [
+          "SchemaLattice member-community pilot"
+        ],
+        "sourceNotes": "Fields from config/field.field.node.policy.* (body, category, Google Doc URL, last synced) and web/modules/custom/makerspace_policy_library (categories seeded in hook_install: Safety, Membership, Code of Conduct, Operations, Financial/Legal, Events/Programs; revision per content change); version matches board-governance/policy-attestation.policyVersion, whose 'policy' reference has no target concept yet."
+      }
+    },
+    {
+      "context": "nonprofit-finance",
+      "conceptSlug": "expense-reimbursement-request",
+      "prefLabel": "Expense Reimbursement Request",
+      "altLabels": [
+        "Reimbursement",
+        "Expense Claim",
+        "Out-of-Pocket Expense Report"
+      ],
+      "definition": "A request from a staff member, volunteer or instructor to be paid back for money they spent on the organization's behalf, with the amount, receipts, purpose and the account it should be charged to, moving through draft, approval and payment.",
+      "conceptKind": "workflow",
+      "broaderRoot": "transaction",
+      "broadMatch": [
+        "wd:Q760125"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "payee",
+            "type": "reference",
+            "classification": "personal-identity",
+            "description": "Person to be paid",
+            "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+          },
+          {
+            "name": "payToContact",
+            "type": "string",
+            "classification": "personal-financial",
+            "description": "Accounting-system contact to pay instead of the payee, e.g. their LLC"
+          },
+          {
+            "name": "amount",
+            "type": "number",
+            "classification": "personal-financial",
+            "description": "Total to be paid",
+            "unit": "USD"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "receipt",
+            "type": "url",
+            "classification": "personal-financial",
+            "description": "Receipt or other documentation"
+          },
+          {
+            "name": "relatedEvent",
+            "type": "reference",
+            "classification": "internal",
+            "description": "Event or class the payment relates to"
+          },
+          {
+            "name": "expenseAccount",
+            "type": "string",
+            "classification": "internal",
+            "description": "General-ledger account code it posts to"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "draft",
+              "submitted",
+              "approved",
+              "paid",
+              "rejected"
+            ]
+          },
+          {
+            "name": "accountingBillId",
+            "type": "string",
+            "classification": "internal",
+            "description": "ID of the bill created in the accounting system"
+          },
+          {
+            "name": "submittedAt",
+            "type": "datetime",
+            "classification": "internal"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://www.wikidata.org/wiki/Q760125",
+        "authoredBy": [
+          "SchemaLattice member-community pilot"
+        ],
+        "sourceNotes": "Fields from config/field.field.payment_request.reimbursement.* (amount, attachment, description, event, payee, status, Xero account, Xero contact override, Xero invoice id) and web/modules/custom/xero_bills_sync (bills pushed to accounting as ACCPAY invoices); also webforms 95 'Reimbursement' and 26999 'Quarterly Health, Commuter and other Reimbursement'."
+      }
+    },
+    {
+      "context": "nonprofit-finance",
+      "conceptSlug": "contractor-payment-request",
+      "prefLabel": "Contractor Payment Request",
+      "altLabels": [
+        "Contractor Fee",
+        "Instructor Pay Request",
+        "Vendor Bill"
+      ],
+      "definition": "A bill for services an independent contractor, such as an instructor or tradesperson, performed for an organization, charged at an hourly rate or a flat fee, which is approved and then entered into accounts payable for payment.",
+      "conceptKind": "workflow",
+      "broaderRoot": "transaction",
+      "broadMatch": [
+        "wd:Q190581",
+        "schema:Invoice"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "payee",
+            "type": "reference",
+            "classification": "personal-identity",
+            "description": "Person to be paid",
+            "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+          },
+          {
+            "name": "payToContact",
+            "type": "string",
+            "classification": "personal-financial",
+            "description": "Accounting-system contact to pay instead of the payee, e.g. their LLC"
+          },
+          {
+            "name": "paymentBasis",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "hourly",
+              "flat"
+            ]
+          },
+          {
+            "name": "hours",
+            "type": "number",
+            "classification": "internal",
+            "unit": "hour"
+          },
+          {
+            "name": "hourlyRate",
+            "type": "number",
+            "classification": "personal-financial",
+            "unit": "USD"
+          },
+          {
+            "name": "amount",
+            "type": "number",
+            "classification": "personal-financial",
+            "description": "Total to be paid",
+            "unit": "USD"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "attachment",
+            "type": "url",
+            "classification": "personal-financial"
+          },
+          {
+            "name": "relatedEvent",
+            "type": "reference",
+            "classification": "internal",
+            "description": "Event or class the payment relates to"
+          },
+          {
+            "name": "expenseAccount",
+            "type": "string",
+            "classification": "internal",
+            "description": "General-ledger account code it posts to"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "draft",
+              "submitted",
+              "approved",
+              "paid",
+              "rejected"
+            ]
+          },
+          {
+            "name": "accountingBillId",
+            "type": "string",
+            "classification": "internal",
+            "description": "ID of the bill created in the accounting system"
+          },
+          {
+            "name": "submittedAt",
+            "type": "datetime",
+            "classification": "internal"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schema.org/Invoice",
+        "authoredBy": [
+          "SchemaLattice member-community pilot"
+        ],
+        "sourceNotes": "Fields from config/field.field.payment_request.payment.* (amount, attachment, description, event, hourly rate, hours, payee, payment type, status, Xero account, Xero contact override, Xero invoice id), user.user.field_default_hourly_rate, and web/modules/custom/xero_bills_sync; webforms 17088 'Instructor Pay Request' and 621 'Vendor Payment Request'. schema.org Invoice (provider, paymentStatus, totalPaymentDue)."
+      }
+    }
+  ]
+}

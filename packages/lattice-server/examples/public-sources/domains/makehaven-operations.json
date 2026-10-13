@@ -1,0 +1,1427 @@
+{
+  "contexts": [
+    {
+      "slug": "space-rental",
+      "title": "Space Rental",
+      "definition": "Rentable space inside a shared facility such as a makerspace, coworking space or studio building: the desks, studios, offices and storage units let to members or tenants, the agreements that let them, and violations of storage rules."
+    }
+  ],
+  "concepts": [
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "shop-equipment-asset",
+      "prefLabel": "Shop Equipment Asset",
+      "altLabels": [
+        "Equipment Asset Record",
+        "Tool Page",
+        "Asset Register Entry"
+      ],
+      "definition": "A shared workshop machine or tool as kept on the space's asset register: everything a basic equipment record holds plus the kit parts inside it, optional and safety requirements, guest use, booking lead time, use instructions and where it came from.",
+      "conceptKind": "entity",
+      "broaderRoot": "asset",
+      "forkOf": "https://schemalattice.com/c/makerspace-operations/equipment@73a23efa789f",
+      "changeset": {
+        "ops": [
+          {
+            "op": "add",
+            "field": "components",
+            "type": "array",
+            "description": "Equipment units tracked separately inside this one (kit parts)"
+          },
+          {
+            "op": "add",
+            "field": "optionalBadges",
+            "type": "array",
+            "description": "Badges for advanced use or attachments, not needed for basic use"
+          },
+          {
+            "op": "add",
+            "field": "safetyRequirements",
+            "type": "array",
+            "description": "Protective equipment or conditions required, e.g. eye protection"
+          },
+          {
+            "op": "add",
+            "field": "guestUseAllowed",
+            "type": "boolean",
+            "description": "Whether guests or supervised minors may use it"
+          },
+          {
+            "op": "add",
+            "field": "minAdvanceBookingHours",
+            "type": "integer",
+            "unit": "h",
+            "description": "How far ahead a reservation must be made"
+          },
+          {
+            "op": "add",
+            "field": "instructions",
+            "type": "string",
+            "description": "Steps for safe use"
+          },
+          {
+            "op": "add",
+            "field": "acquisitionSource",
+            "type": "string",
+            "description": "Donor, vendor or lender it came from"
+          },
+          {
+            "op": "add",
+            "field": "ownership",
+            "type": "string",
+            "description": "Owned, on loan, or on consignment"
+          },
+          {
+            "op": "add",
+            "field": "imageUrl",
+            "type": "url"
+          }
+        ],
+        "note": "Adds the asset-register fields a makerspace equipment page carries (kit composition, optional badges, PPE requirements, guest use, booking lead time, instructions, provenance, ownership, image). All parent fields kept."
+      },
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "brand",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "serialNumber",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "count",
+            "type": "integer",
+            "classification": "public",
+            "description": "How many identical units"
+          },
+          {
+            "name": "capability",
+            "type": "string",
+            "classification": "public",
+            "description": "Fabrication capability vocabulary value, e.g. laser_cutting"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "available",
+              "in_use",
+              "borrowed",
+              "needs_repair",
+              "out_of_service",
+              "missing",
+              "retired"
+            ]
+          },
+          {
+            "name": "location",
+            "type": "string",
+            "classification": "public",
+            "description": "Room, area or shelf"
+          },
+          {
+            "name": "hazardBand",
+            "type": "integer",
+            "classification": "public",
+            "description": "1 (low) to 4 (high)"
+          },
+          {
+            "name": "requiredBadges",
+            "type": "array",
+            "classification": "public",
+            "description": "Badges a member must hold to use it"
+          },
+          {
+            "name": "reservable",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "maxReservationHours",
+            "type": "integer",
+            "classification": "public",
+            "unit": "h"
+          },
+          {
+            "name": "lendable",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Can leave the space on loan"
+          },
+          {
+            "name": "replacementValue",
+            "type": "number",
+            "classification": "internal",
+            "unit": "USD"
+          },
+          {
+            "name": "usefulLifeEndDate",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "readerDeviceId",
+            "type": "string",
+            "classification": "internal",
+            "description": "Card reader or activator controlling power to it"
+          },
+          {
+            "name": "manualUrl",
+            "type": "url",
+            "classification": "public"
+          },
+          {
+            "name": "notes",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "components",
+            "type": "array",
+            "classification": "public",
+            "description": "Equipment units tracked separately inside this one (kit parts)",
+            "itemType": "reference"
+          },
+          {
+            "name": "optionalBadges",
+            "type": "array",
+            "classification": "public",
+            "description": "Badges for advanced use or attachments, not needed for basic use"
+          },
+          {
+            "name": "safetyRequirements",
+            "type": "array",
+            "classification": "public",
+            "description": "Protective equipment or conditions required, e.g. eye protection"
+          },
+          {
+            "name": "guestUseAllowed",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Whether guests or supervised minors may use it"
+          },
+          {
+            "name": "minAdvanceBookingHours",
+            "type": "integer",
+            "classification": "public",
+            "description": "How far ahead a reservation must be made",
+            "unit": "h"
+          },
+          {
+            "name": "instructions",
+            "type": "string",
+            "classification": "public",
+            "description": "Steps for safe use"
+          },
+          {
+            "name": "acquisitionSource",
+            "type": "string",
+            "classification": "internal",
+            "description": "Donor, vendor or lender it came from"
+          },
+          {
+            "name": "ownership",
+            "type": "string",
+            "classification": "internal",
+            "description": "Owned, on loan, or on consignment"
+          },
+          {
+            "name": "imageUrl",
+            "type": "url",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schemalattice.com/c/makerspace-operations/equipment@73a23efa789f",
+        "authoredBy": [
+          "SchemaLattice makerspace deep-pass pilot"
+        ],
+        "sourceNotes": "Added fields mined from config/node.type.item.yml and its field.field.node.item.* config: field_item_set, field_additional_badges, field_item_requirements (equipment_requirements taxonomy), field_item_guest_minor_usable, field_item_min_advance_hours (used by makerspace_reservations), field_item_instructions, field_item_source, field_ownership, field_item_image. Parent fields unchanged."
+      }
+    },
+    {
+      "context": "equipment-maintenance",
+      "conceptSlug": "equipment-log-entry",
+      "prefLabel": "Equipment Log Entry",
+      "altLabels": [
+        "Asset Log Entry",
+        "Tool Status Report",
+        "Service Log Entry",
+        "Out-of-Service Notice"
+      ],
+      "definition": "A dated entry in one machine's service history that is not tied to a vessel: a reported or staff-confirmed status change, an inspection, or maintenance work, with who logged it, a photo, and when the machine is expected back in service.",
+      "conceptKind": "event",
+      "broaderRoot": "activity",
+      "forkOf": "https://schemalattice.com/c/equipment-maintenance/maintenance-event@944e7017caf9",
+      "changeset": {
+        "ops": [
+          {
+            "op": "rename",
+            "from": "vesselId",
+            "to": "equipment"
+          },
+          {
+            "op": "retype",
+            "field": "equipment",
+            "fromType": "reference",
+            "toType": "reference",
+            "converter": "identity",
+            "note": "Target changes from vessel-ops/vessel to makerspace-operations/equipment (any shared machine)"
+          },
+          {
+            "op": "remove",
+            "field": "category"
+          },
+          {
+            "op": "retype",
+            "field": "kind",
+            "fromType": "enum",
+            "toType": "enum",
+            "converter": "identity",
+            "note": "Adds the values maintenance and status_change; parent values unchanged"
+          },
+          {
+            "op": "add",
+            "field": "reportedStatus",
+            "type": "string",
+            "description": "Condition a user reported, e.g. needs repair"
+          },
+          {
+            "op": "add",
+            "field": "confirmedStatus",
+            "type": "string",
+            "description": "Status staff confirmed after triage"
+          },
+          {
+            "op": "add",
+            "field": "expectedBackAt",
+            "type": "datetime",
+            "description": "When out-of-service equipment should be usable again"
+          }
+        ],
+        "note": "Generalises the vessel-oriented maintenance event to any shared equipment: the vessel reference becomes an equipment reference, the vessel-systems category is dropped, and status-change triage fields are added."
+      },
+      "structure": {
+        "kind": "event",
+        "fields": [
+          {
+            "name": "equipment",
+            "type": "reference",
+            "required": true,
+            "refUri": "https://schemalattice.com/c/makerspace-operations/equipment@73a23efa789f",
+            "description": "The machine or tool the entry is about"
+          },
+          {
+            "name": "scheduleId",
+            "type": "reference",
+            "ref": "equipment-maintenance/maintenance-schedule"
+          },
+          {
+            "name": "kind",
+            "type": "enum",
+            "values": [
+              "scheduled",
+              "repair",
+              "improvement",
+              "inspection",
+              "maintenance",
+              "status_change"
+            ],
+            "required": true
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "performedAt",
+            "type": "datetime",
+            "required": true
+          },
+          {
+            "name": "hoursAtService",
+            "type": "number"
+          },
+          {
+            "name": "cost",
+            "type": "object",
+            "fields": [
+              {
+                "name": "amount",
+                "type": "integer",
+                "required": true
+              },
+              {
+                "name": "currency",
+                "type": "string",
+                "required": true
+              }
+            ],
+            "classification": "personal-financial"
+          },
+          {
+            "name": "performedBy",
+            "type": "string"
+          },
+          {
+            "name": "laborHours",
+            "type": "number",
+            "unit": "hours"
+          },
+          {
+            "name": "performedByPersonIds",
+            "type": "array",
+            "itemType": "reference"
+          },
+          {
+            "name": "parts",
+            "type": "array",
+            "itemType": "object",
+            "fields": [
+              {
+                "name": "name",
+                "type": "string",
+                "required": true
+              },
+              {
+                "name": "partNumber",
+                "type": "string"
+              },
+              {
+                "name": "quantity",
+                "type": "number"
+              }
+            ]
+          },
+          {
+            "name": "photoIds",
+            "type": "array",
+            "itemType": "string"
+          },
+          {
+            "name": "reportedStatus",
+            "type": "string",
+            "classification": "public",
+            "description": "Condition a user reported, e.g. needs repair"
+          },
+          {
+            "name": "confirmedStatus",
+            "type": "string",
+            "classification": "public",
+            "description": "Status staff confirmed after triage"
+          },
+          {
+            "name": "expectedBackAt",
+            "type": "datetime",
+            "classification": "public",
+            "description": "When out-of-service equipment should be usable again"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schemalattice.com/c/equipment-maintenance/maintenance-event@944e7017caf9",
+        "authoredBy": [
+          "SchemaLattice makerspace deep-pass pilot"
+        ],
+        "sourceNotes": "From the asset_status module's asset_log_entry content entity (src/Entity/AssetLogEntry.php base fields: asset, summary, details, photo, reported_status, confirmed_status, expected_back, user_id, created) and its bundles status_change / maintenance / inspection (config/asset_status.asset_log_entry_type.*.yml)."
+      }
+    },
+    {
+      "context": "space-rental",
+      "conceptSlug": "storage-unit",
+      "prefLabel": "Member Storage Unit",
+      "altLabels": [
+        "Storage Unit",
+        "Storage Bin",
+        "Locker",
+        "Shelf Space",
+        "Floor Storage Spot"
+      ],
+      "definition": "One physical place in a shared facility that is rented to a single member or tenant for keeping their things: a bin, locker, shelf or marked floor area, with a unit code, the area it is in, a size type that sets its monthly price, and whether it is vacant or occupied.",
+      "conceptKind": "place",
+      "broaderRoot": "location",
+      "broadMatch": [
+        "wd:Q9158768",
+        "wd:Q1195470"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "public",
+            "description": "Unit code painted or labelled on the unit"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "area",
+            "type": "string",
+            "classification": "public",
+            "description": "Room or zone the unit is in"
+          },
+          {
+            "name": "storageType",
+            "type": "string",
+            "classification": "public",
+            "description": "Size class, e.g. small bin, large bin, floor spot"
+          },
+          {
+            "name": "sizeDescription",
+            "type": "string",
+            "classification": "public",
+            "description": "Dimensions and what fits"
+          },
+          {
+            "name": "monthlyPrice",
+            "type": "number",
+            "classification": "public",
+            "unit": "USD"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "vacant",
+              "occupied",
+              "inactive"
+            ]
+          },
+          {
+            "name": "imageUrl",
+            "type": "url",
+            "classification": "public",
+            "description": "Photo or diagram of the unit type"
+          },
+          {
+            "name": "note",
+            "type": "string",
+            "classification": "internal"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/makehaven-website",
+        "authoredBy": [
+          "SchemaLattice makerspace deep-pass pilot"
+        ],
+        "sourceNotes": "storage_manager module: storage_unit ECK entity (config/eck.eck_entity_type.storage_unit.yml; fields field_storage_unit_id, field_storage_area, field_storage_type, field_storage_status, field_storage_note) and the storage_type taxonomy (field_monthly_price, field_storage_type_summary, field_storage_type_image) and storage_area taxonomy."
+      }
+    },
+    {
+      "context": "space-rental",
+      "conceptSlug": "storage-assignment",
+      "prefLabel": "Storage Assignment",
+      "altLabels": [
+        "Storage Rental",
+        "Locker Assignment",
+        "Bin Rental"
+      ],
+      "definition": "The record that one member holds a particular storage unit at a shared facility for a period, at a price fixed when it began, billed by recurring subscription, by invoice or given free, and released with a photo of the cleared space.",
+      "conceptKind": "entity",
+      "broaderRoot": "record",
+      "broadMatch": [
+        "wd:Q10530881"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "unit",
+            "type": "reference",
+            "classification": "public"
+          },
+          {
+            "name": "holder",
+            "type": "reference",
+            "classification": "internal",
+            "description": "The member renting it",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/member@cdf94269c607"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "active",
+              "ended"
+            ]
+          },
+          {
+            "name": "startDate",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "endDate",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "monthlyPrice",
+            "type": "number",
+            "classification": "personal-financial",
+            "description": "Price snapshot taken at assignment",
+            "unit": "USD"
+          },
+          {
+            "name": "billingMethod",
+            "type": "enum",
+            "classification": "personal-financial",
+            "values": [
+              "subscription",
+              "invoiced",
+              "complimentary"
+            ]
+          },
+          {
+            "name": "subscriptionId",
+            "type": "string",
+            "classification": "internal",
+            "description": "Payment processor subscription id"
+          },
+          {
+            "name": "issueNote",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "violationActive",
+            "type": "boolean",
+            "classification": "internal",
+            "description": "Whether an open violation applies"
+          },
+          {
+            "name": "releasePhotoUrl",
+            "type": "url",
+            "classification": "internal",
+            "description": "Photo of the cleared unit at release"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/makehaven-website",
+        "authoredBy": [
+          "SchemaLattice makerspace deep-pass pilot"
+        ],
+        "sourceNotes": "storage_manager module: storage_assignment ECK entity (config/eck.eck_entity_type.storage_assignment.yml; field_storage_unit, field_storage_user, field_storage_assignment_status, field_storage_start_date, field_storage_end_date, field_storage_price_snapshot, field_storage_billing_method, field_storage_complimentary, field_storage_stripe_sub_id, field_storage_issue_note, field_storage_violation_flag, field_release_photo)."
+      }
+    },
+    {
+      "context": "space-rental",
+      "conceptSlug": "storage-violation",
+      "prefLabel": "Storage Violation",
+      "altLabels": [
+        "Storage Rule Violation",
+        "Overflow Fine",
+        "Storage Infraction"
+      ],
+      "definition": "A breach of a facility's storage rules by the holder of a storage unit, such as items left outside the unit, open from when it was recorded until staff resolve it, accruing a daily charge and closing with a total due or waived.",
+      "conceptKind": "event",
+      "broaderRoot": "event",
+      "broadMatch": [
+        "wd:Q1243001"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "assignment",
+            "type": "reference",
+            "classification": "internal",
+            "description": "The storage assignment it applies to"
+          },
+          {
+            "name": "active",
+            "type": "boolean",
+            "classification": "internal"
+          },
+          {
+            "name": "startedAt",
+            "type": "datetime",
+            "classification": "internal"
+          },
+          {
+            "name": "resolvedAt",
+            "type": "datetime",
+            "classification": "internal"
+          },
+          {
+            "name": "dailyRate",
+            "type": "number",
+            "classification": "personal-financial",
+            "unit": "USD"
+          },
+          {
+            "name": "totalDue",
+            "type": "number",
+            "classification": "personal-financial",
+            "description": "Final balance; zero when waived",
+            "unit": "USD"
+          },
+          {
+            "name": "note",
+            "type": "string",
+            "classification": "internal"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/makehaven-website",
+        "authoredBy": [
+          "SchemaLattice makerspace deep-pass pilot"
+        ],
+        "sourceNotes": "storage_manager module: storage_violation ECK entity (field_storage_vi_assignment, field_storage_vi_active, field_storage_vi_start, field_storage_vi_resolved, field_storage_vi_daily, field_storage_vi_total, field_storage_vi_note) and its resolve flow (README: resolve stops charges while the member keeps the unit; blank total = accrued, 0 = waived). Kept as its own concept because it has its own lifecycle and charges and an assignment can have several."
+      }
+    },
+    {
+      "context": "space-rental",
+      "conceptSlug": "workspace",
+      "prefLabel": "Rentable Workspace",
+      "altLabels": [
+        "Workspace",
+        "Studio",
+        "Private Office",
+        "Dedicated Desk",
+        "Bench Space"
+      ],
+      "definition": "A desk, studio, office or bench area inside a shared facility that is licensed to one tenant at a time for a monthly fee, located by building, room and section, with its floor area and list price.",
+      "conceptKind": "place",
+      "broaderRoot": "location",
+      "broadMatch": [
+        "wd:Q628858",
+        "wd:Q746628"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "building",
+            "type": "string",
+            "classification": "public",
+            "description": "Building or site"
+          },
+          {
+            "name": "room",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "section",
+            "type": "string",
+            "classification": "public",
+            "description": "Bay, corner or desk within the room"
+          },
+          {
+            "name": "floorArea",
+            "type": "integer",
+            "classification": "public",
+            "unit": "ft2"
+          },
+          {
+            "name": "monthlyPrice",
+            "type": "number",
+            "classification": "public",
+            "description": "Current list price",
+            "unit": "USD"
+          },
+          {
+            "name": "imageUrl",
+            "type": "url",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/makehaven-website",
+        "authoredBy": [
+          "SchemaLattice makerspace deep-pass pilot"
+        ],
+        "sourceNotes": "workspace_rental module: workspace ECK entity (config/eck.eck_entity_type.workspace.yml; title, field_wr_description, field_wr_location -> workspace_location taxonomy, field_wr_room -> workspace_room taxonomy, field_wr_section, field_wr_sq_footage, field_wr_price, field_wr_photo)."
+      }
+    },
+    {
+      "context": "space-rental",
+      "conceptSlug": "workspace-rental-agreement",
+      "prefLabel": "Workspace Rental Agreement",
+      "altLabels": [
+        "Workspace License",
+        "Studio Lease",
+        "Desk Agreement",
+        "Rental Agreement"
+      ],
+      "definition": "A signed license letting a person, or the business they act for, occupy one rentable desk, studio or office in a shared facility: its term and notice date, the agreed monthly fee and deposit, who is invoiced and how, and its status from pending to ended.",
+      "conceptKind": "entity",
+      "broaderRoot": "record",
+      "broadMatch": [
+        "wd:Q10530881",
+        "wd:Q716894"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "workspace",
+            "type": "reference",
+            "classification": "public"
+          },
+          {
+            "name": "licensee",
+            "type": "reference",
+            "classification": "internal",
+            "description": "Point person holding the license",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/member@cdf94269c607"
+          },
+          {
+            "name": "business",
+            "type": "reference",
+            "classification": "internal",
+            "description": "Business the license is held for"
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "pending",
+              "active",
+              "ended",
+              "cancelled"
+            ]
+          },
+          {
+            "name": "startDate",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "endDate",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "noticeGivenOn",
+            "type": "date",
+            "classification": "internal"
+          },
+          {
+            "name": "monthlyFee",
+            "type": "number",
+            "classification": "personal-financial",
+            "description": "Agreed fee, not the current list price",
+            "unit": "USD"
+          },
+          {
+            "name": "deposit",
+            "type": "number",
+            "classification": "personal-financial",
+            "unit": "USD"
+          },
+          {
+            "name": "depositStatus",
+            "type": "enum",
+            "classification": "personal-financial",
+            "values": [
+              "due",
+              "held",
+              "applied",
+              "returned",
+              "none"
+            ]
+          },
+          {
+            "name": "billTo",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "personal",
+              "business"
+            ]
+          },
+          {
+            "name": "billingName",
+            "type": "string",
+            "classification": "personal-identity"
+          },
+          {
+            "name": "billingEmail",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "billingAddress",
+            "type": "string",
+            "classification": "personal-contact"
+          },
+          {
+            "name": "invoicing",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "manual",
+              "automatic"
+            ]
+          },
+          {
+            "name": "paymentArrangementUntil",
+            "type": "date",
+            "classification": "personal-financial",
+            "description": "Overdue reminders pause until this date"
+          },
+          {
+            "name": "billingNotes",
+            "type": "string",
+            "classification": "personal-financial"
+          },
+          {
+            "name": "signedAgreement",
+            "type": "reference",
+            "classification": "internal",
+            "description": "The signed agreement form"
+          },
+          {
+            "name": "accountingContactId",
+            "type": "string",
+            "classification": "internal",
+            "description": "Contact id in the accounting system"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/makehaven-website",
+        "authoredBy": [
+          "SchemaLattice makerspace deep-pass pilot"
+        ],
+        "sourceNotes": "workspace_rental module: rental_agreement ECK entity (config/eck.eck_entity_type.rental_agreement.yml; field_wr_workspace, field_wr_user, field_wr_business, field_wr_status, field_wr_start_date, field_wr_end_date, field_wr_notice_date, field_wr_fee, field_wr_deposit, field_wr_deposit_status, field_wr_bill_to, field_wr_billing_name/email/address/notes, field_wr_invoicing, field_wr_pay_arrangement, field_wr_webform_sub, field_wr_xero_contact_id) and its README (license-fee billing, signing flow)."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "material",
+      "prefLabel": "Shop Material",
+      "altLabels": [
+        "Material",
+        "Consumable",
+        "Material Store Item",
+        "Stock Item",
+        "Supply"
+      ],
+      "definition": "A consumable a shared workshop stocks and sells to users or uses on its machines, such as filament, sheet stock or ink: its sale unit and price, its cost, stock count and reorder threshold, where it and its backstock are kept, and which machines it works with.",
+      "conceptKind": "entity",
+      "broaderRoot": "physical-object",
+      "broadMatch": [
+        "wd:Q1681365",
+        "schema:Product"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "string",
+            "classification": "public",
+            "description": "Stock-keeping id"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "saleUnit",
+            "type": "string",
+            "classification": "public",
+            "description": "Unit it is sold in, e.g. sheet, ounce, foot"
+          },
+          {
+            "name": "unitPrice",
+            "type": "number",
+            "classification": "public",
+            "description": "Price charged per sale unit",
+            "unit": "USD"
+          },
+          {
+            "name": "unitCost",
+            "type": "number",
+            "classification": "internal",
+            "description": "What one sale unit costs the space",
+            "unit": "USD"
+          },
+          {
+            "name": "purchaseUnit",
+            "type": "string",
+            "classification": "internal",
+            "description": "Unit it is bought in, e.g. box, roll"
+          },
+          {
+            "name": "purchaseUnitCost",
+            "type": "number",
+            "classification": "internal",
+            "unit": "USD"
+          },
+          {
+            "name": "providedFree",
+            "type": "boolean",
+            "classification": "public",
+            "description": "Supplied at no charge with equipment use"
+          },
+          {
+            "name": "inventoryCount",
+            "type": "number",
+            "classification": "internal"
+          },
+          {
+            "name": "inventoryValue",
+            "type": "number",
+            "classification": "internal",
+            "unit": "USD"
+          },
+          {
+            "name": "inventoryMethod",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "untracked",
+              "estimated",
+              "counted"
+            ]
+          },
+          {
+            "name": "lastInventoriedAt",
+            "type": "datetime",
+            "classification": "internal"
+          },
+          {
+            "name": "reorderThreshold",
+            "type": "number",
+            "classification": "internal"
+          },
+          {
+            "name": "reorderStatus",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "ok",
+              "low",
+              "critical",
+              "pending_order",
+              "snoozed"
+            ]
+          },
+          {
+            "name": "location",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "backstockLocation",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "compatibleEquipment",
+            "type": "array",
+            "classification": "public",
+            "description": "Machines it can be used with",
+            "itemType": "reference",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/equipment@73a23efa789f"
+          },
+          {
+            "name": "supplierUrl",
+            "type": "url",
+            "classification": "internal"
+          },
+          {
+            "name": "imageUrl",
+            "type": "url",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://schema.org/Product",
+        "authoredBy": [
+          "SchemaLattice makerspace deep-pass pilot"
+        ],
+        "sourceNotes": "Drupal node.material (config/node.type.material.yml; field_material_unit, field_material_unit_cost (the price the store charges, per makerspace_material_store PurchaseQuantityTrait), field_material_sales_cost, field_material_purchase_unit/cost, field_material_provided, field_material_inventory_count/value/method, field_material_last_inventoried, field_material_reorder_threshold/status, field_material_location, field_material_backstock, field_material_equipment, field_material_source, field_material_image). name, description, category, image, sku and offer price/unitText align with schema.org Product/Offer."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "material-transaction",
+      "prefLabel": "Material Transaction",
+      "altLabels": [
+        "Stock Adjustment",
+        "Inventory Adjustment",
+        "Material Purchase",
+        "Tab Charge"
+      ],
+      "definition": "One change to a shop consumable's stock or one charge for it: a member buying some onto a tab or paying at once, a restock, a loss, or internal or educational use, recorded as a signed quantity with the price, buyer and payment state where it was a sale.",
+      "conceptKind": "event",
+      "broaderRoot": "transaction",
+      "broadMatch": [
+        "wd:Q194189",
+        "wd:Q3761396"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "material",
+            "type": "reference",
+            "classification": "public"
+          },
+          {
+            "name": "occurredAt",
+            "type": "datetime",
+            "classification": "internal"
+          },
+          {
+            "name": "transactionType",
+            "type": "enum",
+            "classification": "internal",
+            "values": [
+              "sale",
+              "restock",
+              "loss",
+              "internal_use",
+              "education",
+              "volunteer_appreciation",
+              "other"
+            ]
+          },
+          {
+            "name": "quantityChange",
+            "type": "number",
+            "classification": "internal",
+            "description": "Signed; removals from stock are negative"
+          },
+          {
+            "name": "member",
+            "type": "reference",
+            "classification": "internal",
+            "description": "Buyer, for sales",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/member@cdf94269c607"
+          },
+          {
+            "name": "amount",
+            "type": "number",
+            "classification": "personal-financial",
+            "description": "Price at the time of sale",
+            "unit": "USD"
+          },
+          {
+            "name": "paymentStatus",
+            "type": "enum",
+            "classification": "personal-financial",
+            "values": [
+              "pending",
+              "paid",
+              "removed"
+            ]
+          },
+          {
+            "name": "paymentReference",
+            "type": "string",
+            "classification": "internal",
+            "description": "Invoice or payment id at the processor"
+          },
+          {
+            "name": "memo",
+            "type": "string",
+            "classification": "internal"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/makehaven-website",
+        "authoredBy": [
+          "SchemaLattice makerspace deep-pass pilot"
+        ],
+        "sourceNotes": "Two bundles merged: material_transaction.purchase (makerspace_material_store README: field_material_ref, field_quantity, field_transaction_status pending/paid/removed, field_transaction_owner, field_transaction_amount, field_store_stripe_invoice_id) and material_inventory.inventory_adjustment (field_inventory_ref_material, field_inventory_quantity_change, field_inventory_change_reason, field_inventory_change_memo), which paypal_inventory_listener and the store also write for each sale."
+      }
+    },
+    {
+      "context": "makerspace-operations",
+      "conceptSlug": "facility-task",
+      "prefLabel": "Facility Task",
+      "altLabels": [
+        "Volunteer Task",
+        "Shop Task",
+        "Volunteer Shift",
+        "Work Order",
+        "Chore"
+      ],
+      "definition": "A piece of work needed to keep a shared workshop running, such as cleaning, maintenance, inspection or restocking, or a dated volunteer shift, that staff post and members claim, optionally tied to a machine, a required badge and a recurring schedule.",
+      "conceptKind": "workflow",
+      "broaderRoot": "activity",
+      "broadMatch": [
+        "wd:Q759676",
+        "wd:Q1043452"
+      ],
+      "structure": {
+        "kind": "entity",
+        "fields": [
+          {
+            "name": "title",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "kind",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "task",
+              "shift",
+              "tabling"
+            ]
+          },
+          {
+            "name": "category",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "cleaning",
+              "maintenance",
+              "inspection",
+              "restocking",
+              "other"
+            ]
+          },
+          {
+            "name": "priority",
+            "type": "integer",
+            "classification": "public",
+            "description": "1 (urgent) to 4 (low)"
+          },
+          {
+            "name": "stage",
+            "type": "enum",
+            "classification": "public",
+            "description": "Approval stage",
+            "values": [
+              "proposed",
+              "gathering",
+              "approved",
+              "declined",
+              "cancelled"
+            ]
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "open",
+              "in_progress",
+              "incomplete",
+              "completed"
+            ]
+          },
+          {
+            "name": "equipment",
+            "type": "reference",
+            "classification": "public",
+            "description": "Machine or area the work concerns",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/equipment@73a23efa789f"
+          },
+          {
+            "name": "taskGroup",
+            "type": "string",
+            "classification": "public",
+            "description": "Project the task belongs to"
+          },
+          {
+            "name": "audience",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "open_member",
+              "badge_holders",
+              "staff_only"
+            ]
+          },
+          {
+            "name": "requiredBadge",
+            "type": "reference",
+            "classification": "public",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/equipment-badge@7c1ae4a28229"
+          },
+          {
+            "name": "claimedBy",
+            "type": "reference",
+            "classification": "internal",
+            "refUri": "https://schemalattice.com/c/makerspace-operations/member@cdf94269c607"
+          },
+          {
+            "name": "helpers",
+            "type": "array",
+            "classification": "internal"
+          },
+          {
+            "name": "assignees",
+            "type": "array",
+            "classification": "internal"
+          },
+          {
+            "name": "allowMultipleClaims",
+            "type": "boolean",
+            "classification": "public"
+          },
+          {
+            "name": "minVolunteers",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "maxVolunteers",
+            "type": "integer",
+            "classification": "public"
+          },
+          {
+            "name": "estimatedHours",
+            "type": "number",
+            "classification": "public",
+            "unit": "h"
+          },
+          {
+            "name": "frequency",
+            "type": "enum",
+            "classification": "public",
+            "values": [
+              "once",
+              "weekly",
+              "monthly",
+              "quarterly",
+              "yearly",
+              "biennial",
+              "occasional",
+              "always"
+            ]
+          },
+          {
+            "name": "nextDueAt",
+            "type": "datetime",
+            "classification": "public"
+          },
+          {
+            "name": "seriesPaused",
+            "type": "boolean",
+            "classification": "internal"
+          },
+          {
+            "name": "recurringSeries",
+            "type": "reference",
+            "classification": "internal",
+            "description": "Template task this occurrence was generated from"
+          },
+          {
+            "name": "timeSlots",
+            "type": "array",
+            "classification": "public",
+            "description": "Start and end of each shift slot"
+          },
+          {
+            "name": "decideBy",
+            "type": "datetime",
+            "classification": "internal"
+          },
+          {
+            "name": "decisionNote",
+            "type": "string",
+            "classification": "internal"
+          },
+          {
+            "name": "instructions",
+            "type": "string",
+            "classification": "public"
+          },
+          {
+            "name": "imageUrl",
+            "type": "url",
+            "classification": "public"
+          },
+          {
+            "name": "videoUrl",
+            "type": "url",
+            "classification": "public"
+          }
+        ]
+      },
+      "sourceAttribution": {
+        "importedFrom": "https://github.com/makehaven/makehaven-website",
+        "authoredBy": [
+          "SchemaLattice makerspace deep-pass pilot"
+        ],
+        "sourceNotes": "Drupal node.task (config/node.type.task.yml and field.field.node.task.*; makehaven_tasks module: volunteer board, recurring series, task_completed flag) and the task_group taxonomy. No live concept covers it: maintenance-schedule is a vessel service interval and segment-adoption is a standing trail commitment. Tabling-only fields (organizer, fee, RSVP, selling) left out as event-staffing detail."
+      }
+    }
+  ]
+}

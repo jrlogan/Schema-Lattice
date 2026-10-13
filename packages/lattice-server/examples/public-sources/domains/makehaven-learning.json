@@ -1,0 +1,993 @@
+{
+ "contexts": [
+  {
+   "slug": "community-events",
+   "title": "Community Events",
+   "definition": "Vocabulary for the public and member gatherings an organization runs (workshops, class sessions, meetups, tours, open houses) and the people who sign up for them: schedules, capacity, fees, age limits, venues, hosts and the registrations that track who paid and who attended."
+  },
+  {
+   "slug": "learning-programs",
+   "title": "Learning Programs",
+   "definition": "Vocabulary for structured, non-degree learning offered by community organizations such as makerspaces, libraries and arts centers: multi-step programs that lead to a skill or badge, booked one-on-one sessions with a facilitator, knowledge checks that gate a badge, and tutorials or videos that teach a tool or technique."
+  }
+ ],
+ "concepts": [
+  {
+   "context": "community-events",
+   "conceptSlug": "community-event",
+   "prefLabel": "Community Event",
+   "altLabels": [
+    "Workshop",
+    "Class Session",
+    "Meetup",
+    "Tour",
+    "Open House",
+    "Program Session",
+    "Course Instance"
+   ],
+   "definition": "A scheduled gathering that an organization runs for the public or its members, such as a hands-on workshop, one run of a class, a meetup, a facility tour or an open house. It carries a type, one or more dated sessions, a venue or online link, capacity and registration window, fees, age and skill limits, and the hosts who lead it.",
+   "conceptKind": "event",
+   "broaderRoot": "event",
+   "broadMatch": [
+    "schema:Event",
+    "wd:Q1656682"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "public",
+      "description": "Stable id of the event"
+     },
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "summary",
+      "type": "string",
+      "classification": "public",
+      "description": "Short teaser"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "eventType",
+      "type": "enum",
+      "classification": "public",
+      "description": "CiviCRM event_type_id; workshop..performance from CiviCRM defaults, the rest from a makerspace's event bundles",
+      "values": [
+       "workshop",
+       "class_session",
+       "program",
+       "meetup",
+       "tour",
+       "open_house",
+       "member_event",
+       "private_event",
+       "partner_hosted",
+       "conference",
+       "exhibition",
+       "fundraiser",
+       "meeting",
+       "performance",
+       "other"
+      ]
+     },
+     {
+      "name": "isPublic",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Listed in public calendars"
+     },
+     {
+      "name": "isActive",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "startDate",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "endDate",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "sessions",
+      "type": "array",
+      "classification": "public",
+      "description": "Start datetime of every meeting, first included, for multi-session runs"
+     },
+     {
+      "name": "venueName",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "streetAddress",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "locality",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "region",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "postalCode",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "isOnline",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "onlineJoinUrl",
+      "type": "url",
+      "classification": "internal",
+      "description": "Meeting link sent only to registrants"
+     },
+     {
+      "name": "registrationUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "isOnlineRegistration",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "registrationStartDate",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "registrationEndDate",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "capacity",
+      "type": "integer",
+      "classification": "public",
+      "description": "Maximum participants (CiviCRM max_participants)"
+     },
+     {
+      "name": "registeredCount",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "remainingSpots",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "isFull",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "hasWaitlist",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "requiresApproval",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "isPaid",
+      "type": "boolean",
+      "classification": "public",
+      "description": "CiviCRM is_monetary"
+     },
+     {
+      "name": "feeDescription",
+      "type": "string",
+      "classification": "public",
+      "description": "Ticket types and prices as shown to registrants"
+     },
+     {
+      "name": "currency",
+      "type": "string",
+      "classification": "public",
+      "description": "ISO 4217"
+     },
+     {
+      "name": "ageRequirement",
+      "type": "string",
+      "classification": "public",
+      "description": "Minimum age or age band, e.g. 18+, 13+ with guardian"
+     },
+     {
+      "name": "skillLevel",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "introductory",
+       "intermediate",
+       "advanced"
+      ]
+     },
+     {
+      "name": "topics",
+      "type": "array",
+      "classification": "public",
+      "description": "Subject areas"
+     },
+     {
+      "name": "tags",
+      "type": "array",
+      "classification": "public"
+     },
+     {
+      "name": "hosts",
+      "type": "array",
+      "classification": "internal",
+      "description": "Instructors or on-site leads",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "staffContact",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "partnerOrganizations",
+      "type": "array",
+      "classification": "public",
+      "description": "Co-hosting or sponsoring organizations",
+      "refUri": "https://schemalattice.com/c/schemalattice/organization@21722850c4fd"
+     },
+     {
+      "name": "badgesAwarded",
+      "type": "array",
+      "classification": "public",
+      "description": "Badges participants earn on completion",
+      "refUri": "https://schemalattice.com/c/makerspace-operations/equipment-badge@7c1ae4a28229"
+     },
+     {
+      "name": "course",
+      "type": "reference",
+      "classification": "public",
+      "description": "The learning-programs Course this event is one run of (schema:CourseInstance)"
+     },
+     {
+      "name": "parentEvent",
+      "type": "reference",
+      "classification": "public",
+      "description": "Enclosing event for sub-events"
+     },
+     {
+      "name": "materials",
+      "type": "array",
+      "classification": "public",
+      "description": "Links to slides, notes, worksheets"
+     },
+     {
+      "name": "recordingUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "imageUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "termsAndConditions",
+      "type": "string",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/civicrm/civicrm-core/blob/master/schema/Event/Event.entityType.php",
+    "authoredBy": [
+     "SchemaLattice makerspace website deep pass (learning)"
+    ],
+    "sourceNotes": "Core fields from CiviCRM Event (title, summary, description, event_type_id, is_public, is_active, start_date, end_date, is_online_registration, registration_link_text, registration_start_date, registration_end_date, max_participants, has_waitlist, requires_approval, is_monetary, currency, loc_block_id, parent_event_id) and its default event types; makerspace additions from the website config: config/field.field.civicrm_event.*.field_civi_event_* (capacity, registered/remaining counts, full, sessions, instructor, staff contact, age requirement, area of interest, badges, documents, recording, parent course, skill level) and the archived config/node.type.event.yml (date range, location, partner, price, registration link, join link, terms). schema.org Event/EducationEvent/CourseInstance cross-checked."
+   }
+  },
+  {
+   "context": "community-events",
+   "conceptSlug": "event-registration",
+   "prefLabel": "Event Registration",
+   "altLabels": [
+    "Participant",
+    "Ticket",
+    "Event Signup",
+    "RSVP",
+    "Enrollment"
+   ],
+   "definition": "One person's sign-up for a scheduled gathering, linking that person to it with a role (attendee, volunteer, host, speaker), a lifecycle status from registered or waitlisted through attended, no-show or cancelled, the fee level and amount paid, and who registered them. CiviCRM records it as a Participant.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "closeMatch": [
+    "schema:EventReservation"
+   ],
+   "broadMatch": [
+    "wd:Q2399307"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "event",
+      "type": "reference",
+      "classification": "public",
+      "description": "The Community Event"
+     },
+     {
+      "name": "participant",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "role",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "attendee",
+       "volunteer",
+       "host",
+       "speaker"
+      ]
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "registered",
+       "attended",
+       "no_show",
+       "cancelled",
+       "pending_pay_later",
+       "pending_incomplete_transaction",
+       "on_waitlist",
+       "awaiting_approval",
+       "pending_from_waitlist",
+       "pending_from_approval",
+       "rejected",
+       "expired",
+       "partially_paid",
+       "pending_refund",
+       "transferred"
+      ]
+     },
+     {
+      "name": "registeredAt",
+      "type": "datetime",
+      "classification": "internal"
+     },
+     {
+      "name": "source",
+      "type": "string",
+      "classification": "internal",
+      "description": "How the registration came in (online form, back office, import)"
+     },
+     {
+      "name": "feeLevel",
+      "type": "string",
+      "classification": "personal-financial",
+      "description": "Ticket or price option chosen"
+     },
+     {
+      "name": "feeAmount",
+      "type": "number",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "feeCurrency",
+      "type": "string",
+      "classification": "internal"
+     },
+     {
+      "name": "discountAmount",
+      "type": "number",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "isPayLater",
+      "type": "boolean",
+      "classification": "personal-financial"
+     },
+     {
+      "name": "registeredBy",
+      "type": "reference",
+      "classification": "personal-identity",
+      "description": "Person who registered on the participant's behalf",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "transferredTo",
+      "type": "reference",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "birthDate",
+      "type": "date",
+      "classification": "personal-identity",
+      "description": "Collected at registration to enforce age limits"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://github.com/civicrm/civicrm-core/blob/master/schema/Event/Participant.entityType.php",
+    "authoredBy": [
+     "SchemaLattice makerspace website deep pass (learning)"
+    ],
+    "sourceNotes": "Fields from CiviCRM Participant (id, contact_id, event_id, status_id, role_id, register_date, source, fee_level, fee_amount, fee_currency, discount_amount, is_pay_later, registered_by_id, transferred_to_contact_id); status values from civicrm_participant_status_type.sqldata.php, roles from option group participant_role. The website stores participants in CiviCRM (no Drupal fields); its modules makehaven_event_capacity, instructor_companion and makerspace_workshops_dashboard read event_id, contact_id, status_id, register_date and source, and makerspace_event_registration collects date of birth on the registration form."
+   }
+  },
+  {
+   "context": "learning-programs",
+   "conceptSlug": "course",
+   "prefLabel": "Course",
+   "altLabels": [
+    "Class",
+    "Workshop Template",
+    "Learning Program",
+    "Training Program",
+    "Curriculum"
+   ],
+   "definition": "A reusable offering of structured instruction (a workshop, a multi-session program, a badge class) that is run repeatedly as dated sessions. It describes what is taught in ordered units and steps, how many meetings one run has, who may enrol, which skill badges completing it grants and what to take next.",
+   "conceptKind": "entity",
+   "broaderRoot": "concept",
+   "closeMatch": [
+    "schema:Course",
+    "wd:Q600134"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "offeringType",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "workshop",
+       "program",
+       "meetup",
+       "badge_class"
+      ]
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "draft",
+       "listed",
+       "archived"
+      ]
+     },
+     {
+      "name": "isPubliclyListed",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "isMembersOnly",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "offeringMode",
+      "type": "enum",
+      "classification": "public",
+      "description": "How runs are offered right now",
+      "values": [
+       "public_schedule",
+       "interest_list",
+       "partner_groups",
+       "partner_delivered",
+       "paused"
+      ]
+     },
+     {
+      "name": "sessionCount",
+      "type": "integer",
+      "classification": "public",
+      "description": "Meetings per run; 1 for a single workshop"
+     },
+     {
+      "name": "sessionIntervalDays",
+      "type": "integer",
+      "classification": "public"
+     },
+     {
+      "name": "sessionNames",
+      "type": "array",
+      "classification": "public"
+     },
+     {
+      "name": "units",
+      "type": "array",
+      "classification": "public",
+      "description": "Ordered units, each {title, steps[{stepType: content|video|quiz|resources|badge|project, instructions, contentUrl}]}"
+     },
+     {
+      "name": "badgesAwarded",
+      "type": "array",
+      "classification": "public",
+      "description": "schema:educationalCredentialAwarded",
+      "refUri": "https://schemalattice.com/c/makerspace-operations/equipment-badge@7c1ae4a28229"
+     },
+     {
+      "name": "finalAssessment",
+      "type": "reference",
+      "classification": "public",
+      "description": "The Skill Assessment taken at the end"
+     },
+     {
+      "name": "nextCourses",
+      "type": "array",
+      "classification": "public",
+      "description": "Suggested follow-on offerings"
+     },
+     {
+      "name": "requiredEquipment",
+      "type": "array",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/makerspace-operations/equipment@73a23efa789f"
+     },
+     {
+      "name": "topics",
+      "type": "array",
+      "classification": "public"
+     },
+     {
+      "name": "tags",
+      "type": "array",
+      "classification": "public"
+     },
+     {
+      "name": "imageUrl",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "instructorPayAmount",
+      "type": "number",
+      "classification": "internal"
+     },
+     {
+      "name": "instructorPayBasis",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "hourly",
+       "fixed"
+      ]
+     },
+     {
+      "name": "materialsNotes",
+      "type": "string",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://schema.org/Course",
+    "authoredBy": [
+     "SchemaLattice makerspace website deep pass (learning)"
+    ],
+    "sourceNotes": "Fields from the website's config/node.type.course.yml and config/field.field.node.course.* (course type, status, publicly listed, member only, offering mode, session count/interval/names, units, badges, final exam, next steps, required assets, instructor expertise, payment amount/type, materials) and the course unit/step paragraphs (config/paragraphs.paragraphs_type.course_unit*.yml); schema.org Course (educationalCredentialAwarded, hasCourseInstance) for the badge and run relations. Runs are Community Events linked by field_parent_course."
+   }
+  },
+  {
+   "context": "learning-programs",
+   "conceptSlug": "appointment",
+   "prefLabel": "Appointment",
+   "altLabels": [
+    "Checkout Session",
+    "Badge Checkout",
+    "Consultation",
+    "Office Hours Booking",
+    "Facilitated Session"
+   ],
+   "definition": "A booked time window in which a facilitator meets one person or a small group for hands-on learning, a practical tool checkout that grants a badge, a consultation or project help. It records who hosts and attends, the purpose and badges at stake, how it was requested and confirmed, whether the facilitator showed up on time, and the outcome.",
+   "conceptKind": "event",
+   "broaderRoot": "event",
+   "closeMatch": [
+    "wd:Q109593105"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "facilitator",
+      "type": "reference",
+      "classification": "internal",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "attendees",
+      "type": "array",
+      "classification": "personal-identity",
+      "refUri": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85"
+     },
+     {
+      "name": "startsAt",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "endsAt",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "purpose",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "badge_checkout",
+       "informational",
+       "project_help",
+       "other"
+      ]
+     },
+     {
+      "name": "badges",
+      "type": "array",
+      "classification": "public",
+      "description": "Badges the attendee hopes to earn",
+      "refUri": "https://schemalattice.com/c/makerspace-operations/equipment-badge@7c1ae4a28229"
+     },
+     {
+      "name": "status",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "requested",
+       "scheduled",
+       "declined",
+       "cancelled"
+      ]
+     },
+     {
+      "name": "outcome",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "met_successful",
+       "met_unsuccessful",
+       "attendee_absent",
+       "facilitator_absent"
+      ]
+     },
+     {
+      "name": "requestNote",
+      "type": "string",
+      "classification": "internal",
+      "description": "What the attendee wants help with"
+     },
+     {
+      "name": "feedback",
+      "type": "string",
+      "classification": "internal",
+      "description": "Facilitator's written feedback"
+     },
+     {
+      "name": "isOnRequest",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Time proposed by the attendee rather than taken from published availability"
+     },
+     {
+      "name": "counterProposed",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "openToOthers",
+      "type": "boolean",
+      "classification": "public",
+      "description": "Other eligible people may join"
+     },
+     {
+      "name": "facilitatorArrivalStatus",
+      "type": "enum",
+      "classification": "internal",
+      "values": [
+       "on_time",
+       "late_grace",
+       "late",
+       "missed"
+      ]
+     },
+     {
+      "name": "facilitatorArrivedAt",
+      "type": "datetime",
+      "classification": "internal"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://schema.org/Reservation",
+    "authoredBy": [
+     "SchemaLattice makerspace website deep pass (learning)"
+    ],
+    "sourceNotes": "Fields from the website's config/node.type.appointment.yml and config/field.field.node.appointment.* (host, attendees, date/time range, purpose, badges, status, result, note, feedback, on-request, open to join, facilitator arrival status/time, counter-proposal), with behaviour from custom modules appointment_facilitator, appointment_on_request and appointment_enhancements. Calendly-booked tours/orientations (calendly_to_civicrm) land as CiviCRM activities, not appointments."
+   }
+  },
+  {
+   "context": "learning-programs",
+   "conceptSlug": "skill-assessment",
+   "prefLabel": "Skill Assessment",
+   "altLabels": [
+    "Quiz",
+    "Knowledge Check",
+    "Badge Quiz",
+    "Test",
+    "Exam"
+   ],
+   "definition": "A scored set of questions (multiple choice, true/false, matching) that checks what a learner knows before granting a skill badge or unlocking a practical checkout. It defines the pass mark, attempts allowed, time limit and availability window, the questions and answer keys, and feedback shown for score ranges.",
+   "conceptKind": "entity",
+   "broaderRoot": "concept",
+   "closeMatch": [
+    "schema:Quiz"
+   ],
+   "broadMatch": [
+    "wd:Q1355298"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "isPublished",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "passRate",
+      "type": "integer",
+      "classification": "public",
+      "unit": "percent"
+     },
+     {
+      "name": "maxAttempts",
+      "type": "integer",
+      "classification": "public",
+      "description": "0 = unlimited"
+     },
+     {
+      "name": "timeLimit",
+      "type": "integer",
+      "classification": "public",
+      "unit": "s"
+     },
+     {
+      "name": "opensAt",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "closesAt",
+      "type": "datetime",
+      "classification": "public"
+     },
+     {
+      "name": "alwaysOpen",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "randomQuestionCount",
+      "type": "integer",
+      "classification": "public",
+      "description": "Questions drawn at random per attempt, if any"
+     },
+     {
+      "name": "allowResume",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "allowSkipping",
+      "type": "boolean",
+      "classification": "public"
+     },
+     {
+      "name": "questions",
+      "type": "array",
+      "classification": "public",
+      "description": "Each {questionType: multiple_choice|true_false|matching|directions, prompt, choices[{text, isCorrect, feedback}], correctAnswer, pairs[{prompt, answer}]}"
+     },
+     {
+      "name": "resultFeedback",
+      "type": "array",
+      "classification": "public",
+      "description": "Each {minScore, maxScore, feedback}"
+     },
+     {
+      "name": "grantsBadge",
+      "type": "reference",
+      "classification": "public",
+      "description": "Badge granted or moved to pending checkout on passing",
+      "refUri": "https://schemalattice.com/c/makerspace-operations/equipment-badge@7c1ae4a28229"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://www.drupal.org/project/quiz",
+    "authoredBy": [
+     "SchemaLattice makerspace website deep pass (learning)"
+    ],
+    "sourceNotes": "Fields from the Drupal Quiz module entity as configured on the website (config/core.entity_form_display.quiz.quiz.default.yml: title, body, status, pass_rate, takes, time_limit, quiz_open, quiz_close, quiz_always, number_of_random_questions, allow_resume, allow_skipping, result_options), its question bundles (config/field.field.quiz_question.*: multichoice alternatives, truefalse_correct, matching pairs) and paragraphs (multichoice, quiz_matching, quiz_result_feedback); badge link from config/field.field.taxonomy_term.badges.field_badge_quiz_reference.yml and the assign_badge_from_quiz module. Anchored to schema.org Quiz."
+   }
+  },
+  {
+   "context": "learning-programs",
+   "conceptSlug": "learning-resource",
+   "prefLabel": "Learning Resource",
+   "altLabels": [
+    "Tutorial",
+    "Tool Video",
+    "How-to Guide",
+    "Training Video",
+    "Instructional Material"
+   ],
+   "definition": "A piece of instructional material, usually a video, guide or document, that teaches how to use a tool or perform a technique, often attached to a machine or a badge. It has a title, a link, a format, a transcript and timestamped chapters, and says what equipment or skills it covers.",
+   "conceptKind": "entity",
+   "broaderRoot": "record",
+   "closeMatch": [
+    "schema:LearningResource"
+   ],
+   "broadMatch": [
+    "wd:Q1348645"
+   ],
+   "structure": {
+    "kind": "entity",
+    "fields": [
+     {
+      "name": "identifier",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "title",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "url",
+      "type": "url",
+      "classification": "public"
+     },
+     {
+      "name": "resourceFormat",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "video",
+       "article",
+       "guide",
+       "checklist",
+       "manual",
+       "slides",
+       "worksheet",
+       "other"
+      ]
+     },
+     {
+      "name": "description",
+      "type": "string",
+      "classification": "public",
+      "description": "Instructions or summary shown with it"
+     },
+     {
+      "name": "transcript",
+      "type": "string",
+      "classification": "public"
+     },
+     {
+      "name": "chapters",
+      "type": "array",
+      "classification": "public",
+      "description": "Each {label, offsetSeconds or url with timestamp}"
+     },
+     {
+      "name": "aboutEquipment",
+      "type": "array",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/makerspace-operations/equipment@73a23efa789f"
+     },
+     {
+      "name": "teachesBadges",
+      "type": "array",
+      "classification": "public",
+      "refUri": "https://schemalattice.com/c/makerspace-operations/equipment-badge@7c1ae4a28229"
+     },
+     {
+      "name": "educationalLevel",
+      "type": "enum",
+      "classification": "public",
+      "values": [
+       "beginner",
+       "intermediate",
+       "advanced"
+      ]
+     },
+     {
+      "name": "topics",
+      "type": "array",
+      "classification": "public"
+     }
+    ]
+   },
+   "sourceAttribution": {
+    "importedFrom": "https://schema.org/LearningResource",
+    "authoredBy": [
+     "SchemaLattice makerspace website deep pass (learning)"
+    ],
+    "sourceNotes": "Fields from the website's config/field.field.paragraph.tool_video.* (video title, URL, transcript, timestamp links; attached to equipment via node.item.field_item_videos) and the course video/HTML step paragraphs (instructions, video URL, content); schema.org LearningResource (learningResourceType, educationalLevel, teaches) and VideoObject (transcript, hasPart Clip) for the rest."
+   }
+  }
+ ]
+}

@@ -1,0 +1,151 @@
+{
+ "mappings": [
+  {
+   "source": "civicrm-core",
+   "concept": "https://schemalattice.com/c/community-events/community-event@2edece4bdfe7",
+   "role": "record",
+   "fields": [
+    {
+     "from": "Event.id",
+     "to": "identifier"
+    },
+    {
+     "from": "Event.title",
+     "to": "title"
+    },
+    {
+     "from": "Event.summary",
+     "to": "summary"
+    },
+    {
+     "from": "Event.description",
+     "to": "description"
+    },
+    {
+     "from": "Event.event_type_id",
+     "to": "eventType",
+     "conversion": "option value id; use the label from the event_type option group"
+    },
+    {
+     "from": "Event.is_public",
+     "to": "isPublic"
+    },
+    {
+     "from": "Event.is_active",
+     "to": "isActive",
+     "conversion": "inactive is how CiviCRM marks a cancelled event"
+    },
+    {
+     "from": "Event.start_date",
+     "to": "startDate"
+    },
+    {
+     "from": "Event.end_date",
+     "to": "endDate"
+    },
+    {
+     "from": "Event.is_online_registration",
+     "to": "isOnlineRegistration"
+    },
+    {
+     "from": "Event.registration_start_date",
+     "to": "registrationStartDate"
+    },
+    {
+     "from": "Event.registration_end_date",
+     "to": "registrationEndDate"
+    },
+    {
+     "from": "Event.max_participants",
+     "to": "capacity"
+    },
+    {
+     "from": "Event.has_waitlist",
+     "to": "hasWaitlist"
+    },
+    {
+     "from": "Event.requires_approval",
+     "to": "requiresApproval"
+    },
+    {
+     "from": "Event.is_monetary",
+     "to": "isPaid"
+    },
+    {
+     "from": "Event.currency",
+     "to": "currency"
+    },
+    {
+     "from": "Event.parent_event_id",
+     "to": "parentEvent"
+    }
+   ]
+  },
+  {
+   "source": "civicrm-core",
+   "concept": "https://schemalattice.com/c/community-events/event-registration@2820159bd087",
+   "role": "record",
+   "fields": [
+    {
+     "from": "Participant.id",
+     "to": "identifier"
+    },
+    {
+     "from": "Participant.event_id",
+     "to": "event"
+    },
+    {
+     "from": "Participant.contact_id",
+     "to": "participant",
+     "conversion": "a CiviCRM contact; see Constituent"
+    },
+    {
+     "from": "Participant.status_id",
+     "to": "status",
+     "conversion": "participant status option; label from participant_status_type"
+    },
+    {
+     "from": "Participant.role_id",
+     "to": "role"
+    },
+    {
+     "from": "Participant.register_date",
+     "to": "registeredAt"
+    },
+    {
+     "from": "Participant.source",
+     "to": "source"
+    },
+    {
+     "from": "Participant.fee_level",
+     "to": "feeLevel"
+    },
+    {
+     "from": "Participant.fee_amount",
+     "to": "feeAmount"
+    },
+    {
+     "from": "Participant.fee_currency",
+     "to": "feeCurrency"
+    },
+    {
+     "from": "Participant.discount_amount",
+     "to": "discountAmount"
+    },
+    {
+     "from": "Participant.is_pay_later",
+     "to": "isPayLater"
+    },
+    {
+     "from": "Participant.registered_by_id",
+     "to": "registeredBy",
+     "conversion": "the participant who registered a group"
+    },
+    {
+     "from": "Participant.transferred_to_contact_id",
+     "to": "transferredTo"
+    }
+   ]
+  }
+ ]
+}
