@@ -17,6 +17,8 @@ import { listContext } from "../query/stats.ts";
 import { landingPage, llmsText } from "./landing.ts";
 import { contributePage } from "./contribute.ts";
 import { renderSourcePage, renderSourcesIndex } from "./sources-page.ts";
+import { atlasPage } from "./atlas-page.ts";
+import { buildAtlas } from "../query/atlas.ts";
 import {
   BUILD_ON, NEARBY, conceptsForContexts, conceptsForMatches, nearestRoots, renderPack, renderPackIndex, resolveContextSlug,
 } from "./pack.ts";
@@ -287,6 +289,7 @@ async function handle(
         builderSkill: "GET /skill/builder (one-page brief for apps built on an existing backend)",
         contribute: "GET /contribute (send back types the catalog lacks; or POST /api/tools/lattice_contribute)",
         pack: "GET /pack, /pack/{context}[,{context}] or /pack?q=... (paste-ready vocabulary for hosted app builders without MCP)",
+        atlas: "GET /atlas (every concept placed by meaning, growth over time, unmet searches, public datasets; data at /atlas.json)",
         sources: "GET /sources, /sources?q=...&jurisdiction=US-CT/new-haven, /sources/{slug} (public datasets: endpoints, what each field means, join keys)",
         client: "GET /cli/schemalattice.mjs (publish a platform's vocabulary from its code; vendor it)",
         resolveConcept: "GET /c/{context}/{slug}@{hash}",
@@ -356,6 +359,17 @@ async function handle(
     }
     const titles = (slugs as string[]).map((s) => instance.listContexts().find((c) => c.slug === s && c.latest)?.title ?? s);
     sendText(res, 200, renderPack(conceptsForContexts(instance, slugs as string[]), { host, title: titles.join(" + "), selfUrl }), markdown, "public, max-age=300");
+    return;
+  }
+
+  // --- the atlas: the catalog as one picture ----------------------------
+  if (path === "/atlas" && isRead) {
+    const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
+    sendText(res, 200, atlasPage(host), "text/html; charset=utf-8", "public, max-age=300");
+    return;
+  }
+  if (path === "/atlas.json" && isRead) {
+    send(res, 200, await buildAtlas(instance), "public, max-age=300");
     return;
   }
 

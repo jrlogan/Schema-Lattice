@@ -709,6 +709,21 @@ export class Sources {
     return out.sort((a, b) => rank(a.joins) - rank(b.joins) || a.title.localeCompare(b.title));
   }
 
+  /** Listed sources with the concepts they map onto, in one pass (for the atlas). */
+  overview(): Array<{ slug: string; title: string; jurisdiction: string; createdAt: string; concepts: Array<{ conceptUri: string; role: SourceRole; mappedFields: number }> }> {
+    const listed = this.listedSlugs();
+    const pairs = this.listedPairs();
+    return (this.db.prepare("SELECT * FROM sources WHERE withdrawn_reason IS NULL ORDER BY created_at").all() as SourceRow[])
+      .filter((r) => listed.has(r.slug))
+      .map((r) => ({
+        slug: r.slug,
+        title: r.title,
+        jurisdiction: r.jurisdiction,
+        createdAt: r.created_at,
+        concepts: this.carries(r.slug, pairs).map((c) => ({ conceptUri: c.conceptUri, role: c.role, mappedFields: c.mappedFields })),
+      }));
+  }
+
   /** Every source, grouped for the /sources index. Listed ones only. */
   listAll(): Array<{ slug: string; title: string; publisher: string; jurisdiction: string; recordDescription: string; kind: SourceKind }> {
     const listed = this.listedSlugs();

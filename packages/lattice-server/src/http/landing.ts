@@ -175,7 +175,7 @@ export function landingPage(host: string, totals: LandingTotals): string {
   integration.</p>
   <p class="stat">This instance holds ${totals.concepts} concepts in
   ${totals.contexts} contexts${apps}. Reads are public; publishing needs a key.
-  Status: <strong>v0.1, experimental.</strong></p>
+  Status: <strong>v0.1, experimental.</strong> <a href="/atlas">See it on a map, and watch it grow.</a></p>
 
   <div class="agent" id="for-ai">
     <p><strong>If you are an AI agent:</strong> the working instructions are at
@@ -427,6 +427,7 @@ export function llmsText(host: string, totals: LandingTotals): string {
 - Tools with JSON schemas: https://${host}/api/tools — call with POST /api/tools/{name}, or over MCP at POST /mcp
 - Building with a hosted app generator (Lovable, AI Studio, Bolt, v0) that cannot use MCP: paste-ready vocabulary at https://${host}/pack (one domain: /pack/{context}; by description: /pack?q=..., recorded as demand unless &private=1)
 - Working with public data (open-data portals, GIS layers): https://${host}/sources lists known datasets by jurisdiction; /sources/{slug} gives the endpoint, what each field means in catalog terms, and join keys to related datasets (search: /sources?q=...&jurisdiction=US-CT/new-haven). Found one that isn't listed? lattice_propose_source, then lattice_map_source.
+- The whole catalog on one page (concepts placed by meaning, growth over time, unmet searches, public datasets): https://${host}/atlas, data at /atlas.json
 - Search: GET https://${host}/discover?description=...&ephemeral=true (reads need no key)
 - Every context: POST https://${host}/api/tools/lattice_list_context with {}
 - Resolve a concept: GET the URI's path on this host, e.g. https://${host}${EXAMPLE_CONCEPT}

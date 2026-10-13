@@ -305,6 +305,14 @@ async function main() {
   const searched = await (await fetch(`${http.url}/sources?q=property+sales&jurisdiction=US-CT`)).text();
   check("http-sources-search", searched.includes("real-estate-sales"), searched.slice(0, 300));
   check("http-unknown-source-404", (await fetch(`${http.url}/sources/nope`)).status === 404);
+  const atlas = (await (await fetch(`${http.url}/atlas.json`)).json()) as {
+    concepts: Array<{ uri: string; x: number; y: number; publicSources: number }>; sources: Array<{ slug: string }>;
+  };
+  check("atlas-places-concepts", atlas.concepts.length >= 16 && atlas.concepts.every((c) => Number.isFinite(c.x) && Number.isFinite(c.y)));
+  check("atlas-excludes-governance", !atlas.concepts.some((c) => c.uri.includes("/c/governance/")));
+  check("atlas-shows-sources", atlas.sources.some((s) => s.slug === "ct-parcels") && atlas.concepts.some((c) => c.uri === PARCEL && c.publicSources > 0));
+  const atlasPageRes = await fetch(`${http.url}/atlas`);
+  check("atlas-page", atlasPageRes.status === 200 && (await atlasPageRes.text()).includes("/atlas.json"));
   const anonPropose = await fetch(`${http.url}/api/tools/lattice_propose_source`, {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ accessUrl: OTHER_STATE.replace("wxyz-9876", "wxyz-9876") }),
