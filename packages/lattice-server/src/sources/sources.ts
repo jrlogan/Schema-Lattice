@@ -193,15 +193,19 @@ export class Sources {
         return !!row && row.withdrawn_reason === null;
       },
       needsCurator: (slug) => this.row(slug)?.fields_verified === 0,
+      structurallyVerified: (slug) => this.row(slug)?.fields_verified === 1,
     });
     evidence.registerKind("field-mapping", {
       valid: (_subject, claim) => this.pairStillValid(claim as unknown as MappingClaim),
+      // Both ends were checked: the source field against the publisher's list,
+      // the concept field against the concept. Only for sources the server read.
+      structurallyVerified: (_subject, claim) => this.row((claim as unknown as MappingClaim).source)?.fields_verified === 1,
     });
   }
 
   // --- adding a source -------------------------------------------------------
 
-  async propose(input: SourceInput, source: string, now: Date = new Date()) {
+  async propose(input: SourceInput, source: string, now: Date = new Date(), wide: string = source) {
     const accessUrl = requireText(input.accessUrl, "accessUrl", 600);
     let parsed: URL;
     try {
@@ -346,6 +350,7 @@ export class Sources {
         [{ claimKey: `source|${slug}`, subject: slug, direction: "right", claim: { slug, accessUrl, ...(input.note ? { note: input.note } : {}) } }],
         source,
         now,
+        wide,
       ),
     );
     const listed = outcome.status === "promoted";
@@ -364,7 +369,7 @@ export class Sources {
 
   // --- mapping a source onto a concept ----------------------------------------
 
-  map(input: MappingInput, source: string, now: Date = new Date()) {
+  map(input: MappingInput, source: string, now: Date = new Date(), wide: string = source) {
     const slug = requireText(input.source, "source", 60);
     const row = this.row(slug);
     if (!row) throw new SourceRejected(`no source "${slug}"; add it with lattice_propose_source first`);
@@ -425,7 +430,7 @@ export class Sources {
       throw new SourceRejected(`${problems.length} field pair(s) were refused; nothing was recorded`, { problems });
     }
 
-    const outcomes = this.claim(() => this.evidence.proposeClaims("field-mapping", claims, source, now));
+    const outcomes = this.claim(() => this.evidence.proposeClaims("field-mapping", claims, source, now, wide));
     const listed = outcomes.filter((o) => o.direction === "right" && o.status === "promoted").length;
     return {
       source: slug,

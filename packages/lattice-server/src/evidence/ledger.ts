@@ -25,6 +25,14 @@ export const EVIDENCE_CONFIG = {
   clusterRadius: 0.85,
   maxDemotion: 0.05,
   maxPromotion: 0.02,
+  /**
+   * Publisher-verified claims (specs/public-sources.md) may list on anonymous
+   * corroboration alone: this many independent sources, from at least
+   * `structuralNetworks` different wider networks, with score at least this.
+   */
+  structuralSources: 3,
+  structuralNetworks: 2,
+  structuralScore: 3,
   /** New anonymous sources on one claim within an hour that freeze it for review. */
   burstSources: 10,
   dailyCapPerSource: 200,
@@ -55,6 +63,7 @@ interface EvidenceRow {
   query_vec: Buffer | null;
   created_at: string;
   updated_at: string;
+  wide: string | null;
 }
 
 type Direction = "wrong" | "right";
@@ -64,6 +73,12 @@ export interface KindSpec {
   valid(subject: string, claim: Record<string, unknown>): boolean;
   /** True when corroboration alone must not promote this claim: only a curator can. */
   needsCurator?(subject: string, claim: Record<string, unknown>): boolean;
+  /**
+   * True when the server checked the claim against something it can see (a
+   * publisher's own field list), so independent anonymous builders may list
+   * it without a keyed source: the structural route.
+   */
+  structurallyVerified?(subject: string, claim: Record<string, unknown>): boolean;
 }
 
 export interface ClaimOutcome {
@@ -71,7 +86,7 @@ export interface ClaimOutcome {
   direction: Direction;
   status: string;
   reason?: string;
-  corroboration: ProposeResult["corroboration"];
+  corroboration: ProposeResult["corroboration"] & { widerNetworks?: number; widerNetworksNeeded?: number };
 }
 
 export interface ProposeResult {
@@ -137,6 +152,9 @@ export class EvidenceLedger {
       );
       CREATE TABLE IF NOT EXISTS evidence_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     `);
+    // The wider network (/16, /32) a claim came from, so one office or campus
+    // cannot clear the structural route alone. Older rows read back null.
+    store.addColumn("evidence", "wide", "TEXT");
     this.salt = process.env.LATTICE_EVIDENCE_SALT ?? this.meta("salt") ?? this.initSalt();
   }
 
@@ -201,6 +219,7 @@ export class EvidenceLedger {
     claims: Array<{ claimKey: string; subject: string; direction: Direction; claim: Record<string, unknown> }>,
     source: string,
     now: Date = new Date(),
+    wide: string = source,
   ): ClaimOutcome[] {
     if (!this.kinds.has(kind)) throw new EvidenceRejected(`unknown evidence kind ${kind}`);
     if (!this.switches(kind).accept) throw new EvidenceRejected(`${kind} evidence is paused by the operator`);
@@ -213,15 +232,16 @@ export class EvidenceLedger {
       throw new EvidenceRejected("daily evidence limit reached for this source; try again tomorrow");
     }
     const upsert = this.db.prepare(
-      `INSERT INTO evidence (id, claim_key, kind, subject, cluster, polarity, source, resolved, claim, query_vec, created_at, updated_at)
-       VALUES (?, ?, ?, ?, '-', ?, ?, 1, ?, NULL, ?, ?)
-       ON CONFLICT(claim_key, source) DO UPDATE SET polarity = excluded.polarity, claim = excluded.claim, updated_at = excluded.updated_at`,
+      `INSERT INTO evidence (id, claim_key, kind, subject, cluster, polarity, source, resolved, claim, query_vec, created_at, updated_at, wide)
+       VALUES (?, ?, ?, ?, '-', ?, ?, 1, ?, NULL, ?, ?, ?)
+       ON CONFLICT(claim_key, source) DO UPDATE SET polarity = excluded.polarity, claim = excluded.claim,
+         updated_at = excluded.updated_at, wide = excluded.wide`,
     );
     const tx = this.db.transaction(() => {
       for (const c of claims) {
         upsert.run(
           `ev-${randomUUID()}`, c.claimKey, kind, c.subject, c.direction === "wrong" ? 1 : -1, source,
-          JSON.stringify({ kind, ...c.claim }), now.toISOString(), now.toISOString(),
+          JSON.stringify({ kind, ...c.claim }), now.toISOString(), now.toISOString(), wide,
         );
       }
     });
@@ -239,6 +259,9 @@ export class EvidenceLedger {
     const rows = this.rowsFor(claimKey);
     const asserting = rows.filter((r) => r.polarity === (direction === "wrong" ? 1 : -1));
     const firstAt = Math.min(...rows.map((r) => Date.parse(r.created_at)));
+    const spec = this.kinds.get(claimKey.split("|")[0]);
+    const latest = rows.length ? (JSON.parse(rows[rows.length - 1].claim) as Record<string, unknown>) : {};
+    const structural = !!spec?.structurallyVerified?.(rows[0]?.subject ?? "", latest);
     return {
       claimKey,
       direction,
@@ -247,7 +270,10 @@ export class EvidenceLedger {
       corroboration: {
         independentSources: asserting.length,
         needed: EVIDENCE_CONFIG.minSources,
-        nonAnonymousNeeded: !asserting.some((r) => !r.source.startsWith("net:")),
+        nonAnonymousNeeded: !structural && !asserting.some((r) => !r.source.startsWith("net:")),
+        ...(structural
+          ? { widerNetworks: new Set(asserting.map((r) => r.wide ?? r.source)).size, widerNetworksNeeded: EVIDENCE_CONFIG.structuralNetworks }
+          : {}),
         earliestPromotion: new Date(firstAt + EVIDENCE_CONFIG.quarantineDays * DAY).toISOString(),
       },
     };
@@ -281,6 +307,13 @@ export class EvidenceLedger {
     if (!principal.anonymous) return principal.app ? `app:${principal.app}` : "operator";
     const prefix = networkPrefix(clientAddress);
     return `net:${createHmac("sha256", this.salt).update(prefix).digest("hex").slice(0, 20)}`;
+  }
+
+  /** The wider network behind a source: /16 for IPv4, /32 for IPv6; an app or the operator is its own. */
+  wideOf(principal: Principal, clientAddress: string | undefined): string {
+    if (!principal.anonymous) return principal.app ? `app:${principal.app}` : "operator";
+    const prefix = wideNetworkPrefix(clientAddress);
+    return `wide:${createHmac("sha256", this.salt).update(prefix).digest("hex").slice(0, 20)}`;
   }
 
   /** Current weight of a source; app standing can change, so this is computed, not stored. */
@@ -512,6 +545,14 @@ export class EvidenceLedger {
       const latest = JSON.parse(rows[rows.length - 1].claim) as Record<string, unknown>;
       const valid = spec ? spec.valid(subject, latest) : this.store.hasConcept(subject);
       const curatorOnly = !!spec?.needsCurator?.(subject, latest);
+      // The structural route: independent anonymous builders may list a claim the
+      // server checked itself, from at least two wider networks.
+      const wideNetworks = new Set(asserting.map((r) => r.wide ?? r.source)).size;
+      const structural =
+        !!spec?.structurallyVerified?.(subject, latest) &&
+        asserting.length >= EVIDENCE_CONFIG.structuralSources &&
+        wideNetworks >= EVIDENCE_CONFIG.structuralNetworks &&
+        score >= EVIDENCE_CONFIG.structuralScore;
 
       let status = prior?.status ?? "pending";
       let reason = prior?.reason ?? null;
@@ -544,6 +585,9 @@ export class EvidenceLedger {
         asserting.length >= EVIDENCE_CONFIG.minSources &&
         nonAnonymous
       ) {
+        status = "promoted";
+        reason = null;
+      } else if (aged && structural) {
         status = "promoted";
         reason = null;
       } else if (status !== "retracted" && status !== "operator-retracted") {
@@ -708,6 +752,13 @@ export class EvidenceLedger {
 }
 
 // --- helpers ---------------------------------------------------------------
+
+/** /16 for IPv4, /32 for IPv6: the wider network a campus or provider shares. */
+export function wideNetworkPrefix(address: string | undefined): string {
+  const narrow = networkPrefix(address);
+  if (narrow === "unknown") return narrow;
+  return narrow.includes(".") ? narrow.split(".").slice(0, 2).join(".") : narrow.split(":").slice(0, 2).join(":");
+}
 
 /** /24 for IPv4, /48 for IPv6: one household or office network is one source. */
 export function networkPrefix(address: string | undefined): string {

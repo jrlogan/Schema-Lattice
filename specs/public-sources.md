@@ -100,11 +100,24 @@ reports what changed.
 | Operator, or an app at `contributor` tier | **curated**: listed and in use at once, attributed to them |
 | Any other app key, or anonymous | **proposed**: a quarantined evidence claim, listed once corroborated |
 
-Proposals go through the evidence ledger unchanged: same sources and
-weights, a 7-day quarantine, score ≥ 5 from ≥ 3 independent sources with
-at least one non-anonymous. A `manual` source proposed anonymously
-also needs a curator, because nothing about its field list could be
-checked.
+Proposals are evidence-ledger claims with the ledger's sources, weights
+and 7-day quarantine. After the quarantine, a claim is listed by either
+route:
+
+- **The ledger's usual route:** score ≥ 5 from ≥ 3 independent sources,
+  at least one of them non-anonymous.
+- **The structural route**, only for claims the server checked against a
+  field list it read from the publisher itself: ≥ 3 independent sources
+  from ≥ 2 different wider networks (/16 for IPv4, /32 for IPv6), with
+  score ≥ 3. No key is needed, because hosted app builders have none.
+  The wider-network rule stops one office or campus from clearing the
+  bar alone. The burst freeze applies as it does everywhere.
+
+A `manual` source, and any mapping onto one, takes neither route: it
+needs a curator, because nothing about its field list could be checked.
+This was decided on 2026-10-13, following builder contributions.
+The reasoning: the worst case is one mislabelled field pair, which is
+visible, disputable and never a permanent record.
 
 Corroboration is per claim:
 
@@ -224,10 +237,6 @@ otherwise write by hand.
 
 ## Open questions
 
-- **Anonymous bar.** Hosted builders have no keys, so anonymous-only
-  corroboration never lists anything. Builder contributions settled
-  this with structural gates in place of the non-anonymous source. A
-  publisher-verified field list may justify the same here.
 - **Value-level maps.** Code tables (`Property Type: "Residential"` ↔
   `propertyClass: "residential"`) are the next layer. `conversion` text
   holds them for now.

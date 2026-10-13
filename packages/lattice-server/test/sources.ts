@@ -12,6 +12,7 @@ import { isToolError } from "../src/tools/errors.ts";
 import { ANONYMOUS, OPERATOR } from "../src/server/principals.ts";
 import { SourceRejected, coverage, fieldJoinKind } from "../src/sources/sources.ts";
 import { isPrivateAddress, platformOf, safeFetchJson, SourceFetchError } from "../src/sources/fetch.ts";
+import { wideNetworkPrefix } from "../src/evidence/ledger.ts";
 import { renderSourcePage } from "../src/http/sources-page.ts";
 import { startHttpServer } from "../src/http/server.ts";
 
@@ -93,6 +94,7 @@ async function main() {
   check("platform-unknown", platformOf("https://example.gov/data.csv") === null);
   check("private-v4", ["10.0.0.1", "127.0.0.1", "169.254.169.254", "192.168.1.1", "172.20.0.1", "100.64.0.1", "::ffff:10.1.1.1"].every(isPrivateAddress));
   check("private-v6", ["::1", "fd00::1", "fe80::1"].every(isPrivateAddress));
+  check("wide-network-prefix", wideNetworkPrefix("203.0.113.9") === "203.0" && wideNetworkPrefix("2600:1f18:abcd::1") === "2600:1f18");
   check("public-addresses", !isPrivateAddress("52.1.2.3") && !isPrivateAddress("2600:1f18::1"));
   const httpRefused = await safeFetchJson("http://example.gov/x").then(() => false, (e) => e instanceof SourceFetchError);
   check("fetch-refuses-http", httpRefused);
@@ -241,6 +243,25 @@ async function main() {
   check("manual-needs-curator", S.resolve(manual.slug)!.status === "proposed", manual.slug);
   await S.propose({ accessUrl: "https://assessor.example.gov/Parcel.aspx", platform: "manual", fields: [{ name: "pid", type: "integer" }] }, "operator", at(9));
   check("manual-listed-by-curator", S.resolve(manual.slug)!.status === "listed");
+
+  // --- the structural route: anonymous builders alone, publisher-verified only -----------
+  const anonSlug = (await S.propose({ accessUrl: "https://gis.example.gov/arcgis/rest/services/Zoning/FeatureServer/2" }, "operator", at(9))).slug;
+  const pair = { source: anonSlug, conceptUri: PARCEL, role: "reference", fields: [{ from: "zone_code", to: "zoneCode" }] };
+  // Three /24s inside one /16: one campus, so not enough.
+  for (const n of ["net:camp-1", "net:camp-2", "net:camp-3"]) S.map(pair, n, at(9), "wide:campus");
+  instance.evidence.rescore(at(17));
+  const campus = instance.evidence.outcome(`field-mapping|${anonSlug}|zone_code|${PARCEL}|zoneCode`, "right");
+  check("one-wide-network-not-enough", campus.status === "pending" && campus.corroboration.widerNetworks === 1 && campus.corroboration.nonAnonymousNeeded === false, JSON.stringify(campus));
+  S.map(pair, "net:elsewhere", at(10), "wide:elsewhere");
+  instance.evidence.rescore(at(12));
+  check("structural-route-waits-for-quarantine", instance.evidence.outcome(campus.claimKey, "right").status === "pending");
+  instance.evidence.rescore(at(17));
+  check("structural-route-lists-anonymous", instance.evidence.outcome(campus.claimKey, "right").status === "promoted");
+  // A hand-supplied source never takes this route.
+  const manualPair = { source: manual.slug, conceptUri: PARCEL, fields: [{ from: "pid", to: "address" }] };
+  for (const [n, w] of [["net:m1", "wide:a"], ["net:m2", "wide:b"], ["net:m3", "wide:c"]]) S.map(manualPair, n, at(9), w);
+  instance.evidence.rescore(at(17));
+  check("manual-source-no-structural-route", instance.evidence.outcome(`field-mapping|${manual.slug}|pid|${PARCEL}|address`, "right").status === "pending");
 
   // --- relationships ---------------------------------------------------------------
   const related = S.resolve("ct-parcels")!.related;
