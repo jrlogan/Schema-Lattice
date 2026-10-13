@@ -744,7 +744,7 @@ export class Sources {
   }
 
   /** Listed sources with the concepts they map onto, in one pass (for the atlas). */
-  overview(): Array<{ slug: string; title: string; jurisdiction: string; createdAt: string; concepts: Array<{ conceptUri: string; role: SourceRole; mappedFields: number }> }> {
+  overview(): Array<{ slug: string; title: string; kind: SourceKind; jurisdiction: string; createdAt: string; concepts: Array<{ conceptUri: string; role: SourceRole; mappedFields: number }> }> {
     const listed = this.listedSlugs();
     const pairs = this.listedPairs();
     return (this.db.prepare("SELECT * FROM sources WHERE withdrawn_reason IS NULL ORDER BY created_at").all() as SourceRow[])
@@ -752,6 +752,7 @@ export class Sources {
       .map((r) => ({
         slug: r.slug,
         title: r.title,
+        kind: r.kind,
         jurisdiction: r.jurisdiction,
         createdAt: r.created_at,
         concepts: this.carries(r.slug, pairs).map((c) => ({ conceptUri: c.conceptUri, role: c.role, mappedFields: c.mappedFields })),
