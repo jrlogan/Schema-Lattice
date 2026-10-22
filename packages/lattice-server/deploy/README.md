@@ -182,6 +182,10 @@ gcloud compute instances create lattice --zone=$LATTICE_GCP_ZONE --machine-type=
   --address=<reserved-ip> --tags=lattice-web --metadata=enable-oslogin=TRUE
 ```
 
-Then: 2 GB swapfile, `build-essential python3 sqlite3`, Node 20 via nodesource,
+Then: 2 GB swapfile, `build-essential python3 sqlite3`, Node 22.23.4 or newer in the 22.x line via NodeSource,
 Caddy via its apt repo, a `schemalattice` system user, `npm ci`, `npm run seed`,
 and the two config files in this directory.
+
+## October 21, 2026 Node runtime patch
+
+Upgrade the VM's system Node to a supported patched release (22.23.4+, 24.22.1+, or 26.12.1+ in those release lines). Node 20 is unsupported. From the repository root, run `node scripts/check-node.cjs` using the same Node executable as the systemd service. After updating Node, run `npm ci` in `packages/lattice-server` to rebuild native dependencies, run `npm run smoke`, restart `schemalattice`, and verify its health. A source update alone does not patch the running VM.

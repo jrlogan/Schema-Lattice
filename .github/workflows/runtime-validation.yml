@@ -1,0 +1,19 @@
+name: Runtime validation
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.4'
+      - run: node scripts/check-node.cjs
+      - run: npm --prefix packages/lattice-server ci
+      - run: npm --prefix packages/lattice-server run smoke
