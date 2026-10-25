@@ -88,7 +88,10 @@ whether the project's own work goes ahead:
 
 ## Getting write access
 
-Reads never need a key: discover, resolve, list, and every report are open.
+Reads never need a key: discover, resolve, list, every report, and match
+feedback (`lattice_propose`, `lattice_feedback`) are open. Do not put an
+`Authorization` header that depends on an unset variable in a project's MCP
+config; leave it out, and add a key only where something publishes.
 Writes need one, and you can issue yourself one — no human approval, no waiting.
 
 1. Call `lattice_register_app` with your app's slug, name, unit, owner, and
