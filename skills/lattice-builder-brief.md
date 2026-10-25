@@ -31,6 +31,8 @@ need, stop and tell the person; do not invent an endpoint.
 
 ## 2. Ask the lattice about meaning
 
+- Discovery, resolution and feedback need no key. Without the MCP tools,
+  `POST https://schemalattice.com/api/tools/<tool>` with the same JSON.
 - Call `lattice_discover` with the domain and what the record captures,
   e.g. "a written account of one day boating, with evidence and uncertainty".
   Pass `ephemeral: true`: the person's wording is theirs, not demand data.
