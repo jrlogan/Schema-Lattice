@@ -207,7 +207,11 @@ MAY skip Group 1 checkpoints entirely when:
 
 In all other cases — anything that persists, anything that leaves
 the app's process, anything that could conceivably interop —
-Group 1 checkpoints are REQUIRED.
+Group 1 checkpoints apply before *publishing* a concept to the
+catalog. They are advice, never a gate on the project's own work:
+changing a field on an existing type needs no discovery, and an
+unreachable lattice or missing key is noted once and the work goes on
+(see "Advice, never a gate" in `skills/lattice-workflow.md`).
 
 ## The three-call minimum for a new app
 

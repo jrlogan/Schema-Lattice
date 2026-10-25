@@ -10,6 +10,17 @@ what you can read and write. SchemaLattice helps you name concepts, reuse the
 backend's published vocabulary, and leave a map the next builder can follow.
 It never grants permission, and it never overrides the contract.
 
+## 0. Advice, never a gate
+
+- Nothing here is a prerequisite for building, shipping or releasing.
+  Changing a field on a type that already exists needs no discovery.
+- If the lattice cannot be reached or a call fails, say so once and
+  carry on under the backend's contract. Do not keep asking for access,
+  defer the feature, or remove work because of it.
+- Feedback calls are optional. Once the person has chosen to use the
+  lattice, they need no extra approval, as long as no private data goes
+  in them.
+
 ## 1. Contract first
 
 Before you design a payload, read the backend's published contract: its
@@ -30,11 +41,11 @@ need, stop and tell the person; do not invent an endpoint.
   `no-match`. `lattice_resolve` anything you might use, and decline a
   high-scoring match whose meaning differs.
 
-- After deciding on a candidate, send one `lattice_propose` call:
+- After deciding on a candidate, you may send one `lattice_propose` call:
   `{ sessionId, conceptUri, verdict: "right" | "wrong", reason }`. It is
   checked against what discover showed you, quarantined, and only
-  changes results once independent users agree. Never put private data
-  in its `note`.
+  changes results once independent users agree. It is optional; skip
+  it if it would slow the work. Never put private data in its `note`.
 
 ## 3. Adopt the backend's concepts; fork for your extensions
 

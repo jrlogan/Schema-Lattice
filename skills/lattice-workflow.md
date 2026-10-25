@@ -8,9 +8,28 @@ description: Use when working in a project that is or should be integrated with 
 You are working in a project that may interact with SchemaLattice, a
 shared catalog of data model concepts at `schemalattice.com`. This
 skill tells you when to consult the lattice and how to annotate your
-output so future tools can trace your work. Follow it whenever you
-are designing, modifying, or reading data model code and the lattice
-MCP server is available.
+output so future tools can trace your work. Use it when you are
+designing a new durable type, comparing data models, or publishing
+concepts, and the lattice is available.
+
+## Advice, never a gate
+
+The lattice helps you name things and find prior work. It never decides
+whether the project's own work goes ahead:
+
+- The project's own schema is the authority. Nothing in this workflow is a
+  prerequisite for implementing, reviewing, merging or releasing a feature.
+- Changing a type that already exists (adding, changing or removing a
+  field) needs no discovery. If the type is published, record a fork or
+  regenerate the project's lattice files; otherwise just change it.
+- If the lattice cannot be reached, a key is missing, or a call fails, say
+  so once in your progress notes and carry on with the project's own
+  schemas and docs. Do not keep asking for access, defer the feature, or
+  remove work you already built because of it.
+- Match feedback (`lattice_propose`, `lattice_feedback`) is optional. When
+  the project has chosen to use the lattice, sending public schema
+  descriptions needs no extra approval from the user. Never send private
+  records, credentials or values.
 
 ## On activation
 
@@ -45,9 +64,11 @@ MCP server is available.
         convenience route
       - `GET {host}/health` — is it up, and how big is the catalog
 
-   If none of these yields a reachable host, pause and ask the user
-   where their lattice instance is before proceeding. Do NOT invent
-   URIs or pretend the lattice exists if you can't reach it.
+   If none of these yields a reachable host, note that once and
+   continue without the lattice; ask the user where their instance is
+   only if the task is itself about the lattice (publishing, retrofit,
+   comparison). Do NOT invent URIs or pretend the lattice exists if
+   you can't reach it.
 
    Note on hosts vs URIs: canonical concept URIs are ALWAYS
    `https://schemalattice.com/c/...` regardless of which host serves
@@ -120,7 +141,8 @@ Search and record the gap, then continue under the backend contract. Do not
 publish a new concept, register an app, or send private records to the
 catalog merely because the user is building an interface.
 
-When modeling any persistent or cross-boundary data structure:
+When designing a new persistent or cross-boundary type (not when
+changing one that already exists; see "Advice, never a gate"):
 
 1. **Checkpoint 1A.** Call `lattice_discover` with a natural-language
    description of what you're about to build. Include the apparent
@@ -145,12 +167,16 @@ When modeling any persistent or cross-boundary data structure:
      Read 2–5 promising repositories' data models directly. Synthesize
      a draft concept from what you find. Only originate after you've
      actually attempted this mining step.
-   After deciding, report the verdict with `lattice_propose`
+   After deciding, you may report the verdict with `lattice_propose`
    (`{ sessionId, conceptUri, verdict: "right" | "wrong", reason }`) —
    right if you adopted or forked from it, wrong (with a reason) if you
    resolved it and rejected it. Pass the same `sessionId` to
    `lattice_resolve` so the verdict counts as informed. This is how the
    catalog learns which results mislead; see `specs/evidence-ledger.md`.
+   It is optional and never holds up the work.
+   Checkpoints 1C and 1D apply when you will publish a new concept to
+   the catalog. For a type that stays in the project, one discover is
+   enough: adopt a fitting meaning or note why it differs, and go on.
 4. **Checkpoint 2A.** Execute the decision via the correct tool.
 
    **Before calling any publish tool, ensure you have a valid
@@ -508,6 +534,8 @@ Do not call the lattice for:
 - Private helper types used only inside a module
 - Standard library types (Date, UUID, Money)
 - Scratch code the user explicitly flagged as throwaway
+- Field changes to a type that already exists (regenerate or fork if
+  it is published; no discovery needed)
 
 ## When you are uncertain
 
@@ -520,8 +548,10 @@ the similarity scores alone:
   in the same domain.
 - **Originate** is a stronger claim ("nothing like this exists") and
   should be a considered choice, not a default.
-- **Ask the user** when the decision is close. Present the top 2–3
-  candidates with their adoption counts and let them choose.
+- **Ask the user** when the decision is close and you are about to
+  publish to the catalog. Present the top 2–3 candidates with their
+  adoption counts and let them choose. For the project's own types,
+  pick the closest fit, note the alternatives, and keep going.
 
 ## Never
 
@@ -533,10 +563,10 @@ the similarity scores alone:
 - Never edit a URI in place in `schemalattice.json`. If a concept
   needs to change, publish a new version and update the reference.
 - Never skip Checkpoint 1C (the final-description re-check) before
-  originating. This is the most common source of false
+  publishing an originated concept. This is the most common source of false
   originations.
 - Never skip Checkpoint 1D (open-source fallback mining) when
-  originating a concept that could plausibly have open-source
+  publishing an originated concept that could plausibly have open-source
   analogs. The only acceptable reason to skip 1D is that the
   concept is too specific to have analogs.
 - **Never fabricate source URLs for inspiredBySources.** If JIT
