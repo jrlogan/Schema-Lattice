@@ -1,0 +1,94 @@
+{
+  "$schema": "https://schemalattice.com/schema/manifest-v1.json",
+  "lattice": "https://schemalattice.com",
+  "project": {
+    "name": "street-audit",
+    "description": "Volunteer street-condition audits in New Haven, CT (sidewalk damage, dead/missing street trees, broken streetlights, accessibility barriers), joined to city layers and forwardable to 311 via Open311 GeoReport v2."
+  },
+  "concepts": {
+    "AuditObservation": {
+      "status": "forked",
+      "forkedFrom": "https://schemalattice.com/c/civic-issue-reporting/issue-report@34263088753f",
+      "localLocation": "model.py#AuditObservation",
+      "notes": "Unpublished fork of Issue Report. Adds: observedAt (time seen, distinct from created/submitted), conditionType (shared taxonomy, below), severity (1-4 ordinal), auditSession, parcelRef, wardRef, neighborhoodRef, nearestTreeRef + nearestTreeDistanceM, forwardConsent, forwardedTo/forwardedReportId, locationAccuracyM, photoRedacted. Reclassifies photo -> internal until reviewed (faces/plates), reporter -> personal-identity.",
+      "definition": "One condition a volunteer saw at one place and time while auditing a street, with severity, photo and the city features it lies on, which may later be forwarded to the city as a 311 request.",
+      "broader": "https://schemalattice.com/c/schemalattice/record@734784bc3df1",
+      "fields": [
+        {"name": "observationId", "type": "string", "required": true},
+        {"name": "auditSession", "type": "reference", "required": true},
+        {"name": "observedAt", "type": "dateTime", "required": true},
+        {"name": "latitude", "type": "number", "required": true},
+        {"name": "longitude", "type": "number", "required": true},
+        {"name": "locationAccuracyM", "type": "number", "unit": "m"},
+        {"name": "address", "type": "string"},
+        {"name": "conditionType", "type": "reference", "required": true},
+        {"name": "severity", "type": "integer", "values": [1,2,3,4]},
+        {"name": "detail", "type": "string"},
+        {"name": "photo", "type": "binary", "classification": "internal"},
+        {"name": "photoRedacted", "type": "boolean"},
+        {"name": "reporter", "type": "reference", "classification": "personal-identity"},
+        {"name": "parcelRef", "type": "reference"},
+        {"name": "wardRef", "type": "reference"},
+        {"name": "neighborhoodRef", "type": "reference"},
+        {"name": "nearestTreeRef", "type": "reference"},
+        {"name": "nearestTreeDistanceM", "type": "number", "unit": "m"},
+        {"name": "category", "type": "reference", "notes": "the receiving city's 311 Report Category, set at forward time"},
+        {"name": "forwardConsent", "type": "boolean"},
+        {"name": "forwardedReportId", "type": "string"},
+        {"name": "state", "type": "string", "values": ["draft","reviewed","forwarded","closed-by-city","withdrawn"]}
+      ]
+    },
+    "AuditSession": {
+      "status": "originated",
+      "definition": "One walk audit: a group of volunteers surveying a defined set of blocks on one date under a named protocol version.",
+      "broader": "https://schemalattice.com/c/schemalattice/event@04b611d4b94c",
+      "notes": "Nearest existing: volunteer-engagement/volunteer-event (scheduling-heavy) and trail-stewardship/condition-report (trail-only). coRefersWith candidate for volunteer-event.",
+      "fields": [
+        {"name": "sessionId", "type": "string", "required": true},
+        {"name": "organizer", "type": "reference"},
+        {"name": "date", "type": "date", "required": true},
+        {"name": "area", "type": "string", "notes": "blocks or route walked (GeoJSON)"},
+        {"name": "protocol", "type": "string", "notes": "e.g. street-audit/1.0; makes audits comparable"},
+        {"name": "volunteerCount", "type": "integer"}
+      ]
+    },
+    "ConditionType": {
+      "status": "originated",
+      "definition": "A kind of street condition an auditor can record, independent of any one city's 311 categories, with a crosswalk to each city's categories.",
+      "broader": "https://schemalattice.com/c/schemalattice/classification@be6d933fd7e8",
+      "fields": [
+        {"name": "code", "type": "string", "required": true, "values": ["sidewalk.trip-hazard","sidewalk.missing-segment","curb-ramp.missing","curb-ramp.noncompliant","tree.dead","tree.missing-empty-pit","tree.hazard-limb","streetlight.out","streetlight.damaged","access.obstruction"]},
+        {"name": "label", "type": "string"},
+        {"name": "group", "type": "string", "values": ["sidewalk","tree","streetlight","accessibility"]}
+      ]
+    },
+    "ReportCategory": { "uri": "https://schemalattice.com/c/civic-issue-reporting/report-category@b3bdd478944f", "status": "adopted" },
+    "CivicBody":      { "uri": "https://schemalattice.com/c/civic-issue-reporting/civic-body@ef79d8c6a015", "status": "adopted" },
+    "StreetTree":     { "uri": "https://schemalattice.com/c/urban-forest/street-tree@734dac02adbb", "status": "adopted", "notes": "reference only; read from new-haven-street-trees" },
+    "District":       { "uri": "https://schemalattice.com/c/civic-participation/city-district@bd808dfd5db4", "status": "adopted", "notes": "ward and neighborhood polygons" },
+    "Parcel":         { "uri": "https://schemalattice.com/c/real-property/land-parcel@8c8591f76678", "status": "adopted", "notes": "reference by pin/mblu only; never copy ownerName or mailingAddress" }
+  },
+  "fieldMaps": {
+    "observation-to-open311-create": {
+      "source": { "kind": "local-model", "description": "AuditObservation", "concept": "AuditObservation" },
+      "target": { "kind": "backend-payload", "description": "Open311 GeoReport v2 POST /requests.json (form-encoded)", "schema": "https://wiki.open311.org/GeoReport_v2/#post-service-request", "format": "open311-georeport", "version": 2, "concept": "https://schemalattice.com/c/civic-issue-reporting/issue-report@34263088753f" },
+      "fields": [
+        { "target": "service_code", "from": "conditionType", "conversion": "crosswalk ConditionType -> city service_code from GET /services.json (New Haven via SeeClickFix)", "concept": "https://schemalattice.com/c/civic-issue-reporting/report-category@b3bdd478944f" },
+        { "target": "lat", "from": "latitude", "concept": "https://schemalattice.com/c/civic-issue-reporting/issue-report@34263088753f#latitude" },
+        { "target": "long", "from": "longitude", "concept": "https://schemalattice.com/c/civic-issue-reporting/issue-report@34263088753f#longitude" },
+        { "target": "address_string", "from": "address" },
+        { "target": "description", "from": ["conditionType","severity","detail","observedAt","auditSession"], "conversion": "human text; severity and observedAt have no native Open311 field", "concept": "https://schemalattice.com/c/civic-issue-reporting/issue-report@34263088753f#detail" },
+        { "target": "media_url", "from": "photo", "conversion": "public URL of the reviewed/redacted photo only", "concept": "https://schemalattice.com/c/civic-issue-reporting/issue-report@34263088753f#photo" },
+        { "target": "attribute[...]", "from": "severity", "conversion": "only if the service's definition (GET /services/{code}.json, metadata=true) declares a matching attribute" }
+      ],
+      "omitted": [
+        { "from": "reporter", "reason": "volunteer identity: send email/first_name/last_name only with the volunteer's explicit consent; default is the organizer's account" },
+        { "from": "parcelRef, wardRef, neighborhoodRef, nearestTreeRef", "reason": "no Open311 field; the city derives these itself" },
+        { "from": "locationAccuracyM", "reason": "no Open311 field" }
+      ],
+      "validatedAgainst": null,
+      "notes": "Built, never submitted. api_key and jurisdiction_id are endpoint-specific and unknown for New Haven's SeeClickFix Open311 endpoint."
+    }
+  },
+  "generatedAt": "2026-10-29T00:00:00Z"
+}
