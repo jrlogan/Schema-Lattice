@@ -8,6 +8,33 @@ import type { LatticeInstance } from "../server/instance.ts";
 import { UNTRUSTED_NOTICE } from "../sources/sources.ts";
 
 type Resolved = NonNullable<ReturnType<LatticeInstance["sources"]["resolve"]>>;
+type Health = ReturnType<LatticeInstance["sources"]["health"]>;
+
+const NOT_CONFIRMED = "_not confirmed_";
+
+const READINESS_LABEL: Record<string, string> = {
+  "not-assessed": "not assessed",
+  "needs-preparation": "needs preparation",
+  ready: "ready to build on",
+};
+
+function day(iso: string | null | undefined): string {
+  return iso ? iso.slice(0, 10) : "never";
+}
+
+/** One line on whether the server can read the source, for the page and the health table. */
+function accessLine(a: Resolved["access"]): string {
+  switch (a.status) {
+    case "tested":
+      return `**tested** — the server read the publisher's field list on ${day(a.lastOkAt)}`;
+    case "stale":
+      return `**stale** — last read successfully on ${day(a.lastOkAt)}; not re-checked since`;
+    case "failing":
+      return `**failing** since ${day(a.failingSince)}: ${line(a.reason)} (last good read ${day(a.lastOkAt)})`;
+    default:
+      return "**located** — the field list was supplied by hand; the server cannot read this source itself";
+  }
+}
 
 /** Keep publisher text from breaking a table row or opening a link. */
 function cell(value: unknown): string {
@@ -23,9 +50,7 @@ export function renderSourcePage(s: Resolved, host: string): string {
   out.push(`# ${line(s.title)}`, "");
   out.push(`> ${line(s.recordDescription)}`, "");
   out.push(
-    `**Publisher:** ${line(s.publisher)} · **Jurisdiction:** ${s.jurisdiction} · **Status:** ${s.status}` +
-      (s.license ? ` · **License:** ${line(s.license)}` : "") +
-      (s.updateFrequency ? ` · **Updated:** ${line(s.updateFrequency)}` : ""),
+    `**Publisher:** ${line(s.publisher)} · **Jurisdiction:** ${s.jurisdiction} · **Status:** ${s.status}`,
     "",
   );
   if (s.status !== "listed") {
@@ -37,6 +62,36 @@ export function renderSourcePage(s: Resolved, host: string): string {
     );
   }
   out.push(`_${UNTRUSTED_NOTICE}_`, "");
+
+  out.push("## What you can rely on", "");
+  out.push(`- **Access:** ${accessLine(s.access)}`);
+  out.push(`- **Data last changed (publisher):** ${s.publisherUpdatedAt ? day(s.publisherUpdatedAt) : NOT_CONFIRMED}. This is not when anyone checked it.`);
+  out.push(
+    `- **Build readiness:** ${READINESS_LABEL[s.readiness.level] ?? s.readiness.level}` +
+      (s.readiness.note ? `. ${line(s.readiness.note)}` : "") +
+      (s.readiness.reviewBy ? ` (review ${s.readiness.reviewOverdue ? "overdue since" : "by"} ${s.readiness.reviewBy})` : ""),
+  );
+  out.push(`- **License / terms:** ${s.license ? line(s.license) : NOT_CONFIRMED}`);
+  out.push(`- **Cost of access:** ${s.cost ? line(s.cost) : NOT_CONFIRMED}`);
+  out.push(`- **Update frequency:** ${s.updateFrequency ? line(s.updateFrequency) : NOT_CONFIRMED}`);
+  out.push(`- **Contact for corrections:** ${s.contact ? line(s.contact) : NOT_CONFIRMED}`);
+  out.push(
+    "",
+    "A public source is not automatically reusable, current or complete. A passing check means the field " +
+      "list could be read, not that every row is there. Test a small request before relying on it.",
+    "",
+  );
+  const lastChange = s.recentChecks.find((c) => c.ok && c.changed);
+  if (lastChange) {
+    const list = (k: "added" | "removed" | "retyped") => (lastChange[k] ?? []).map((n) => `\`${cell(n)}\``).join(", ");
+    out.push(
+      `**Field list changed on ${day(lastChange.checkedAt)}.**` +
+        (list("added") ? ` Added: ${list("added")}.` : "") +
+        (list("removed") ? ` Removed: ${list("removed")}.` : "") +
+        (list("retyped") ? ` Retyped: ${list("retyped")}.` : ""),
+      "",
+    );
+  }
 
   out.push("## Get the data", "");
   out.push(`- **Endpoint (${s.platform}):** ${s.accessUrl}`);
@@ -149,7 +204,8 @@ export function renderSourcesIndex(
   out.push(
     "Public datasets the catalog knows about, with what each field means in catalog terms and how the " +
       "datasets join. Search: `/sources?q=property+sales&jurisdiction=US-CT/new-haven`. Jurisdictions are " +
-      "ISO codes with an optional locality; a search includes broader sources that cover the place.",
+      "ISO codes with an optional locality; a search includes broader sources that cover the place. " +
+      `Which sources the server can still read, and what is unconfirmed: https://${host}/sources/health`,
     "",
   );
   const all = instance.sources.listAll();
@@ -163,5 +219,43 @@ export function renderSourcesIndex(
     out.push(`- **[${line(s.title)}](https://${host}/sources/${s.slug})**${s.kind === "standard" ? " (standard)" : ""}, ${line(s.publisher)}: ${line(s.recordDescription)}`);
   }
   out.push("", `_${UNTRUSTED_NOTICE}_`, "");
+  return out.join("\n");
+}
+
+export function renderSourcesHealth(h: Health, host: string): string {
+  const c = h.counts;
+  const out: string[] = [];
+  out.push("# Public data sources: health", "");
+  out.push(
+    `Checked ${day(h.checkedOn)}. The server re-reads every source it can read once a week and keeps each result.`,
+    "",
+    `**${c.listed} listed** · ${c.tested} tested · ${c.stale} stale · ${c.failing} failing · ${c.located} hand-supplied (located) · ` +
+      `${c.drifted} with a changed field list · ${c.reviewOverdue} reviews overdue · ${c.ready} assessed ready, ${c.notAssessed} not assessed`,
+    "",
+    `_${h.notice}_`,
+    "",
+  );
+  const attention = h.sources.filter((e) => e.access.status === "failing" || e.access.status === "stale" || e.drifted || e.reviewOverdue);
+  if (attention.length) {
+    out.push("## Needs attention", "");
+    for (const e of attention) {
+      const why = [
+        e.access.status === "failing" || e.access.status === "stale" ? accessLine(e.access) : "",
+        e.drifted ? "field list changed at the last check" : "",
+        e.reviewOverdue ? `review overdue since ${e.reviewBy}` : "",
+      ].filter(Boolean).join("; ");
+      out.push(`- [${line(e.title)}](https://${host}/sources/${e.slug}): ${why}`);
+    }
+    out.push("");
+  }
+  out.push("## All sources", "");
+  out.push("| Source | Jurisdiction | Access | Last good read | Readiness | Not confirmed |", "|---|---|---|---|---|---|");
+  for (const e of h.sources) {
+    out.push(
+      `| [${cell(e.title)}](https://${host}/sources/${e.slug}) | ${e.jurisdiction} | ${e.access.status} | ${day(e.access.lastOkAt)} | ` +
+        `${READINESS_LABEL[e.readiness] ?? e.readiness} | ${e.unknowns.join(", ")} |`,
+    );
+  }
+  out.push("", `JSON: \`POST https://${host}/api/tools/lattice_sources_report\` (its \`needsAttention\` list).`, "");
   return out.join("\n");
 }

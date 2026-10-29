@@ -32,8 +32,34 @@ async function main(): Promise<void> {
   }, 3_600_000);
   rescore.unref();
 
+  // Re-read public sources' field lists from their publishers. Each source is
+  // due weekly; a run every six hours takes at most 25 of the oldest, two
+  // seconds apart, so a full catalog spreads over the week instead of one burst.
+  // LATTICE_SOURCE_CHECKS=off disables it (offline development).
+  const sweepSources = async () => {
+    try {
+      const run = await instance.sources.checkDue(new Date(), { limit: 25, pauseMs: 2000 });
+      if (run.checked > 0) {
+        console.log(
+          `source checks: ${run.checked} checked, ${run.failed.length} failed, ${run.changed.length} changed, ${run.remaining} still due` +
+            (run.failed.length ? ` (failed: ${run.failed.map((f) => f.slug).join(", ")})` : ""),
+        );
+      }
+    } catch (err) {
+      console.error(`source checks failed: ${(err as Error).message}`);
+    }
+  };
+  const checksOn = process.env.LATTICE_SOURCE_CHECKS !== "off";
+  const firstSweep = checksOn ? setTimeout(sweepSources, 300_000) : null;
+  const sweeps = checksOn ? setInterval(sweepSources, 6 * 3_600_000) : null;
+  firstSweep?.unref();
+  sweeps?.unref();
+  console.log(`  sources   ${checksOn ? "weekly publisher checks on" : "publisher checks off (LATTICE_SOURCE_CHECKS=off)"}`);
+
   const shutdown = async () => {
     clearInterval(rescore);
+    if (firstSweep) clearTimeout(firstSweep);
+    if (sweeps) clearInterval(sweeps);
     await handle.close();
     instance.close();
     process.exit(0);

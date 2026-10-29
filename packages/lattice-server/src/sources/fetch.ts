@@ -35,6 +35,8 @@ export interface Introspection {
   geometryType?: string;
   license?: string;
   landingPage?: string;
+  /** When the publisher says the data last changed (ISO), if it says. Not when anyone checked it. */
+  publisherUpdatedAt?: string;
 }
 
 export class SourceFetchError extends Error {}
@@ -79,6 +81,7 @@ export async function introspect(accessUrl: string, fetchJson: JsonFetcher = saf
   if (where.platform === "arcgis") {
     const raw = body.fields;
     if (!Array.isArray(raw)) throw new SourceFetchError("not an ArcGIS layer: the response has no fields list");
+    const editing = body.editingInfo as { dataLastEditDate?: unknown; lastEditDate?: unknown } | undefined;
     return {
       ...where,
       fields: raw.map((f: Record<string, unknown>) => field(f.name, arcgisType(f.type), f.alias)),
@@ -86,6 +89,8 @@ export async function introspect(accessUrl: string, fetchJson: JsonFetcher = saf
       description: clip(stripHtml(body.description), DESCRIPTION_MAX),
       geometryType: typeof body.geometryType === "string" ? body.geometryType : undefined,
       license: clip(stripHtml(body.copyrightText), LABEL_MAX),
+      // dataLastEditDate leaves out schema-only edits; older servers only have lastEditDate.
+      publisherUpdatedAt: isoFromEpoch(editing?.dataLastEditDate ?? editing?.lastEditDate, 1),
     };
   }
 
@@ -103,6 +108,7 @@ export async function introspect(accessUrl: string, fetchJson: JsonFetcher = saf
     description: clip(body.description, DESCRIPTION_MAX),
     license: clip(license?.name, LABEL_MAX),
     landingPage: id ? `${new URL(where.schemaUrl).origin}/d/${id}` : undefined,
+    publisherUpdatedAt: isoFromEpoch(body.rowsUpdatedAt, 1000),
   };
 }
 
@@ -130,6 +136,13 @@ function field(name: unknown, type: string, label?: unknown, description?: unkno
 /** `esriFieldTypeDouble` → `double`; the rest of the name says nothing. */
 function arcgisType(type: unknown): string {
   return typeof type === "string" ? type.replace(/^esriFieldType/, "").toLowerCase() : "unknown";
+}
+
+/** ArcGIS gives milliseconds, Socrata seconds. Anything implausible is dropped rather than shown. */
+function isoFromEpoch(value: unknown, toMs: number): string | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return undefined;
+  const d = new Date(value * toMs);
+  return d.getUTCFullYear() >= 1990 && d.getUTCFullYear() <= 2100 ? d.toISOString() : undefined;
 }
 
 function clip(value: unknown, max: number): string | undefined {

@@ -48,6 +48,7 @@ const publisher: Record<string, unknown> = {
     name: "Parcels",
     geometryType: "esriGeometryPolygon",
     copyrightText: "CC0",
+    editingInfo: { lastEditDate: Date.UTC(2026, 8, 30), dataLastEditDate: Date.UTC(2026, 8, 15) },
     fields: [
       { name: "OBJECTID", type: "esriFieldTypeOID" },
       { name: "Parcel_ID", type: "esriFieldTypeString", alias: "Parcel ID" },
@@ -66,6 +67,7 @@ const publisher: Record<string, unknown> = {
     name: "Real Estate Sales",
     description: "<p>Sales <b>recorded</b> by town assessors.</p>",
     license: { name: "Public Domain" },
+    rowsUpdatedAt: Date.UTC(2026, 6, 1) / 1000,
     columns: [
       { fieldName: "town", name: "Town", dataTypeName: "text" },
       { fieldName: "address", name: "Address", dataTypeName: "text" },
@@ -81,7 +83,9 @@ const publisher: Record<string, unknown> = {
     columns: [{ fieldName: "amount", name: "Amount", dataTypeName: "number" }],
   },
 };
+const down = new Set<string>();
 const fakeFetch = async (url: string) => {
+  if (down.has(url)) throw new SourceFetchError("the publisher answered HTTP 503");
   if (!(url in publisher)) throw new SourceFetchError(`the publisher answered HTTP 404`);
   return structuredClone(publisher[url]);
 };
@@ -341,11 +345,72 @@ async function main() {
   check("check-reports-broken-mappings", (drift as { mappingsBroken: string[] }).mappingsBroken.includes("Town_Name"));
   check("broken-pair-gone", !S.resolve("ct-parcels")!.fields.some((f) => f.name === "Town_Name"));
 
+  // --- what a builder can rely on ------------------------------------------------------------
+  const trusted = S.resolve("ct-parcels")!;
+  check("check-recorded", trusted.recentChecks[0]?.changed === true && trusted.recentChecks[0].removed?.includes("Town_Name") === true &&
+    trusted.recentChecks.at(-1)?.via === "proposal", JSON.stringify(trusted.recentChecks));
+  check("access-tested", trusted.access.status === "tested" && trusted.access.lastOkAt === at(21).toISOString(), JSON.stringify(trusted.access));
+  check("publisher-date-arcgis", trusted.publisherUpdatedAt === "2026-09-15T00:00:00.000Z", trusted.publisherUpdatedAt ?? "none");
+  check("publisher-date-socrata", S.resolve("real-estate-sales")!.publisherUpdatedAt === "2026-07-01T00:00:00.000Z");
+  check("unknowns-listed", trusted.unknowns.includes("cost") && trusted.unknowns.includes("contact") && !trusted.unknowns.includes("license"),
+    trusted.unknowns.join(","));
+  check("readiness-default", trusted.readiness.level === "not-assessed" && trusted.readiness.reviewBy === null);
+  check("manual-is-located", S.resolve(manual.slug)!.access.status === "located");
+
+  const badDate = await rejects(() => S.propose({ accessUrl: PARCELS, reviewBy: "next week" }, "operator", at(21)));
+  check("review-date-format", badDate !== null && /YYYY-MM-DD/.test(badDate.message));
+  const badLevel = await rejects(() => S.propose({ accessUrl: PARCELS, readiness: "great" }, "operator", at(21)));
+  check("readiness-level-checked", badLevel !== null);
+  const reserved = await rejects(() => S.propose({ accessUrl: "https://gis.example.gov/x", slug: "health", platform: "manual",
+    fields: [{ name: "a" }], title: "Health", publisher: "x", jurisdiction: "US-CT", recordDescription: "One thing of some kind here." }, "operator", at(21)));
+  check("health-slug-reserved", reserved !== null && /reserved/.test(reserved.message), reserved?.message);
+
+  await S.propose({
+    accessUrl: PARCELS, cost: "Free; no key", contact: "gis@example.gov", readiness: "needs-preparation",
+    readinessNote: "Parcel_ID needs the town prefix for statewide joins.", reviewBy: "2026-01-01",
+  }, "operator", at(21));
+  const assessed = S.resolve("ct-parcels")!;
+  check("curator-sets-readiness", assessed.readiness.level === "needs-preparation" && assessed.readiness.reviewOverdue === true && assessed.cost === "Free; no key");
+  check("confirmed-facts-leave-unknowns", !assessed.unknowns.includes("cost") && !assessed.unknowns.includes("contact"));
+  const stranger = await S.propose({ accessUrl: PARCELS, readiness: "ready" }, "net:anon-9", at(21));
+  check("stranger-cannot-set-readiness", !!stranger.metadataUnchanged && S.resolve("ct-parcels")!.readiness.level === "needs-preparation");
+
+  // The publisher goes down, then comes back.
+  down.add(`${PARCELS}?f=json`);
+  const outage = await S.check("ct-parcels", at(22));
+  const failing = S.resolve("ct-parcels")!.access;
+  check("failed-check-recorded", outage.checked === false && failing.status === "failing" && failing.failingSince === at(22).toISOString() &&
+    /503/.test(failing.reason ?? "") && failing.lastOkAt === at(21).toISOString(), JSON.stringify(failing));
+  await S.check("ct-parcels", at(23));
+  check("failing-since-first-failure", S.resolve("ct-parcels")!.access.failingSince === at(22).toISOString());
+  const report2 = S.report();
+  check("report-needs-attention", report2.needsAttention.some((n) => n.slug === "ct-parcels" && n.access === "failing" && n.reviewOverdue === "2026-01-01"),
+    JSON.stringify(report2.needsAttention));
+  await S.checkDue(new Date(at(23).getTime() + DAY / 2));
+  check("failed-not-retried-within-a-day", S.resolve("ct-parcels")!.recentChecks[0].checkedAt === at(23).toISOString());
+  down.clear();
+  const retry = await S.checkDue(at(25));
+  check("failed-retried", S.resolve("ct-parcels")!.access.status === "tested" && retry.failed.length === 0, JSON.stringify(retry));
+
+  // The weekly sweep: every readable source once, then nothing until a week has passed.
+  const sweep = await S.checkDue(at(40));
+  const verifiedCount = S.health(at(40)).sources.filter((e) => e.access.status !== "located").length;
+  check("sweep-checks-due-sources", sweep.checked >= verifiedCount && sweep.remaining === 0 && sweep.failed.length === 0, JSON.stringify(sweep));
+  check("sweep-idempotent", (await S.checkDue(at(41))).checked === 0);
+  check("sweep-respects-limit", (await S.checkDue(at(50), { limit: 1 })).remaining > 0);
+  const later = S.health(at(80));
+  check("stale-without-checks", later.sources.find((e) => e.slug === "ct-parcels")?.access.status === "stale", JSON.stringify(later.counts));
+  check("health-counts", later.counts.listed === later.sources.length && later.counts.reviewOverdue >= 1);
+
   // --- the markdown page ---------------------------------------------------------------------
   const page = renderSourcePage(S.resolve("ct-parcels")!, "schemalattice.test");
   check("page-has-endpoint", page.includes("/FeatureServer/0/query?where=1%3D1"));
   check("page-has-meanings", page.includes("| `Parcel_ID` |") && page.includes("Tax Parcel.pin"));
   check("page-has-joins", page.includes("**key join via Tax Parcel.**"));
+  check("page-says-what-to-rely-on", page.includes("## What you can rely on") && page.includes("**Cost of access:** Free; no key") &&
+    page.includes("**Build readiness:** needs preparation") && page.includes("review overdue since 2026-01-01"));
+  const salesPage = renderSourcePage(S.resolve("real-estate-sales")!, "schemalattice.test");
+  check("page-marks-unconfirmed", salesPage.includes("**Contact for corrections:** _not confirmed_"));
 
   // --- over HTTP, as a stranger -----------------------------------------------------------------
   const http = await startHttpServer(instance, { dataDir: tmp, port: 0, host: "127.0.0.1", apiKey: "operator-secret" });
@@ -357,6 +422,10 @@ async function main() {
   const searched = await (await fetch(`${http.url}/sources?q=property+sales&jurisdiction=US-CT`)).text();
   check("http-sources-search", searched.includes("real-estate-sales"), searched.slice(0, 300));
   check("http-unknown-source-404", (await fetch(`${http.url}/sources/nope`)).status === 404);
+  const healthRes = await fetch(`${http.url}/sources/health`);
+  const healthText = await healthRes.text();
+  check("http-sources-health", healthRes.status === 200 && healthText.includes("## All sources") && healthText.includes("/sources/ct-parcels"),
+    healthText.slice(0, 300));
   const atlas = (await (await fetch(`${http.url}/atlas.json`)).json()) as {
     concepts: Array<{ uri: string; x: number; y: number; publicSources: number }>; sources: Array<{ slug: string }>;
   };

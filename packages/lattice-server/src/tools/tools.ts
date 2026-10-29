@@ -1094,7 +1094,10 @@ export const TOOLS: ToolDef[] = [
       "One public data source in full: publisher, endpoint and an example query, license, every field " +
       "with the catalog concept field it carries (and any conversion), the concepts its records are or " +
       "point at, and related sources with join keys (key, attribute or spatial) worked out from shared " +
-      "concept fields. This is the integration documentation for a public dataset.",
+      "concept fields. Also what can be relied on: access status from the server's own checks (tested, " +
+      "stale, failing, or located for hand-supplied field lists), build readiness, when the publisher last " +
+      "changed the data, and `unknowns`, the facts nobody has confirmed (license, cost, contact). This is " +
+      "the integration documentation for a public dataset.",
     inputSchema: {
       type: "object",
       properties: { slug: { type: "string" } },
@@ -1131,7 +1134,15 @@ export const TOOLS: ToolDef[] = [
         landingPage: { type: "string" },
         format: { type: "string" },
         license: { type: "string" },
-        updateFrequency: { type: "string" },
+        updateFrequency: { type: "string", description: "As the publisher states it" },
+        cost: { type: "string", description: "What bulk or API access costs, as published. Leave out if not confirmed" },
+        contact: { type: "string", description: "The publisher's published contact for corrections. Leave out if not confirmed" },
+        readiness: {
+          type: "string", enum: ["not-assessed", "needs-preparation", "ready"],
+          description: "How much work stands between a builder and a working integration (proposer or curator)",
+        },
+        readinessNote: { type: "string", description: "What preparation is needed, or what was tested; up to 500 characters" },
+        reviewBy: { type: "string", description: "YYYY-MM-DD: when this entry should be looked at again" },
         conformsTo: { ...stringArray, description: "Slugs of registered standards it follows" },
         platform: { type: "string", enum: ["manual"], description: "Only to force a hand-supplied field list" },
         fields: {
@@ -1158,6 +1169,11 @@ export const TOOLS: ToolDef[] = [
             format: optionalString(args, "format"),
             license: optionalString(args, "license"),
             updateFrequency: optionalString(args, "updateFrequency"),
+            cost: optionalString(args, "cost"),
+            contact: optionalString(args, "contact"),
+            readiness: optionalString(args, "readiness"),
+            readinessNote: optionalString(args, "readinessNote"),
+            reviewBy: optionalString(args, "reviewBy"),
             conformsTo: optionalStringArray(args, "conformsTo"),
             platform: optionalString(args, "platform"),
             fields: args.fields,
@@ -1224,7 +1240,8 @@ export const TOOLS: ToolDef[] = [
     description:
       "Re-read a source's field list from its publisher and report fields added, removed or retyped since " +
       "the catalog last looked, and any mappings that broke. Run it when a request against the source " +
-      "fails on a field name.",
+      "fails on a field name. The server also checks every readable source weekly; each result, failures " +
+      "included, shows on the source as its access status.",
     inputSchema: { type: "object", properties: { slug: { type: "string" } }, required: ["slug"] },
     handler: (instance, args) => sourcesCall(() => instance.sources.check(requireString(args, "slug"))),
   },
@@ -1234,7 +1251,8 @@ export const TOOLS: ToolDef[] = [
     description:
       "The public data sources queue: proposed sources and field mappings with corroboration progress, " +
       "disputes, searches that found nothing (what builders need and the catalog can't point to yet), " +
-      "and fields of listed sources that nobody has mapped. The place to start when you want to help.",
+      "fields of listed sources that nobody has mapped, and sources that need attention (failing or stale " +
+      "checks, drifted field lists, overdue reviews). The place to start when you want to help.",
     inputSchema: { type: "object", properties: {} },
     handler: (instance, _args, principal) => instance.sources.report({ operator: principal.tier === "operator" }),
   },

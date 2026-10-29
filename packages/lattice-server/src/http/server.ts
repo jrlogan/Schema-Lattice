@@ -16,7 +16,7 @@ import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
 import { landingPage, llmsText } from "./landing.ts";
 import { contributePage } from "./contribute.ts";
-import { renderSourcePage, renderSourcesIndex } from "./sources-page.ts";
+import { renderSourcePage, renderSourcesHealth, renderSourcesIndex } from "./sources-page.ts";
 import { atlasPage } from "./atlas-page.ts";
 import { meshPage } from "./mesh-page.ts";
 import { buildAtlas } from "../query/atlas.ts";
@@ -294,7 +294,7 @@ async function handle(
         pack: "GET /pack, /pack/{context}[,{context}] or /pack?q=... (paste-ready vocabulary for hosted app builders without MCP)",
         mesh: "GET /mesh?a=app:<slug>&b=app:<slug> (how well two apps or an app and a data source will exchange data; or POST /api/tools/lattice_mesh_report)",
         atlas: "GET /atlas (every concept placed by meaning, growth over time, unmet searches, public datasets; data at /atlas.json)",
-        sources: "GET /sources, /sources?q=...&jurisdiction=US-CT/new-haven, /sources/{slug} (public datasets: endpoints, what each field means, join keys)",
+        sources: "GET /sources, /sources?q=...&jurisdiction=US-CT/new-haven, /sources/{slug}, /sources/health (public datasets: endpoints, what each field means, join keys, which still answer)",
         client: "GET /cli/schemalattice.mjs (publish a platform's vocabulary from its code; vendor it)",
         resolveConcept: "GET /c/{context}/{slug}@{hash}",
         resolveContext: "GET /s/{context}@{hash}",
@@ -410,6 +410,10 @@ async function handle(
       return;
     }
     const slug = path.slice("/sources/".length);
+    if (slug === "health") {
+      sendText(res, 200, renderSourcesHealth(instance.sources.health(), host), markdown, "public, max-age=300");
+      return;
+    }
     const source = instance.sources.resolve(slug);
     if (!source) {
       sendText(res, 404, `# No such source: ${slug.replace(/[^a-z0-9-]/g, "")}\n\nSee https://${host}/sources for the list.\n`, markdown);
