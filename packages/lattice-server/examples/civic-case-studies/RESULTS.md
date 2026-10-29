@@ -165,6 +165,41 @@ These were among the most useful things the agents learned.
 6. **Field-level sensitivity on sources** and a consent-to-forward class (lesson 7).
 7. **A place-reference concept** for records located only by text (lesson 8).
 
+## Built (2026-10-29, PRs #12–#15)
+
+All seven are now live.
+
+| # | What | Where |
+|---|---|---|
+| 1 | Builder notes: `lattice_note_source`. Field facts use a fixed set of assertions, so builders corroborate in any words; access, disagreement and caveat notes are agreed with by key. | `src/sources/findings.ts`, spec § What builders found |
+| 2 | Join reports: `lattice_report_join`, counts only. Each offered join shows `tested`, and unoffered joins show as "Joins builders found". | same |
+| 3 | Field profiles from aggregates in the weekly check: filled share counting blank strings as empty, and numeric range. They flag always-empty and not-degrees fields, and confirm matching builder notes, which can then list on anonymous corroboration. | spec § Field profiles |
+| 4 | Query notes: defaults, allRecords, paging, filters, recordLink, lifecycle, clients | spec § Query notes |
+| 5 | Submit endpoints (`direction: submit`). The mesh report now reads unpublished forks, `fieldMaps` with local names and wire names, the registry's array shape, and point-in-polygon connections. | spec § Submit endpoints, mcp-tools § mesh |
+| 6 | Field sensitivity: stated, inherited from the concept field, or reported by builders. Governance adds `personal-location` and `forwarding-consent`. | spec § Sensitive fields, data-classification.md |
+| 7 | Place Reference (`public-geography/place-reference@e52ffd887d66`) | `place-reference.json` |
+
+Live data added with them:
+- **311 sources re-mapped onto Report Category v2,** which adds `code`. SeeClickFix `request_type.id` = Open311 `service_code`, checked.
+- **New sources:** the Open311 POST standard, New Haven's submit endpoint, and New Haven's service definitions (Street Lamp requires the pole number).
+- **Query notes and field notes** for SeeClickFix, Legistar, LCI, address points, parcels and wards.
+- **Classifications** for SeeClickFix reporter fields.
+
+The profiles confirmed two of the case studies' findings on their own:
+- address points `neighborhood` is blank on all 42,761 rows;
+- LCI `lat`/`long` run 651,937–686,997, so they are not degrees.
+
+**An incident while building this.** The Open311 POST spec's URL
+(`…/GeoReport_v2/#post-service-request`) matched the existing GeoReport v2
+standard, because URL keys ignored the fragment. As curator, the proposal
+overwrote that entry. It was restored from the pre-deploy backup within
+minutes, and its mappings were intact.
+
+The lesson is the same one the case studies teach: an automatic merge
+needs a guard against the case where the two things are different.
+- **Fragments now count** when matching non-platform URLs.
+- **A curator who names a different slug for an existing URL is refused,** not merged (PR #15).
+
 The common thread: the catalog's value for civic work comes from what
 people learn by using the data, more than from describing schemas. The
 system now records what the operator checks. Next it needs to record what

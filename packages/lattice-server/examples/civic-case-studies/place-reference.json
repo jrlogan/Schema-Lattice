@@ -1,0 +1,30 @@
+{
+ "contextUri": "https://schemalattice.com/s/public-geography@d54fe5897a6f",
+ "conceptSlug": "place-reference",
+ "prefLabel": "Place Reference",
+ "altLabels": ["Location mention", "Geoparsed place"],
+ "definition": "A statement that a record concerns a particular place, found in the record's own text or fields: an address, parcel, street segment, intersection, district or named place, with how it was located and how confident that is. Lets legislation, minutes or reports that only name places in words be placed on a map and matched to areas.",
+ "conceptKind": "entity",
+ "broader": ["https://schemalattice.com/c/schemalattice/location@0a060f0f4ed3"],
+ "closeMatch": ["dct:spatial"],
+ "coRefersWith": [],
+ "coRefersRationale": "A reference from a record to a place, not the place itself: Address Point, Land Parcel and City District are what it points at.",
+ "structure": {
+  "kind": "entity",
+  "fields": [
+   {"name": "subjectRecord", "type": "reference", "classification": "public", "required": true},
+   {"name": "subjectField", "type": "string", "classification": "public"},
+   {"name": "text", "type": "string", "classification": "public"},
+   {"name": "placeType", "type": "enum", "classification": "public", "values": ["address", "parcel", "street-segment", "intersection", "district", "named-place", "point"]},
+   {"name": "address", "type": "string", "classification": "public"},
+   {"name": "parcelId", "type": "string", "classification": "public"},
+   {"name": "streets", "type": "string[]", "classification": "public"},
+   {"name": "district", "type": "reference", "classification": "public", "refUri": "https://schemalattice.com/c/civic-participation/city-district@bd808dfd5db4"},
+   {"name": "latitude", "type": "number", "classification": "public"},
+   {"name": "longitude", "type": "number", "classification": "public"},
+   {"name": "method", "type": "enum", "classification": "public", "values": ["stated", "parsed-address", "street-corner", "named-place", "parcel-number", "district-name", "geocoded"]},
+   {"name": "confidence", "type": "enum", "classification": "public", "values": ["high", "medium", "low"]},
+   {"name": "foundAt", "type": "dateTime", "classification": "public"}
+  ]
+ }
+}
