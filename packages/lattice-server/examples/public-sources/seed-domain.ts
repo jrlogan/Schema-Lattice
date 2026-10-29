@@ -174,15 +174,47 @@ for (const s of seed.sources ?? []) {
   else console.log(`  ${r.status.padEnd(8)} ${r.slug.padEnd(40)} ${String(r.fieldCount).padStart(3)} fields${r.fieldsVerified ? "" : " (hand-supplied)"}`);
 }
 
-// 5. Mappings.
+// 5. Mappings. A re-run must not undo what happened live since the last one:
+// a pair whose dispute was upheld is not re-asserted, and a scheme or
+// conversion added live is kept when the seed doesn't give one.
 let pairs = 0;
+const upheld = new Set<string>(
+  ((await call("lattice_sources_report", {})).disputes ?? [])
+    .filter((d: { status: string }) => d.status === "dispute upheld")
+    .map((d: { source: string; sourceField: string; conceptUri: string; conceptField: string }) => `${d.source}|${d.sourceField}|${d.conceptUri}|${d.conceptField}`),
+);
+const liveMeanings = new Map<string, Map<string, { scheme?: string; conversion?: string }>>();
+const liveOf = async (slug: string) => {
+  if (!liveMeanings.has(slug)) {
+    const r = await call("lattice_resolve_source", { slug });
+    const map = new Map<string, { scheme?: string; conversion?: string }>();
+    for (const f of r.fields ?? []) for (const mm of f.means ?? []) map.set(`${f.name}|${mm.conceptUri}|${mm.field}`, { scheme: mm.scheme, conversion: mm.conversion });
+    liveMeanings.set(slug, map);
+  }
+  return liveMeanings.get(slug)!;
+};
 for (const m of seed.mappings ?? []) {
   const uri = m.concept.startsWith("https://") ? m.concept : conceptUri.get(m.concept);
   if (!uri) {
     fail(`${m.source} → ${m.concept}`, "concept was not published (skipped or failed)");
     continue;
   }
-  const r = await call("lattice_map_source", { source: m.source, conceptUri: uri, role: m.role, fields: m.fields });
+  const live = await liveOf(m.source);
+  const fields = [];
+  for (const f of m.fields as Array<{ from: string; to: string; scheme?: string; conversion?: string }>) {
+    if (upheld.has(`${m.source}|${f.from}|${uri}|${f.to}`)) {
+      console.log(`  kept dispute: ${m.source}.${f.from} → ${f.to} was disputed live; not re-asserted (remove it from the seed)`);
+      continue;
+    }
+    const was = live.get(`${f.from}|${uri}|${f.to}`);
+    const merged = { ...f, ...(!f.scheme && was?.scheme ? { scheme: was.scheme } : {}), ...(!f.conversion && was?.conversion ? { conversion: was.conversion } : {}) };
+    if (merged.scheme !== f.scheme || merged.conversion !== f.conversion) {
+      console.log(`  kept live: ${m.source}.${f.from} → ${f.to} keeps its live ${merged.scheme !== f.scheme ? `scheme ${merged.scheme}` : "conversion"} (add it to the seed)`);
+    }
+    fields.push(merged);
+  }
+  if (fields.length === 0) continue;
+  const r = await call("lattice_map_source", { source: m.source, conceptUri: uri, role: m.role, fields });
   if (r.error) fail(`${m.source} → ${m.concept}`, r.error.details?.problems ?? r.error.message);
   else pairs += r.recorded;
 }
