@@ -98,7 +98,7 @@ export function renderSourcePage(s: Resolved, host: string): string {
   if (s.exampleQuery) out.push(`- **Example request:** ${s.exampleQuery}`);
   if (s.schemaUrl) out.push(`- **Live field list:** ${s.schemaUrl}`);
   if (s.landingPage) out.push(`- **About it:** ${s.landingPage}`);
-  if (s.geometry) out.push(`- **Geometry:** ${s.geometry}`);
+  if (s.geometry) out.push(`- **Geometry:** ${s.geometry}${s.locationFields ? `, from ${s.locationFields}` : ""}`);
   if (s.conformsTo.length) out.push(`- **Follows:** ${s.conformsTo.map((c) => `https://${host}/sources/${c}`).join(", ")}`);
   out.push(
     `- **Field list ${s.fieldsVerified ? `read from the publisher ${s.fieldsCheckedAt?.slice(0, 10) ?? ""}` : "supplied by hand, not checked against the publisher"}.**` +

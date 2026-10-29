@@ -258,6 +258,19 @@ they follow corroboration and retraction automatically.
   and standards never appear in a dataset's join list. A standard's own
   fields can still be mapped onto concepts. That is what lets every
   dataset following it line up with the catalog.
+- **Point locations.** A source's geometry comes from the platform
+  (ArcGIS `geometryType`), a geometry-typed field, a latitude/longitude
+  pair (`lat`/`lng`, `latitude`/`longitude`, `stop_lat`/`stop_lon`, at
+  the same nesting level) or a GeoJSON point (`point.coordinates`).
+  Most civic APIs (SeeClickFix, Open311, GBFS, CSV exports) carry
+  location as two numbers. Without this they would relate to no map
+  layer at all. `resolve` names the fields as `locationFields`.
+- **Point in polygon:** a point layer against a polygon layer in the same
+  area is a `spatial` join with `method: "point-in-polygon"`. It is listed
+  as a related source, not an overlay, because "which ward is this report
+  in" is the join most civic apps need. Two point layers don't relate:
+  points relate only by distance, and every point layer in a city would
+  otherwise list every other.
 - **Overlays:** map layers that share no identifying field but cover the
   same area are listed once, as `overlays`, rather than as related
   sources. Every layer overlays every other, and listing each one

@@ -10,7 +10,7 @@ import { LatticeInstance } from "../src/server/instance.ts";
 import { callTool } from "../src/tools/tools.ts";
 import { isToolError } from "../src/tools/errors.ts";
 import { ANONYMOUS, OPERATOR } from "../src/server/principals.ts";
-import { SourceRejected, coverage, fieldJoinKind } from "../src/sources/sources.ts";
+import { SourceRejected, coverage, detectGeometry, fieldJoinKind, locationFields } from "../src/sources/sources.ts";
 import { isPrivateAddress, platformOf, safeFetchJson, SourceFetchError } from "../src/sources/fetch.ts";
 import { wideNetworkPrefix } from "../src/evidence/ledger.ts";
 import { renderSourcePage } from "../src/http/sources-page.ts";
@@ -401,6 +401,30 @@ async function main() {
   const later = S.health(at(80));
   check("stale-without-checks", later.sources.find((e) => e.slug === "ct-parcels")?.access.status === "stale", JSON.stringify(later.counts));
   check("health-counts", later.counts.listed === later.sources.length && later.counts.reviewOverdue >= 1);
+
+  // --- point locations ------------------------------------------------------------------------
+  check("lat-lng-is-a-point", detectGeometry([{ name: "lat", type: "number" }, { name: "lng", type: "number" }]) === "point");
+  check("geojson-point-is-a-point", detectGeometry([{ name: "point", type: "object" }, { name: "point.type", type: "string" }, { name: "point.coordinates", type: "array" }]) === "point");
+  check("nested-lat-lng", locationFields([{ name: "location.latitude", type: "double" }, { name: "location.longitude", type: "double" }])?.includes("`location.latitude`") === true);
+  check("unpaired-lat-is-not-a-point", detectGeometry([{ name: "lat", type: "number" }, { name: "zip", type: "string" }]) === null);
+  const issues = await S.propose({
+    accessUrl: "https://api.example.org/issues?place=new-haven", platform: "manual", slug: "nh-issues", title: "Issues",
+    publisher: "Reporting service", jurisdiction: "US-CT/new-haven", recordDescription: "One problem a resident reported, with its location.",
+    fields: [{ name: "id", type: "integer" }, { name: "lat", type: "number" }, { name: "lng", type: "number" }],
+  }, "operator", at(41));
+  const stops = await S.propose({
+    accessUrl: "https://api.example.org/stops?place=new-haven", platform: "manual", slug: "nh-stops", title: "Stops",
+    publisher: "Transit", jurisdiction: "US-CT/new-haven", recordDescription: "One bus stop with its location in the city.",
+    fields: [{ name: "stop_lat", type: "number" }, { name: "stop_lon", type: "number" }, { name: "location.coordinates", type: "array" }],
+  }, "operator", at(41));
+  const issuesView = S.resolve(issues.slug)!;
+  const toParcels = issuesView.related.find((r) => r.slug === "ct-parcels");
+  check("point-layer-gets-geometry", issuesView.geometry === "point" && issuesView.locationFields === "latitude `lat`, longitude `lng`", issuesView.locationFields ?? "none");
+  check("point-in-polygon-is-a-join", toParcels?.joins[0]?.method === "point-in-polygon" && /Point in polygon/.test(toParcels.joins[0].how) &&
+    toParcels.joins[0].how.includes("`lat`"), JSON.stringify(toParcels?.joins));
+  check("polygon-side-lists-point-layer", S.resolve("ct-parcels")!.related.some((r) => r.slug === issues.slug));
+  check("points-do-not-overlay-points", !issuesView.related.some((r) => r.slug === stops.slug) && !issuesView.overlays.some((o) => o.slug === stops.slug));
+  check("polygons-still-overlay", S.resolve("ct-parcels")!.overlays.some((o) => o.slug === zones.slug));
 
   // --- the markdown page ---------------------------------------------------------------------
   const page = renderSourcePage(S.resolve("ct-parcels")!, "schemalattice.test");

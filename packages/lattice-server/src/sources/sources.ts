@@ -213,6 +213,8 @@ export interface JoinPair {
 
 export interface SourceJoin {
   kind: "key" | "attribute" | "spatial";
+  /** Set for a point layer against a polygon layer: the join that places each point in an area. */
+  method?: "point-in-polygon";
   via: { conceptUri: string; prefLabel: string } | null;
   pairs: JoinPair[];
   how: string;
@@ -280,6 +282,13 @@ export class Sources {
       ["readiness_note", "TEXT"], ["review_by", "TEXT"], ["publisher_updated_at", "TEXT"],
     ]) {
       if (!columns.has(name)) this.db.exec(`ALTER TABLE sources ADD COLUMN ${name} ${decl}`);
+    }
+    // Sources added before point locations were recognised from lat/lng fields.
+    const unplaced = this.db.prepare("SELECT slug, fields FROM sources WHERE geometry IS NULL").all() as Array<{ slug: string; fields: string }>;
+    const place = this.db.prepare("UPDATE sources SET geometry = ? WHERE slug = ?");
+    for (const u of unplaced) {
+      const g = detectGeometry(JSON.parse(u.fields) as SourceField[]);
+      if (g) place.run(g, u.slug);
     }
 
     evidence.registerKind("source", {
@@ -387,7 +396,7 @@ export class Sources {
       throw new SourceRejected(`conformsTo names no registered standard: ${unknownStandards.join(", ")}`, { unknown: unknownStandards });
     }
     const slug = existing?.slug ?? (input.slug ? checkSlug(input.slug) : this.freeSlug(title));
-    const geometry = intro?.geometryType ?? fields.find((f) => GEOMETRY_TYPES.has(f.type.toLowerCase()))?.type ?? null;
+    const geometry = intro?.geometryType ?? detectGeometry(fields);
 
     const row = {
       slug,
@@ -724,6 +733,7 @@ export class Sources {
       recentChecks: this.checksOf(slug, 5),
       readiness: this.readinessOf(r),
       geometry: r.geometry,
+      locationFields: locationFields(JSON.parse(r.fields) as SourceField[]),
       conformsTo: JSON.parse(r.conforms_to) as string[],
       fieldsVerified: r.fields_verified === 1,
       fieldsCheckedAt: r.fields_checked_at,
@@ -793,7 +803,8 @@ export class Sources {
    */
   private relatedSplit(slug: string, allPairs: ListedPair[]) {
     const all = this.related(slug, allPairs);
-    const fieldJoin = (r: (typeof all)[number]) => r.joins.some((j) => j.kind !== "spatial" || j.pairs.length > 0);
+    const fieldJoin = (r: (typeof all)[number]) =>
+      r.joins.some((j) => j.kind !== "spatial" || j.pairs.length > 0 || j.method === "point-in-polygon");
     return {
       related: all.filter(fieldJoin),
       overlays: all.filter((r) => !fieldJoin(r)).map((r) => ({ slug: r.slug, title: r.title, jurisdiction: r.jurisdiction })),
@@ -813,10 +824,12 @@ export class Sources {
     // Concept fields some source uses to point at the concept: they identify it.
     const referenced = new Set(pairs.filter((p) => p.role === "reference").map((p) => `${p.conceptUri}|${p.conceptField}`));
     const others = new Set(pairs.filter((p) => p.source !== slug).map((p) => p.source));
-    // Spatial layers relate by overlay even when they share no concept.
+    // Spatial layers relate by overlay even when they share no concept. Two
+    // point layers don't: points only relate by distance, and every point layer
+    // in a city would otherwise list every other.
     for (const s of listed) {
       const r = this.row(s);
-      if (s !== slug && r && r.withdrawn_reason === null && me.geometry && r.geometry && coverage(r.jurisdiction, me.jurisdiction) !== null) {
+      if (s !== slug && r && r.withdrawn_reason === null && overlays(me, r) && coverage(r.jurisdiction, me.jurisdiction) !== null) {
         others.add(s);
       }
     }
@@ -862,11 +875,8 @@ export class Sources {
           joins.push({ kind: "spatial", via, pairs: spatial.map(({ kind: _k, ...p }) => p), how: "Overlay: intersect the geometries." });
         }
       }
-      if (me.geometry && r.geometry && !joins.some((j) => j.kind === "spatial")) {
-        joins.push({
-          kind: "spatial", via: null, pairs: [],
-          how: `Both are map layers (${geometryName(me.geometry)}, ${geometryName(r.geometry)}); relate records by intersecting geometries in a common coordinate system.`,
-        });
+      if (overlays(me, r) && !joins.some((j) => j.kind === "spatial")) {
+        joins.push({ kind: "spatial", via: null, pairs: [], ...(pointInPolygon(me, r) ? { method: "point-in-polygon" as const } : {}), how: overlayHow(me, r) });
       }
       if (joins.length === 0) continue;
       out.push({
@@ -1323,6 +1333,67 @@ export function coverage(sourceJurisdiction: string, asked: string): "exact" | "
   if (within(asked, sourceJurisdiction)) return "broader";
   if (within(sourceJurisdiction, asked)) return "narrower";
   return null;
+}
+
+/**
+ * A source's geometry from its field list, when the platform doesn't say:
+ * a geometry-typed field, a latitude/longitude pair, or a GeoJSON point
+ * object (`point.type` + `point.coordinates`). Many civic APIs (SeeClickFix,
+ * Open311, GBFS, most CSVs) carry their location as two numbers, and without
+ * this they relate to no map layer at all.
+ */
+export function detectGeometry(fields: SourceField[]): string | null {
+  const typed = fields.find((f) => GEOMETRY_TYPES.has(f.type.toLowerCase()));
+  if (typed) return typed.type;
+  return locationFields(fields) ? "point" : null;
+}
+
+const LAT_RE = /^(lat|latitude|y_?lat|lat_?y)$/i;
+const LNG_RE = /^(lng|lon|long|longitude|x_?lon|lon_?x)$/i;
+const NUMERIC = new Set(["number", "double", "float", "decimal", "integer", "single", "unknown", "string", "text"]);
+
+/** Which fields carry a point location, described for a builder; null when none do. */
+export function locationFields(fields: SourceField[]): string | null {
+  const leaf = (f: SourceField) => f.name.split(".").pop() ?? f.name;
+  const sameParent = (a: SourceField, b: SourceField) => a.name.split(".").slice(0, -1).join(".") === b.name.split(".").slice(0, -1).join(".");
+  for (const lat of fields.filter((f) => LAT_RE.test(leaf(f)) && NUMERIC.has(f.type.toLowerCase()))) {
+    const lng = fields.find((f) => LNG_RE.test(leaf(f)) && NUMERIC.has(f.type.toLowerCase()) && sameParent(f, lat));
+    if (lng) return `latitude \`${lat.name}\`, longitude \`${lng.name}\``;
+  }
+  const coords = fields.find((f) => /(^|\.)coordinates$/.test(f.name) && /point|location|geo/i.test(f.name));
+  if (coords) return `GeoJSON \`${coords.name}\` ([longitude, latitude])`;
+  return null;
+}
+
+function shapeOf(geometry: string): "point" | "line" | "area" {
+  const g = geometry.toLowerCase();
+  if (/point/.test(g) || g === "location") return "point";
+  if (/line/.test(g)) return "line";
+  return "area";
+}
+
+/** Two layers relate by overlay unless both are points. */
+function overlays(a: SourceRow, b: SourceRow): boolean {
+  return !!a.geometry && !!b.geometry && !(shapeOf(a.geometry) === "point" && shapeOf(b.geometry) === "point");
+}
+
+function pointInPolygon(a: SourceRow, b: SourceRow): boolean {
+  const shapes = new Set([shapeOf(a.geometry!), shapeOf(b.geometry!)]);
+  return shapes.has("point") && shapes.has("area");
+}
+
+function overlayHow(me: SourceRow, other: SourceRow): string {
+  const pointSide = [me, other].find((r) => shapeOf(r.geometry!) === "point");
+  const areaSide = [me, other].find((r) => shapeOf(r.geometry!) === "area");
+  if (pointSide && areaSide) {
+    const where = locationFields(JSON.parse(pointSide.fields) as SourceField[]);
+    return (
+      `Point in polygon: find which ${areaSide.slug} polygon contains each ${pointSide.slug} point` +
+      `${where ? ` (${where})` : ""}, with both in the same coordinate system (request outSR=4326 from ArcGIS layers). ` +
+      "Points on a boundary need a rule."
+    );
+  }
+  return `Both are map layers (${geometryName(me.geometry!)}, ${geometryName(other.geometry!)}); relate records by intersecting geometries in a common coordinate system.`;
 }
 
 /** `esriGeometryPolygon` → `polygons`. */
