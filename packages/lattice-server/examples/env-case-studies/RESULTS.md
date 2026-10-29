@@ -190,3 +190,34 @@ live schemes and conversions the seed lacks, and refuses to re-assert a pair
 whose dispute was upheld, saying so in both cases. The lesson is the same
 as the overwrite incident earlier in the day: an automatic re-run must not
 silently undo a later, deliberate change.
+
+## Second re-run (2026-10-29)
+
+Fresh agents rebuilt Grant Context Pack and River Day Planner after the fixes.
+
+| | First run | Re-run |
+|---|---|---|
+| Grant Context Pack | about 30 min, about 45 requests | **about 5 min**. Found the place profile through the builder brief and called it "the biggest help": 26 layers, each with a query ready to run. |
+| River Day Planner | about 6.5 min | about 7 min, with a much fuller briefing: rainfall, sewer-overflow outfalls, a tide window per site, and the new Volunteer Event conditions fields ("both records validated with no unknown fields") |
+
+What the re-runs found, and what was fixed (PR #22):
+- **A riverbank point missed the river's assessment unit, which read as
+  "not impaired".** A coordinate 300 m off a park missed the park.
+  - Area layers now get a `nearbyQuery` (250 m).
+  - The notice says an empty result is not "nothing nearby".
+  - ArcGIS point layers (outfalls, stations) are listed by distance.
+- **The canopy query left out the canopy value**, because queries returned
+  only mapped fields. They now return all attributes.
+- **Exact and transformed join reports shared a key.** Transformed ones
+  now get their own.
+- **The volunteer-time site refused the catalog's checker but answered a
+  builder.** The note now says so, with the rate the builder read.
+
+Still open:
+- a daily rainfall source (KHVN's rain fields were empty in 500 of 500 readings);
+- live sewer-overflow alerts and beach closures;
+- the EJ statutory test stated on the source page;
+- coverage statements for partial layers (Protected Open Space has 53 New
+  Haven parcels and no city parks);
+- warnings for titles whose place name misleads (the "Quinnipiac River at
+  Fair Haven" gauge is on a different river from the Mill River sites).
