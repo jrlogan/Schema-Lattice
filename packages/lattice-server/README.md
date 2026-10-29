@@ -93,7 +93,10 @@ operator included.
 
 Configuration is environment-only: `LATTICE_DATA_DIR` (default `var/`,
 resolved against this package), `LATTICE_HOST`, `LATTICE_PORT`,
-`LATTICE_API_KEY`. See `deploy/` for the systemd unit and Caddyfile.
+`LATTICE_API_KEY`, and `LATTICE_SOURCE_CHECKS=off` to stop the weekly
+re-reads of public sources' field lists (on by default; see
+specs/public-sources.md § What a builder can rely on). See `deploy/` for the
+systemd unit and Caddyfile.
 
 ## What's not here yet
 

@@ -94,6 +94,73 @@ redirects, time out after 10 seconds and stop reading at 4 MB.
 `lattice_check_source` re-reads a verified source's field list and
 reports what changed.
 
+## What a builder can rely on
+
+A public source is not automatically reusable, current or complete.
+Each entry keeps the questions a builder has to answer before relying on
+it separate, and never fills one in from another. A working sample
+query says nothing about the license.
+
+**Access status**, worked out from the server's own checks, never
+entered by hand:
+
+| Status | Meaning |
+|---|---|
+| `located` | The field list was supplied by hand (`manual`). The server cannot read this source itself. |
+| `tested` | The server's last read of the publisher's field list worked, within the last 21 days. |
+| `stale` | It worked once, but not within 21 days. |
+| `failing` | The last read failed. `failingSince` is the first failure in the current run of failures, with the publisher's error. |
+
+Every read is recorded in `source_checks` (the last 30 per source),
+failures included: the first read when the source is proposed, each
+`lattice_check_source` call, and the scheduled sweep. `resolve` shows
+the five latest as `recentChecks`, with the fields added, removed or
+retyped when the list changed.
+
+**The weekly sweep.** The server re-reads every verified, not-withdrawn
+source once its last check is 7 days old, or 1 day old if that check
+failed, so a single outage doesn't show as failing for a week. Runs come
+every six hours, take at most 25 sources, oldest first, and wait two
+seconds between requests, so the catalog is spread over the week and no
+publisher sees a burst. Mappings broken by a removed field drop out as
+they do for a manual check. `LATTICE_SOURCE_CHECKS=off` turns the sweep
+off. A passing check means the field list could be read, nothing more:
+it does not show that every row is there, that the data is current, or
+that reuse is permitted.
+
+**Two dates, never confused.** `fieldsCheckedAt` and the check history
+say when the server looked. `publisherUpdatedAt` says when the publisher
+says the data last changed: ArcGIS `editingInfo.dataLastEditDate`
+(falling back to `lastEditDate`), Socrata `rowsUpdatedAt`. It is
+refreshed on every successful read, and left unconfirmed when the
+publisher says nothing.
+
+**Facts that stay unconfirmed until someone states them:** `license`,
+`cost` (what bulk or API access costs), `contact` (the published contact
+for corrections), `updateFrequency` and `publisherUpdatedAt`. `resolve`
+lists the empty ones as `unknowns`, and pages show them as *not
+confirmed*. An empty value never reads as "free" or "open".
+
+**Build readiness** is a judgment, set by a curator or the original
+proposer like the rest of the metadata: `not-assessed` (the default),
+`needs-preparation` or `ready`, with a `readinessNote` (what preparation
+is needed, or what was tested) and a `reviewBy` date. It is separate
+from access: a source can answer every request and still need its codes
+decoded. Strangers' proposals never change it.
+
+**Needs attention.** `lattice_sources_report` gains `needsAttention`:
+listed sources that are failing or stale, whose field list changed at
+the last check, or whose review is overdue. `GET /sources/health` is the
+same as a markdown page, with a table of every listed source's access
+status, last good read, readiness and unconfirmed facts. `health` is a
+reserved slug.
+
+This section adapts the approach of the
+[New Haven Civic Data Directory](https://github.com/ctl0v0/new-haven-civic-data-directory):
+access status kept apart from readiness, checked dates kept apart from
+publisher dates, unknowns written as unknowns, and scheduled checks
+whose failures stay visible.
+
 ## Who can add what
 
 | Caller | Source or mapping they submit |
@@ -201,11 +268,11 @@ they follow corroboration and retraction automatically.
 | Tool | Gate | Purpose |
 |---|---|---|
 | `lattice_find_sources` | read | Search sources by description, jurisdiction and/or concept. A source ranks by the better of its own description and the definitions of the concepts it maps onto (`matchedVia`). Logs the search (unless `ephemeral`); searches under 0.65 feed the sources report. |
-| `lattice_resolve_source` | read | One source in full: metadata, fields with their concept meanings, concepts it carries, related sources and join keys. |
+| `lattice_resolve_source` | read | One source in full: metadata, fields with their concept meanings, concepts it carries, related sources and join keys, access status, recent checks, readiness and unconfirmed facts. |
 | `lattice_propose_source` | evidence bucket | Add a source by its `accessUrl`. Curated or proposed per the table above. |
 | `lattice_map_source` | evidence bucket | Map a source's fields onto a concept, or dispute a mapped pair. |
-| `lattice_check_source` | read | Re-read a verified source's field list from the publisher and report drift. |
-| `lattice_sources_report` | read | Proposed sources and mappings with corroboration progress, unmet source searches, and fields that no mapping covers yet. |
+| `lattice_check_source` | read | Re-read a verified source's field list from the publisher and report drift. The result is recorded. |
+| `lattice_sources_report` | read | Proposed sources and mappings with corroboration progress, unmet source searches, fields that no mapping covers yet, and sources that need attention. |
 
 `lattice_evidence_admin` gains `withdraw-source`. Existing `freeze`,
 `retract` and `purge-source` work on source and mapping claims as they
@@ -215,8 +282,9 @@ do on match claims.
 
 `GET /sources` lists sources by jurisdiction as markdown, and `GET
 /sources/{slug}` is a paste-ready page for one dataset: what a record
-is, the endpoint and an example query, every field with the concept
-field it carries, and the join keys to related sources. This is the
+is, what can be relied on, the endpoint and an example query, every
+field with the concept field it carries, and the join keys to related
+sources. `GET /sources/health` shows which sources still answer. This is the
 "documentation for integrating a public database" a builder would
 otherwise write by hand.
 

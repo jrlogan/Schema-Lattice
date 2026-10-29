@@ -38,12 +38,44 @@ export const SOURCE_CONFIG = {
   findMet: 0.65,
   /** A source whose rows only point at a concept ranks a little below one whose rows are it. */
   referenceDiscount: 0.05,
+  /** The weekly sweep re-reads a verified source once its last check is this old. */
+  checkEveryDays: 7,
+  /** A source whose last check failed is retried sooner: one outage should not read as failing all week. */
+  retryFailedDays: 1,
+  /** A source whose last good check is older than this is shown as stale, not tested. */
+  staleAfterDays: 21,
+  /** Checks kept per source; older ones are pruned. */
+  checkHistory: 30,
+  costMax: 300,
+  contactMax: 300,
+  readinessNoteMax: 500,
 } as const;
 
 const KINDS = ["dataset", "standard"] as const;
 export type SourceKind = (typeof KINDS)[number];
 const ROLES = ["record", "reference"] as const;
 export type SourceRole = (typeof ROLES)[number];
+/**
+ * How much work stands between a builder and a working integration, judged by
+ * a curator or the proposer. Separate from whether access works: a source can
+ * answer every request and still need its codes decoded before it is usable.
+ */
+const READINESS = ["not-assessed", "needs-preparation", "ready"] as const;
+export type Readiness = (typeof READINESS)[number];
+
+/**
+ * What the server has seen when it reads the source, worked out from its
+ * checks: `located` (the field list was supplied by hand; the server cannot
+ * read it), `tested` (the last read worked), `stale` (it worked, but not
+ * recently), `failing` (the last read did not work).
+ */
+export type AccessStatus = "located" | "tested" | "stale" | "failing";
+
+/** Facts about a source that stay "not confirmed" until someone states them. */
+const CONFIRMABLE = ["license", "cost", "contact", "updateFrequency", "publisherUpdatedAt"] as const;
+
+/** Paths under /sources/ that are pages, not sources. */
+const RESERVED_SLUGS = new Set(["health"]);
 
 /**
  * ISO 3166 country, optional subdivision, optional locality slug: US, US-CT,
@@ -86,6 +118,12 @@ interface SourceRow {
   fields_verified: number;
   fields_checked_at: string | null;
   geometry: string | null;
+  cost: string | null;
+  contact: string | null;
+  readiness: Readiness;
+  readiness_note: string | null;
+  review_by: string | null;
+  publisher_updated_at: string | null;
   proposed_by: string;
   withdrawn_reason: string | null;
   vec: Buffer;
@@ -105,6 +143,14 @@ export interface SourceInput {
   format?: string;
   license?: string;
   updateFrequency?: string;
+  /** What bulk or API access costs, as published. */
+  cost?: string;
+  /** The published contact for corrections and questions. */
+  contact?: string;
+  readiness?: string;
+  readinessNote?: string;
+  /** YYYY-MM-DD: when someone should look at this entry again. */
+  reviewBy?: string;
   conformsTo?: string[];
   /** Only for sources the server cannot read itself (`manual`). */
   fields?: unknown;
@@ -134,6 +180,28 @@ interface MappingClaim {
 interface ListedPair extends MappingClaim {
   curatedBy: string | null;
   sources: number;
+}
+
+interface CheckRow {
+  slug: string;
+  checked_at: string;
+  ok: number;
+  changed: number;
+  detail: string;
+}
+
+/** One recorded attempt to read a source's field list. */
+export interface SourceCheck {
+  checkedAt: string;
+  ok: boolean;
+  changed: boolean;
+  /** proposal, request (lattice_check_source) or schedule. */
+  via?: string;
+  reason?: string;
+  added?: string[];
+  removed?: string[];
+  retyped?: string[];
+  mappingsBroken?: string[];
 }
 
 export interface JoinPair {
@@ -189,7 +257,24 @@ export class Sources {
         updated_at         TEXT NOT NULL
       );
       CREATE INDEX IF NOT EXISTS idx_sources_jurisdiction ON sources(jurisdiction);
+      CREATE TABLE IF NOT EXISTS source_checks (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        slug       TEXT NOT NULL,
+        checked_at TEXT NOT NULL,
+        ok         INTEGER NOT NULL,
+        changed    INTEGER NOT NULL,
+        detail     TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_source_checks_slug ON source_checks(slug, checked_at);
     `);
+    // Added after the first deployment; existing rows read as not confirmed.
+    const columns = new Set((this.db.prepare("PRAGMA table_info(sources)").all() as Array<{ name: string }>).map((c) => c.name));
+    for (const [name, decl] of [
+      ["cost", "TEXT"], ["contact", "TEXT"], ["readiness", "TEXT NOT NULL DEFAULT 'not-assessed'"],
+      ["readiness_note", "TEXT"], ["review_by", "TEXT"], ["publisher_updated_at", "TEXT"],
+    ]) {
+      if (!columns.has(name)) this.db.exec(`ALTER TABLE sources ADD COLUMN ${name} ${decl}`);
+    }
 
     evidence.registerKind("source", {
       valid: (slug) => {
@@ -313,6 +398,12 @@ export class Sources {
       format: optionalText(input.format, "format", 60) ?? existing?.format ?? (where ? "json" : null),
       license: optionalText(input.license, "license", LABEL_MAX) ?? existing?.license ?? intro?.license ?? null,
       update_frequency: optionalText(input.updateFrequency, "updateFrequency", 160) ?? existing?.update_frequency ?? null,
+      cost: optionalText(input.cost, "cost", SOURCE_CONFIG.costMax) ?? existing?.cost ?? null,
+      contact: optionalText(input.contact, "contact", SOURCE_CONFIG.contactMax) ?? existing?.contact ?? null,
+      readiness: optionalOneOf(input.readiness, "readiness", READINESS) ?? existing?.readiness ?? "not-assessed",
+      readiness_note: optionalText(input.readinessNote, "readinessNote", SOURCE_CONFIG.readinessNoteMax) ?? existing?.readiness_note ?? null,
+      review_by: optionalDate(input.reviewBy, "reviewBy") ?? existing?.review_by ?? null,
+      publisher_updated_at: intro?.publisherUpdatedAt ?? existing?.publisher_updated_at ?? null,
       conforms_to: JSON.stringify(conformsTo),
       fields: JSON.stringify(fields),
       fields_verified: verified ? 1 : 0,
@@ -325,10 +416,12 @@ export class Sources {
       this.db
         .prepare(
           `INSERT INTO sources (slug, kind, title, publisher, jurisdiction, record_description, landing_page, access_url, access_key,
-             schema_url, platform, format, license, update_frequency, conforms_to, fields, fields_verified, fields_checked_at, geometry,
+             schema_url, platform, format, license, update_frequency, cost, contact, readiness, readiness_note, review_by,
+             publisher_updated_at, conforms_to, fields, fields_verified, fields_checked_at, geometry,
              proposed_by, withdrawn_reason, vec, created_at, updated_at)
            VALUES (@slug, @kind, @title, @publisher, @jurisdiction, @record_description, @landing_page, @access_url, @access_key,
-             @schema_url, @platform, @format, @license, @update_frequency, @conforms_to, @fields, @fields_verified, @fields_checked_at,
+             @schema_url, @platform, @format, @license, @update_frequency, @cost, @contact, @readiness, @readiness_note, @review_by,
+             @publisher_updated_at, @conforms_to, @fields, @fields_verified, @fields_checked_at,
              @geometry, @proposed_by, NULL, @vec, @now, @now)`,
         )
         .run({ ...row, proposed_by: source, vec: Buffer.from(Float32Array.from(vec).buffer), now: now.toISOString() });
@@ -338,15 +431,19 @@ export class Sources {
           `UPDATE sources SET kind = @kind, title = @title, publisher = @publisher, jurisdiction = @jurisdiction,
              record_description = @record_description, landing_page = @landing_page, access_url = @access_url,
              schema_url = @schema_url, platform = @platform, format = @format, license = @license,
-             update_frequency = @update_frequency, conforms_to = @conforms_to, fields = @fields,
+             update_frequency = @update_frequency, cost = @cost, contact = @contact, readiness = @readiness,
+             readiness_note = @readiness_note, review_by = @review_by, publisher_updated_at = @publisher_updated_at,
+             conforms_to = @conforms_to, fields = @fields,
              fields_verified = @fields_verified, fields_checked_at = @fields_checked_at, geometry = @geometry,
              withdrawn_reason = CASE WHEN @curator = 1 THEN NULL ELSE withdrawn_reason END,
              vec = @vec, updated_at = @now WHERE slug = @slug`,
         )
         .run({ ...row, curator: curator ? 1 : 0, vec: Buffer.from(Float32Array.from(vec).buffer), now: now.toISOString() });
     } else if (verified) {
-      this.updateFields(slug, fields, now);
+      this.updateFields(slug, fields, now, intro?.publisherUpdatedAt);
     }
+    // Reading the field list just now was itself a successful check.
+    if (verified) this.recordCheck(slug, now, true, false, { via: "proposal" });
 
     const [outcome] = this.claim(() =>
       this.evidence.proposeClaims(
@@ -585,6 +682,13 @@ export class Sources {
       format: r.format,
       license: r.license,
       updateFrequency: r.update_frequency,
+      cost: r.cost,
+      contact: r.contact,
+      publisherUpdatedAt: r.publisher_updated_at,
+      unknowns: unknownsOf(r),
+      access: this.access(r),
+      recentChecks: this.checksOf(slug, 5),
+      readiness: this.readinessOf(r),
       geometry: r.geometry,
       conformsTo: JSON.parse(r.conforms_to) as string[],
       fieldsVerified: r.fields_verified === 1,
@@ -767,35 +871,133 @@ export class Sources {
       .map((r) => ({ slug: r.slug, title: r.title, publisher: r.publisher, jurisdiction: r.jurisdiction, recordDescription: r.record_description, kind: r.kind }));
   }
 
-  /** Re-read a verified source's field list and report what changed. */
-  async check(slug: string, now: Date = new Date()) {
+  /**
+   * Re-read a verified source's field list and report what changed. Every
+   * attempt is recorded, failures included: the record is what lets a page say
+   * "tested last week" or "failing since Tuesday" instead of nothing.
+   */
+  async check(slug: string, now: Date = new Date(), opts: { rescore?: boolean; via?: string } = {}) {
     const r = this.row(slug);
     if (!r) throw new SourceRejected(`no source "${slug}"`);
     if (r.fields_verified !== 1) {
       return { slug, checked: false, reason: "this source's field list was supplied by hand; the server cannot re-read it" };
     }
+    const via = opts.via ?? "request";
+    const fail = (reason: string) => {
+      this.recordCheck(slug, now, false, false, { via, reason });
+      return { slug, checked: false, checkedAt: now.toISOString(), reason, access: this.access(this.row(slug)!, now) };
+    };
     let intro;
     try {
       intro = await introspect(r.access_url, this.fetchJson);
     } catch (err) {
-      if (err instanceof SourceFetchError) return { slug, checked: false, reason: err.message };
+      if (err instanceof SourceFetchError) return fail(err.message);
       throw err;
     }
-    if (!intro) return { slug, checked: false, reason: "the URL is no longer recognised as a readable platform" };
+    if (!intro) return fail("the URL is no longer recognised as a readable platform");
     const before = new Map((JSON.parse(r.fields) as SourceField[]).map((f) => [f.name, f]));
     const after = new Map(intro.fields.map((f) => [f.name, f]));
     const added = [...after.keys()].filter((n) => !before.has(n));
     const removed = [...before.keys()].filter((n) => !after.has(n));
     const retyped = [...after.keys()].filter((n) => before.has(n) && before.get(n)!.type !== after.get(n)!.type);
-    this.updateFields(slug, intro.fields, now);
-    this.evidence.rescore(now);
+    const unchanged = !added.length && !removed.length && !retyped.length;
+    this.updateFields(slug, intro.fields, now, intro.publisherUpdatedAt);
+    // A sweep re-scores once at the end rather than once per source.
+    if (opts.rescore !== false) this.evidence.rescore(now);
     const broken = removed.length
       ? this.evidence
           .statesOf("field-mapping")
           .filter((s) => s.status === "rejected" && s.claimKey.startsWith(`field-mapping|${slug}|`))
           .map((s) => s.claimKey.split("|")[2])
       : [];
-    return { slug, checked: true, checkedAt: now.toISOString(), unchanged: !added.length && !removed.length && !retyped.length, added, removed, retyped, mappingsBroken: broken };
+    this.recordCheck(slug, now, true, !unchanged, {
+      via, ...(unchanged ? {} : { added, removed, retyped }), ...(broken.length ? { mappingsBroken: broken } : {}),
+    });
+    return {
+      slug, checked: true, checkedAt: now.toISOString(), unchanged, added, removed, retyped, mappingsBroken: broken,
+      ...(intro.publisherUpdatedAt ? { publisherUpdatedAt: intro.publisherUpdatedAt } : {}),
+    };
+  }
+
+  /**
+   * The scheduled sweep: re-read every verified, not-withdrawn source whose
+   * last check is older than `checkEveryDays`, one at a time with a pause
+   * between them so no publisher sees a burst. A source whose last check
+   * failed is due again after `retryFailedDays`. Oldest first, at most `limit`
+   * per run; the rest wait for the next run.
+   */
+  async checkDue(now: Date = new Date(), opts: { limit?: number; pauseMs?: number } = {}) {
+    const ago = (days: number) => new Date(now.getTime() - days * 86_400_000).toISOString();
+    const due = this.db
+      .prepare(
+        `SELECT slug FROM (
+           SELECT s.slug, c.checked_at AS last, c.ok AS ok
+             FROM sources s
+             LEFT JOIN source_checks c ON c.id = (SELECT id FROM source_checks WHERE slug = s.slug ORDER BY checked_at DESC, id DESC LIMIT 1)
+            WHERE s.fields_verified = 1 AND s.withdrawn_reason IS NULL)
+         WHERE last IS NULL OR last < ? OR (ok = 0 AND last < ?)
+         ORDER BY last IS NOT NULL, last`,
+      )
+      .all(ago(SOURCE_CONFIG.checkEveryDays), ago(SOURCE_CONFIG.retryFailedDays)) as Array<{ slug: string }>;
+    const batch = due.slice(0, opts.limit ?? 50);
+    const results: Array<{ slug: string; ok: boolean; changed: boolean; reason?: string }> = [];
+    for (const [i, { slug }] of batch.entries()) {
+      if (i > 0 && opts.pauseMs) await new Promise((r) => setTimeout(r, opts.pauseMs));
+      const out = await this.check(slug, now, { rescore: false, via: "schedule" });
+      results.push({
+        slug, ok: out.checked, changed: out.checked && !(out as { unchanged: boolean }).unchanged,
+        ...(!out.checked ? { reason: (out as { reason: string }).reason } : {}),
+      });
+    }
+    if (results.some((r) => r.changed)) this.evidence.rescore(now);
+    return {
+      checked: results.length,
+      remaining: due.length - batch.length,
+      failed: results.filter((r) => !r.ok),
+      changed: results.filter((r) => r.changed).map((r) => r.slug),
+    };
+  }
+
+  /**
+   * Can a builder rely on each listed source right now: whether the server can
+   * still read it, whether its field list drifted, whether its review is
+   * overdue, and which facts nobody has confirmed.
+   */
+  health(now: Date = new Date()) {
+    const listed = this.listedSlugs();
+    const today = now.toISOString().slice(0, 10);
+    const rows = (this.db.prepare("SELECT * FROM sources WHERE withdrawn_reason IS NULL ORDER BY jurisdiction, title").all() as SourceRow[])
+      .filter((r) => listed.has(r.slug));
+    const entries = rows.map((r) => {
+      const last = this.checksOf(r.slug, 1)[0] ?? null;
+      return {
+        slug: r.slug,
+        title: r.title,
+        jurisdiction: r.jurisdiction,
+        kind: r.kind,
+        access: this.access(r, now),
+        drifted: last?.ok === true && last.changed,
+        readiness: r.readiness,
+        reviewBy: r.review_by,
+        reviewOverdue: r.review_by !== null && r.review_by < today,
+        unknowns: unknownsOf(r),
+      };
+    });
+    const by = (s: AccessStatus) => entries.filter((e) => e.access.status === s).length;
+    return {
+      checkedOn: now.toISOString(),
+      counts: {
+        listed: entries.length, tested: by("tested"), stale: by("stale"), failing: by("failing"), located: by("located"),
+        drifted: entries.filter((e) => e.drifted).length,
+        reviewOverdue: entries.filter((e) => e.reviewOverdue).length,
+        ready: entries.filter((e) => e.readiness === "ready").length,
+        notAssessed: entries.filter((e) => e.readiness === "not-assessed").length,
+      },
+      sources: entries,
+      notice:
+        "A passing check means the server could read the publisher's field list, nothing more: it does not " +
+        "confirm that every row is present, that the data is current, or that reuse is permitted.",
+    };
   }
 
   /** Operator: take a source out of every listing, with a reason shown on resolve. */
@@ -839,9 +1041,17 @@ export class Sources {
         return { slug: r.slug, unmapped: names.length, fields: names.slice(0, 25) };
       })
       .filter((u) => u.unmapped > 0);
+    const health = this.health();
     return {
       notice: UNTRUSTED_NOTICE,
       counts: { listed: listed.size, proposed: proposed.length, pendingPairs: pendingPairs.length, disputes: disputed.length },
+      // What needs a person: sources the server can no longer read, and reviews that are due.
+      needsAttention: health.sources
+        .filter((e) => e.access.status === "failing" || e.access.status === "stale" || e.drifted || e.reviewOverdue)
+        .map((e) => ({
+          slug: e.slug, access: e.access.status, ...(e.access.reason ? { reason: e.access.reason } : {}),
+          ...(e.drifted ? { drifted: true } : {}), ...(e.reviewOverdue ? { reviewOverdue: e.reviewBy } : {}),
+        })),
       proposed,
       pendingMappings: pendingPairs.slice(0, opts.operator ? 500 : 100),
       disputes: disputed,
@@ -927,16 +1137,68 @@ export class Sources {
     return names;
   }
 
-  private updateFields(slug: string, fields: SourceField[], now: Date): void {
+  private updateFields(slug: string, fields: SourceField[], now: Date, publisherUpdatedAt?: string): void {
     this.db
-      .prepare("UPDATE sources SET fields = ?, fields_verified = 1, fields_checked_at = ?, updated_at = ? WHERE slug = ?")
-      .run(JSON.stringify(fields), now.toISOString(), now.toISOString(), slug);
+      .prepare(
+        `UPDATE sources SET fields = ?, fields_verified = 1, fields_checked_at = ?,
+           publisher_updated_at = COALESCE(?, publisher_updated_at), updated_at = ? WHERE slug = ?`,
+      )
+      .run(JSON.stringify(fields), now.toISOString(), publisherUpdatedAt ?? null, now.toISOString(), slug);
+  }
+
+  private recordCheck(slug: string, now: Date, ok: boolean, changed: boolean, detail: Record<string, unknown>): void {
+    this.db
+      .prepare("INSERT INTO source_checks (slug, checked_at, ok, changed, detail) VALUES (?, ?, ?, ?, ?)")
+      .run(slug, now.toISOString(), ok ? 1 : 0, changed ? 1 : 0, JSON.stringify(detail));
+    this.db
+      .prepare(
+        `DELETE FROM source_checks WHERE slug = ? AND id NOT IN
+           (SELECT id FROM source_checks WHERE slug = ? ORDER BY checked_at DESC, id DESC LIMIT ?)`,
+      )
+      .run(slug, slug, SOURCE_CONFIG.checkHistory);
+  }
+
+  private checksOf(slug: string, limit: number): SourceCheck[] {
+    return (this.db
+      .prepare("SELECT * FROM source_checks WHERE slug = ? ORDER BY checked_at DESC, id DESC LIMIT ?")
+      .all(slug, limit) as CheckRow[]).map((c) => ({ checkedAt: c.checked_at, ok: c.ok === 1, changed: c.changed === 1, ...JSON.parse(c.detail) }));
+  }
+
+  private access(r: SourceRow, now: Date = new Date()): {
+    status: AccessStatus; lastCheckedAt: string | null; lastOkAt: string | null; failingSince?: string; reason?: string;
+  } {
+    const checks = this.db
+      .prepare("SELECT checked_at, ok, detail FROM source_checks WHERE slug = ? ORDER BY checked_at DESC, id DESC")
+      .all(r.slug) as Array<{ checked_at: string; ok: number; detail: string }>;
+    // Sources added before checks were recorded still have the date their field list was read.
+    const lastOkAt = checks.find((c) => c.ok === 1)?.checked_at ?? r.fields_checked_at;
+    const lastCheckedAt = checks[0]?.checked_at ?? r.fields_checked_at;
+    if (r.fields_verified !== 1) return { status: "located", lastCheckedAt: null, lastOkAt: null };
+    if (checks[0] && checks[0].ok === 0) {
+      const streak = checks.findIndex((c) => c.ok === 1);
+      const firstFail = checks[(streak === -1 ? checks.length : streak) - 1];
+      return {
+        status: "failing", lastCheckedAt, lastOkAt,
+        failingSince: firstFail.checked_at, reason: (JSON.parse(checks[0].detail) as { reason?: string }).reason ?? "unknown",
+      };
+    }
+    const staleBefore = new Date(now.getTime() - SOURCE_CONFIG.staleAfterDays * 86_400_000).toISOString();
+    return { status: lastOkAt && lastOkAt >= staleBefore ? "tested" : "stale", lastCheckedAt, lastOkAt };
+  }
+
+  private readinessOf(r: SourceRow) {
+    return {
+      level: r.readiness,
+      note: r.readiness_note,
+      reviewBy: r.review_by,
+      reviewOverdue: r.review_by !== null && r.review_by < new Date().toISOString().slice(0, 10),
+    };
   }
 
   private freeSlug(title: string): string {
     const base = title.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 50).replace(/-+$/, "") || "source";
     let slug = base.length >= 2 ? base : `source-${base}`;
-    for (let i = 2; this.row(slug); i++) slug = `${base}-${i}`;
+    for (let i = 2; this.row(slug) || RESERVED_SLUGS.has(slug); i++) slug = `${base}-${i}`;
     return slug;
   }
 
@@ -1081,6 +1343,7 @@ function cleanManualFields(raw: unknown): SourceField[] {
 function checkSlug(slug: string): string {
   const s = slug.trim();
   if (!SLUG_RE.test(s)) throw new SourceRejected('"slug" must be kebab-case, 2-60 characters, starting with a letter or digit');
+  if (RESERVED_SLUGS.has(s)) throw new SourceRejected(`"${s}" is reserved; choose another slug`);
   return s;
 }
 
@@ -1098,6 +1361,23 @@ function optionalText(value: unknown, key: string, max: number): string | undefi
   if (!v) return undefined;
   if (v.length > max) throw new SourceRejected(`"${key}" must be ${max} characters or fewer`);
   return v;
+}
+
+function optionalDate(value: unknown, key: string): string | undefined {
+  const v = optionalText(value, key, 10);
+  if (v === undefined) return undefined;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || Number.isNaN(Date.parse(`${v}T00:00:00Z`))) {
+    throw new SourceRejected(`"${key}" must be a date, YYYY-MM-DD`);
+  }
+  return v;
+}
+
+/** Which confirmable facts nobody has stated for this source. */
+function unknownsOf(r: SourceRow): string[] {
+  const value: Record<(typeof CONFIRMABLE)[number], string | null> = {
+    license: r.license, cost: r.cost, contact: r.contact, updateFrequency: r.update_frequency, publisherUpdatedAt: r.publisher_updated_at,
+  };
+  return CONFIRMABLE.filter((k) => value[k] === null);
 }
 
 function optionalStringList(value: unknown, key: string): string[] | undefined {
