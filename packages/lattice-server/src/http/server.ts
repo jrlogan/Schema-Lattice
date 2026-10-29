@@ -10,7 +10,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import type { LatticeInstance } from "../server/instance.ts";
 import type { LatticeConfig } from "../server/config.ts";
 import { createMcpServer, toolsFor } from "../mcp/server.ts";
-import { TOOLS, TOOLS_BY_NAME, callTool, type CallContext } from "../tools/tools.ts";
+import { TOOLS, TOOLS_BY_NAME, callTool, writeDenial, type CallContext } from "../tools/tools.ts";
 import { isToolError } from "../tools/errors.ts";
 import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
@@ -23,10 +23,11 @@ import { buildAtlas } from "../query/atlas.ts";
 import {
   BUILD_ON, NEARBY, conceptsForContexts, conceptsForMatches, nearestRoots, renderPack, renderPackIndex, resolveContextSlug,
 } from "./pack.ts";
+import { renderCommunityIndex, renderCommunityPage } from "./community-page.ts";
 import { RateLimiter, clientKey, DEFAULT_LIMITS, type RateLimits, type Bucket } from "./ratelimit.ts";
 import { REPO_ROOT } from "../server/config.ts";
 import {
-  OPERATOR, actorOf, anonymousBecause, checkCapability, looksLikeAppKey, matchesOperatorKey,
+  OPERATOR, actorOf, anonymousBecause, looksLikeAppKey, matchesOperatorKey,
   type Principal,
 } from "../server/principals.ts";
 import { readFileSync, existsSync } from "node:fs";
@@ -173,6 +174,7 @@ const DENIAL_STATUS: Record<string, number> = {
   ERR_TIER_TOO_LOW: 403,
   ERR_OPERATOR_ONLY: 403,
   ERR_APP_NOT_YOURS: 403,
+  ERR_NOT_STEWARD: 403,
   ERR_ORIGINATE_BUDGET: 429,
 };
 
@@ -305,6 +307,7 @@ async function handle(
       endpoints: {
         skill: "GET /skill (the workflow instructions for AI clients)",
         builderSkill: "GET /skill/builder (one-page brief for apps built on an existing backend)",
+        communities: "GET /community, /community/{slug} (groups of apps and people around a topic or place: contexts, apps, public data, unmet searches); discover with ?community=<slug>",
         skillPackage: "GET /skill/SKILL.md + /cli/schemalattice.mjs into ~/.claude/skills/schemalattice/ — the lightweight alternative to MCP",
         contribute: "GET /contribute (send back types the catalog lacks; or POST /api/tools/lattice_contribute)",
         pack: "GET /pack, /pack/{context}[,{context}] or /pack?q=... (paste-ready vocabulary for hosted app builders without MCP)",
@@ -462,6 +465,23 @@ async function handle(
     return;
   }
 
+  // --- communities as markdown ------------------------------------------
+  if ((path === "/community" || path === "/community/" || path.startsWith("/community/")) && isRead) {
+    const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
+    const markdown = "text/markdown; charset=utf-8";
+    const slug = path.replace(/^\/community\/?/, "").replace(/\/$/, "");
+    const report = await callTool(instance, "lattice_community_report", slug ? { slug } : {}, principal, callContext(req));
+    if (isToolError(report)) {
+      sendText(res, 404, `# No such community: ${slug}\n\nSee https://${host}/community for the list.\n`, markdown);
+      return;
+    }
+    const page = "community" in (report as object)
+      ? renderCommunityPage(report as never, host)
+      : renderCommunityIndex(report as never, host);
+    sendText(res, 200, page, markdown, "public, max-age=300");
+    return;
+  }
+
   // --- served documentation -------------------------------------------
   const SKILLS: Record<string, string> = {
     "/skill": "lattice-workflow.md",
@@ -587,6 +607,7 @@ async function handle(
       contextHint: url.searchParams.get("contextHint") ?? undefined,
       sessionId: url.searchParams.get("sessionId") ?? undefined,
       ...(contexts.length > 0 ? { contexts } : {}),
+      ...(url.searchParams.get("community") ? { community: url.searchParams.get("community") } : {}),
       ephemeral: url.searchParams.get("ephemeral") === "true",
     }, principal, callContext(req));
     send(res, isToolError(result) ? 400 : 200, result);
@@ -665,8 +686,17 @@ async function handle(
       });
       return;
     }
+    let body: unknown;
+    try {
+      body = await readBody(req);
+    } catch (err) {
+      send(res, 400, {
+        error: { code: "invalid-parameter", message: (err as Error).message },
+      });
+      return;
+    }
     if (tool.write) {
-      const denial = checkCapability(principal, name);
+      const denial = writeDenial(instance, principal, name, (body ?? {}) as Record<string, unknown>);
       if (denial) {
         send(res, DENIAL_STATUS[denial.code] ?? 403, {
           error: {
@@ -677,15 +707,6 @@ async function handle(
         });
         return;
       }
-    }
-    let body: unknown;
-    try {
-      body = await readBody(req);
-    } catch (err) {
-      send(res, 400, {
-        error: { code: "invalid-parameter", message: (err as Error).message },
-      });
-      return;
     }
     const result = await callTool(
       instance,

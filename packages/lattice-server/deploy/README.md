@@ -206,6 +206,59 @@ those tests on a fresh checkout. Live read-only probe results are recorded in
 `examples/performance/live-probe.json`; these are observations, not a sustained
 capacity guarantee.
 
+## Running your own instance
+
+For an organisation that wants a lattice of its own: a makerspace, a platform, or a city IT
+department. Tier 3 of `specs/communities-and-sub-lattices.md` describes where this is going.
+This section says what works **today**.
+
+**Most organisations don't need one.** A community on the public instance gives a group its own
+contexts, stewards, apps page, unmet-search backlog and pack (`/community/{slug}`; ask the
+operator). Run your own only when some vocabulary must never be public, or the registry,
+attestations and portfolio reports must stay in-house.
+
+### Running it
+
+The same code, on any machine with Node 22 and about 600 MB of memory to spare (see the
+measurements above):
+
+```bash
+git clone https://github.com/jrlogan/Schema-Lattice && cd Schema-Lattice/packages/lattice-server
+npm ci
+LATTICE_API_KEY=$(openssl rand -hex 32) LATTICE_DATA_DIR=/srv/lattice/data \
+  LATTICE_HOST=127.0.0.1 LATTICE_PORT=7000 npx tsx src/bin/serve.ts
+```
+
+The skeleton and governance vocabulary seed themselves on first start. **Always set
+`LATTICE_API_KEY`**: without it, writes are open to anyone who can reach the port. Put Caddy or
+another TLS proxy in front, as above.
+
+Point your projects at it:
+- the `lattice` field in `schemalattice.json` / `schemalattice.config.json`;
+- `SCHEMALATTICE_URL` for the client and the skill;
+- the MCP URL `https://<your host>/mcp`.
+
+### Identity: the same URIs, by design
+
+Your instance mints `https://schemalattice.com/c/...` URIs, exactly as the public one does
+(`specs/uri-scheme.md` § Local-server behavior). This is safe: a URI is a content hash, so two
+instances can never give the same URI to different content. It also lets a concept you design
+privately keep its URI if you later publish it publicly. What it does mean is that **a URI held
+only by your instance does not resolve at schemalattice.com.** Anyone outside needs to know
+which host to ask: your manifests' `lattice` field tells them.
+
+### Not built yet (tier 3)
+
+| Planned | Today, instead |
+|---|---|
+| Upstream search: your discover also ranks the public catalog | Search both: `SCHEMALATTICE_URL=https://schemalattice.com node schemalattice.mjs discover "…"` alongside your own |
+| `private` contexts that can never leave | Keep the convention by hand: never publish your private contexts' records to the public instance |
+| Publish-up that refuses records pointing into private contexts | `schemalattice.mjs publish` with `SCHEMALATTICE_URL=https://schemalattice.com` and a public app key replays records under the same URIs. Check by hand that nothing you publish points into a private context. The public instance refuses a fork whose parent it doesn't hold, but it doesn't check `broader` entries beside a skeleton root, or field references |
+| `heldBy` on manifest entries, so outsiders know a URI is private | Say so in your project's docs |
+
+When your organisation needs any of these, raise it (`lattice_feedback`, or an issue on the
+repository). They are designed and wait for a first user.
+
 ## October 21, 2026 Node runtime patch
 
 Done on 2026-10-29: the NodeSource repo now points at `node_22.x` (the old

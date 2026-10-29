@@ -9,7 +9,7 @@
  *   node schemalattice.mjs status     which of the manifest's URIs the catalog already holds
  *
  * Lookups, no config needed (the skill's tools — https://schemalattice.com/skill/SKILL.md):
- *   node schemalattice.mjs discover "<the record you are about to model>"  [--context slug] [--limit n] [--record]
+ *   node schemalattice.mjs discover "<the record you are about to model>"  [--context slug] [--community slug] [--limit n] [--record]
  *   node schemalattice.mjs resolve <concept uri>                              [--session id]
  *   node schemalattice.mjs propose <session id> <concept uri> right|wrong [different-referent|too-broad|too-narrow|wrong-domain]
  *   node schemalattice.mjs contexts [<context uri>]
@@ -678,11 +678,12 @@ async function lookup(command, args, flags, base) {
   const json = flags.has('--json');
   if (command === 'discover') {
     const description = words.join(' ').trim();
-    if (!description) throw new Error('usage: schemalattice discover "<the record you are about to model>" [--context slug] [--limit n] [--record]');
+    if (!description) throw new Error('usage: schemalattice discover "<the record you are about to model>" [--context slug] [--community slug] [--limit n] [--record]');
     // Ephemeral unless --record: the query then feeds the public demand report of unmet vocabulary.
     const body = await call(base, 'lattice_discover', {
       description, limit: Number(flag('limit') ?? 5), ephemeral: !flags.has('--record'),
       ...(flag('context') ? { contexts: flag('context').split(',') } : {}),
+      ...(flag('community') ? { community: flag('community') } : {}),
     });
     if (json) return console.log(JSON.stringify(body, null, 2));
     const out = [`${body.verdict}: ${body.guidance}`, `session ${body.sessionId}`];

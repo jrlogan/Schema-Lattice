@@ -34,7 +34,9 @@ Every command below runs `schemalattice.mjs`, the zero-dependency client next to
      variant of it and keep its names where they fit.
    - **distant** (0.55–0.65): decide by meaning, not score.
    - **no-match**: rephrase once, then model it yourself.
-   Narrow with `--context <slug>` (`contexts` lists them).
+   Narrow with `--context <slug>` (`contexts` lists them), or `--community <slug>` when you
+   build within a community, such as a city's civic apps (https://schemalattice.com/community
+   lists them).
 3. **Read before deciding.** `… resolve <uri> --session <id>` shows the definition, lineage
    and fields.
 4. **Say whether it was right.** `… propose <session> <uri> right` or

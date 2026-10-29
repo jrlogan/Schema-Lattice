@@ -364,6 +364,8 @@ export class Store {
     topUri: string | null;
     topSimilarity: number | null;
     via: string | null;
+    contexts: string[];
+    community: string | null;
   }> {
     const rows = this.db
       .prepare("SELECT ts, payload FROM events WHERE kind = 'discover' ORDER BY id")
@@ -380,6 +382,8 @@ export class Store {
           topUri: p.topUri ?? null,
           topSimilarity: typeof p.topSimilarity === "number" ? p.topSimilarity : null,
           via: typeof p.via === "string" ? p.via : null,
+          contexts: Array.isArray(p.contexts) ? p.contexts : [],
+          community: typeof p.community === "string" ? p.community : null,
         });
       } catch {
         // A malformed historical payload shouldn't sink the report.

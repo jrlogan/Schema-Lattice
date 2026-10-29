@@ -31,18 +31,18 @@ Seven tools, organized by which checkpoint calls them:
 
 ## Tool profiles (context budget)
 
-A client keeps every listed tool's schema in context for the whole session. All 36 tools are
-about 9,100 tokens, so `/mcp` lists a profile instead (`src/mcp/server.ts` `PROFILES`):
+A client keeps every listed tool's schema in context for the whole session. All 38 tools are
+about 9,600 tokens, so `/mcp` lists a profile instead (`src/mcp/server.ts` `PROFILES`):
 
 | Profile | Tools | ~Tokens | Default for |
 |---|---|---|---|
-| `build` | discover, resolve, list_context, propose, feedback | 1,100 | anonymous |
-| `publish` | build + compare, register_app, publish_context/concept/fork, list_usages | 3,300 | app key |
-| `sources` | build + the nine source tools | 4,100 | |
-| `reports` | build + stats, demand/evidence/mesh/app/portfolio reports, compare | 2,200 | |
+| `build` | discover, resolve, list_context, propose, feedback | 1,200 | anonymous |
+| `publish` | build + compare, register_app, publish_context/concept/fork, list_usages, publish_community | 3,600 | app key |
+| `sources` | build + the nine source tools | 4,200 | |
+| `reports` | build + stats, demand/evidence/mesh/app/portfolio/community reports, compare | 2,300 | |
 | `api` | build + the four API-design tools | 2,300 | |
-| `contribute` | build + contribute, withdraw_contribution | 1,500 | |
-| `all` | everything | 9,100 | operator key, local stdio |
+| `contribute` | build + contribute, withdraw_contribution | 1,600 | |
+| `all` | everything (38) | 9,600 | operator key, local stdio |
 
 Choose with `/mcp?profile=build,sources` or `?tools=discover,resolve` (stdio:
 `LATTICE_MCP_PROFILE`, `LATTICE_MCP_TOOLS`). Profiles trim the list only: an unlisted tool is
@@ -51,6 +51,25 @@ skill at `/skill/SKILL.md`, which drives the client's lookup commands.
 
 When adding a tool, put it in the profile its users connect with, and keep its description to
 what an agent needs in order to choose and call it. Longer guidance belongs in `skills/`.
+
+## Community tools
+
+Communities are stewarded views over public contexts (`specs/communities-and-sub-lattices.md`).
+
+- **`lattice_publish_community`** (write) takes `{ slug, title?, charter?, contexts?,
+  jurisdictions?, stewards?, conventions? }`. The operator creates a community and names its
+  stewards (app slugs). A steward may change everything else. Omitted fields keep their values.
+  Errors: `ERR_OPERATOR_ONLY`, `ERR_NOT_STEWARD`, `ERR_UNKNOWN_CONTEXT`, `ERR_UNKNOWN_APP`,
+  `ERR_JURISDICTION_INVALID`, `ERR_COMMUNITY_CHARTER_TOO_SHORT`.
+- **`lattice_community_report`** (read) takes `{ slug? }`. With no slug it lists communities.
+  With a slug it returns the charter, contexts with counts, newest concepts, member apps and
+  mesh links between them, sources in its jurisdictions, unmet searches, evidence about its
+  concepts, and its pack path.
+- **`community`** is accepted by `lattice_discover` (search only its contexts; logged for its
+  demand report), by `lattice_demand_report` (only its searches) and by
+  `lattice_publish_context` (add the new context to it; a steward needs no contributor tier).
+  `lattice_register_app` takes **`communities: []`**, which replaces the app's memberships;
+  omit it to keep them.
 
 ## `lattice_discover`
 

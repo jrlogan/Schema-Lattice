@@ -101,7 +101,11 @@ to other locked decisions.
 ## Infrastructure
 
 - **v0.1 is single-instance.** Federation is the thing that kills
-  these projects; explicitly deferred to v0.2 or later.
+  these projects; explicitly deferred to v0.2 or later. (2026-10-29)
+  Groups get logical scoping inside the one catalog instead: communities, and
+  organisation sub-lattices. Organisations that need private vocabulary run their own
+  instance that searches up to the public one (hub-and-spoke), with no peer
+  federation. See `specs/communities-and-sub-lattices.md`.
 - **Local testing first.** Users run a local instance against their
   own apps before ever touching schemalattice.com. The same codebase
   runs both modes.

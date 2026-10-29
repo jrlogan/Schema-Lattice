@@ -38,6 +38,8 @@ export interface DiscoverInput {
    * other — asking for it by name is the explicit opt-in.
    */
   contexts?: string[];
+  /** The community the caller searched within, if any; logged for its demand report. */
+  community?: string;
   /** Caller session id; logged so R2 can verify discover-before-publish. */
   sessionId?: string;
   /**
@@ -254,6 +256,8 @@ export async function discover(
     sessionId,
     query: input.ephemeral ? null : input.description,
     ...(input.via ? { via: input.via } : {}),
+    ...(only ? { contexts: [...only] } : {}),
+    ...(input.community ? { community: input.community } : {}),
     resultCount: results.length,
     topUri: top?.uri ?? null,
     topSimilarity: top?.similarity ?? null,

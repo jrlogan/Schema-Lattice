@@ -31,6 +31,7 @@ import {
 } from "../discover/discover.ts";
 import { BackgroundReports } from "../jobs/reports.ts";
 import { ApiAdvisor } from "../advisor/service.ts";
+import { Communities } from "../registry/communities.ts";
 import { Registry } from "../registry/registry.ts";
 import {
   publishContext,
@@ -96,6 +97,7 @@ export class LatticeInstance {
   readonly embedder: Embedder;
   readonly vectors: VectorIndex;
   readonly registry: Registry;
+  readonly communities: Communities;
   readonly evidence: EvidenceLedger;
   readonly contributions: Contributions;
   readonly sources: Sources;
@@ -118,6 +120,8 @@ export class LatticeInstance {
       governance: this.governance,
       vectors: this.vectors,
     });
+    // After the registry: stewards and members are registered apps.
+    this.communities = new Communities(this.store);
     this.evidence = new EvidenceLedger(this.store, this.embedder);
     this.contributions = new Contributions(
       this.store,
@@ -227,7 +231,7 @@ export class LatticeInstance {
     });
   }
 
-  demandReport(opts?: { threshold?: number; limit?: number }): Promise<DemandReport> {
+  demandReport(opts?: { threshold?: number; limit?: number; community?: string }): Promise<DemandReport> {
     return demandReport(
       {
         store: this.store,
@@ -235,8 +239,20 @@ export class LatticeInstance {
         vectors: this.vectors,
         reservedContexts: [this.governance.contextUri],
       },
-      opts,
+      { ...opts, filter: opts?.community ? this.communityDemandFilter(opts.community) : undefined },
     );
+  }
+
+  /**
+   * Which unmet searches belong to a community: asked with its name, filtered
+   * to one of its contexts, or nearest to a concept in one of them.
+   */
+  private communityDemandFilter(slug: string) {
+    const uris = new Set(this.communities.contextUris(slug));
+    return (e: { community: string | null; contexts: string[]; topUri: string | null }) =>
+      e.community === slug ||
+      e.contexts.some((c) => uris.has(c)) ||
+      (e.topUri !== null && uris.has((this.store.getConcept(e.topUri)?.inScheme as string | undefined) ?? ""));
   }
 
   resolve(uri: string, sessionId?: string): ConceptRecord | null {
