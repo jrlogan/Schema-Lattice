@@ -571,6 +571,22 @@ async function main() {
     JSON.stringify(mcpContext).slice(0, 120),
   );
 
+  // --- /api/embed: vectors for the client's `similar`, nothing recorded ----
+  const eventsBefore = (instance.store.db.prepare("SELECT COUNT(*) AS n FROM events").get() as { n: number }).n;
+  const embedded = await post("/api/embed", { texts: ["Crew invite. A skipper asks people to come sailing.", "Engine hour reading"] });
+  const eventsAfter = (instance.store.db.prepare("SELECT COUNT(*) AS n FROM events").get() as { n: number }).n;
+  check(
+    "embed-returns-normalized-vectors",
+    embedded.status === 200 && embedded.body.model === instance.embedder.id && embedded.body.vectors.length === 2 &&
+      embedded.body.vectors.every((v: number[]) => v.length === instance.embedder.dim &&
+        Math.abs(Math.hypot(...v) - 1) < 1e-3),
+    `status ${embedded.status}, ${embedded.body.vectors?.length} vectors`,
+  );
+  check("embed-records-nothing", eventsAfter === eventsBefore, `${eventsBefore} → ${eventsAfter} events`);
+  const tooMany = await post("/api/embed", { texts: Array.from({ length: 65 }, (_, i) => `t${i}`) });
+  const notText = await post("/api/embed", { texts: [""] });
+  check("embed-refuses-oversized-or-empty", tooMany.status === 400 && notText.status === 400, `${tooMany.status}, ${notText.status}`);
+
   const writeEvents = instance.store.db
     .prepare("SELECT actor, COUNT(*) AS n FROM events WHERE kind = 'publish_context' GROUP BY actor")
     .all() as Array<{ actor: string | null; n: number }>;

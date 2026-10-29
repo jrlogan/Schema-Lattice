@@ -16,6 +16,51 @@ curl -o tools/lattice/schemalattice.mjs https://schemalattice.com/cli/schemalatt
 | `check` | fails if any of those files is stale — put it in CI | no |
 | `publish` | pushes records the catalog does not hold yet; fails if the catalog would mint a different URI than the committed one | yes, needs `SCHEMALATTICE_KEY` |
 | `status` | which committed URIs are live | yes |
+| `similar "<description>"` | before adding a type: the platform's own schemas nearest the description, then other apps' concepts in the catalog. Advisory, never a gate | yes (see below) |
+
+## `similar`: has this platform already modelled it?
+
+As a codebase grows, the same idea gets built twice under different names — a crew list in one
+app, an aboard record in another, two invitation flows. `similar` is the check to run before
+adding a type:
+
+```bash
+node tools/lattice/schemalattice.mjs similar "a skipper invites several people to sail and sees who confirmed"
+```
+
+```
+Nearest in Boating Systems (339 schemas). Scores rank; they do not decide — read the flagged ones.
+▶ 0.80  sailInvite  packages/schema/src/sailInvite.ts#sailInvite
+        An invitation to sail … a skipper asks one person to come sailing on one boat …
+▶ 0.74  crewInvite  packages/schema/src/planning.ts#crewInvite
+  …
+```
+
+It searches the declared concepts plus, when the config names an `inventory` source, **every**
+schema in the code. The undeclared ones are where a second version usually hides. An inventory
+is any `dictionary` or `command` source; entities may add `description` (the doc comment) and
+`location`:
+
+```jsonc
+"inventory": { "format": "command", "run": "npx vite-node tools/lattice/dictionary.mjs --all" }
+// prints { "entities": { "sailInvite": { "fields": [...], "description": "…", "location": "src/…#sailInvite" } } }
+```
+
+How to read it:
+
+- Matching is on `label. doc comment` (or `label. Fields: …` when there is no doc comment), the
+  same shape the catalog indexes. **Doc comments are what make it work**: an undocumented schema
+  is matched on its name alone and often ranks far below where it belongs.
+- `▶` marks 0.70 and above: read those before building. Scores rank but do not decide. Two parts
+  of one design score as high as one idea built twice, so the call is a person's (or the AI's,
+  in the PR description), never the tool's.
+- Phrasing moves results. Describe the record twice: once by what it holds, once by what someone
+  does with it.
+
+Network: texts go to `POST /api/embed` on the lattice, which embeds them with the catalog's model
+and stores nothing. Vectors are cached in `node_modules/.cache/schemalattice/`, so a repeat run
+sends only the query. The catalog half uses ephemeral discover: the query is not recorded in the
+demand report. `--no-catalog` skips it, and `--json` gives agents the raw result.
 
 ## Why URIs are computed locally
 
