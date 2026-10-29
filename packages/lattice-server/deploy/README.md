@@ -83,7 +83,7 @@ $G --command="sudo cat /etc/schemalattice/env"        # the write key
 
 ```bash
 tar czf /tmp/lattice.tgz --exclude=node_modules --exclude=var --exclude=.git --exclude=.env.deploy \
-  packages/lattice-server packages/lattice-client specs skills *.md LICENSE
+  packages/lattice-server packages/lattice-client scripts specs skills *.md LICENSE
 gcloud compute scp /tmp/lattice.tgz lattice:~/ --zone=$LATTICE_GCP_ZONE --project=$LATTICE_GCP_PROJECT
 $G --command="sudo tar xzf ~/lattice.tgz -C /srv/schemalattice/app \
   && sudo chown -R schemalattice:schemalattice /srv/schemalattice/app \
@@ -207,5 +207,11 @@ those tests on a fresh checkout. Live read-only probe results are recorded in
 capacity guarantee.
 
 ## October 21, 2026 Node runtime patch
+
+Done on 2026-10-29: the NodeSource repo now points at `node_22.x` (the old
+file is kept at `/root/nodesource.sources.node20`), Node is 22.23.4, `npm ci`
+rebuilt the native modules, and disk snapshot `lattice-pre-node22-20261029`
+holds the state before. To roll back, restore that file, `apt-get install
+nodejs=20.20.2-1nodesource1`, run `npm ci` and restart.
 
 Upgrade the VM's system Node to a supported patched release (22.23.4+, 24.22.1+, or 26.12.1+ in those release lines). Node 20 is unsupported. From the repository root, run `node scripts/check-node.cjs` using the same Node executable as the systemd service. After updating Node, run `npm ci` in `packages/lattice-server` to rebuild native dependencies, run `npm run smoke`, restart `schemalattice`, and verify its health. A source update alone does not patch the running VM.
