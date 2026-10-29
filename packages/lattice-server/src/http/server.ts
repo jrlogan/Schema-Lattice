@@ -425,7 +425,7 @@ async function handle(
       sendText(res, 404, `# No such source: ${slug.replace(/[^a-z0-9-]/g, "")}\n\nSee https://${host}/sources for the list.\n`, markdown);
       return;
     }
-    sendText(res, 200, renderSourcePage(source, host), markdown, "public, max-age=300");
+    sendText(res, 200, renderSourcePage(source, host, { forwardingConsent: instance.governanceUri("forwarding-consent") }), markdown, "public, max-age=300");
     return;
   }
 

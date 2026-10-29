@@ -45,7 +45,7 @@ function line(value: unknown): string {
   return String(value ?? "").replace(/[\r\n]+/g, " ").replace(/[<>]/g, "").trim();
 }
 
-export function renderSourcePage(s: Resolved, host: string): string {
+export function renderSourcePage(s: Resolved, host: string, links: { forwardingConsent?: string } = {}): string {
   const out: string[] = [];
   out.push(`# ${line(s.title)}`, "");
   out.push(`> ${line(s.recordDescription)}`, "");
@@ -145,7 +145,7 @@ export function renderSourcePage(s: Resolved, host: string): string {
     out.push("## Personal and sensitive fields", "");
     out.push(
       "Public data can still identify people. Don't republish these fields, or pass them to another party, without a reason " +
-        "and the person's agreement (governance/forwarding-consent describes how to record it).",
+        `and the person's agreement (${links.forwardingConsent ? `[Forwarding Consent](${links.forwardingConsent})` : "the governance Forwarding Consent record"} describes how to record it).`,
       "",
     );
     for (const f of sensitive) {
@@ -182,13 +182,20 @@ export function renderSourcePage(s: Resolved, host: string): string {
     out.push(`${s.unmappedFields} field(s) have no meaning recorded yet.`, "");
   }
 
-  if (s.related.length) {
+  // A relation that is only "this point falls in that area" says the same
+  // thing for every pair, and a city has dozens: one compact list, the
+  // instruction said once, tested ones shown in full.
+  const pipOnly = (r: (typeof s.related)[number]) =>
+    r.joins.length > 0 && r.joins.every((j) => j.method === "point-in-polygon" && !("tested" in j && j.tested));
+  const areas = s.related.filter(pipOnly);
+  const fullRelated = s.related.filter((r) => !pipOnly(r));
+  if (fullRelated.length) {
     out.push("## Related sources", "");
-    for (const r of s.related) {
+    for (const r of fullRelated) {
       out.push(`### ${line(r.title)} (\`${r.slug}\`, ${r.jurisdiction})`, "");
       for (const j of r.joins) {
         out.push(`**${j.kind} join${j.via ? ` via ${line(j.via.prefLabel)}` : ""}.** ${line(j.how)}`, "");
-        const t = "tested" in j ? j.tested : undefined;
+        const t = (j as { tested?: { status: string; matchRate: number; reports: number } | null }).tested;
         if (t) out.push(`_Builders ran it: ${t.status === "works" ? "works" : t.status === "fails" ? "fails" : "unconfirmed"}, median match ${Math.round(t.matchRate * 100)}% over ${t.reports} report(s)._`, "");
         else if (t === null) out.push("_Not yet tested by a builder. After you run it, report it with `lattice_report_join` (counts only)._", "");
         if (j.pairs.length) {
@@ -199,6 +206,12 @@ export function renderSourcePage(s: Resolved, host: string): string {
       }
       out.push(`Full page: https://${host}/sources/${r.slug}`, "");
     }
+  }
+  if (areas.length) {
+    out.push(s.geometry && /point|location/i.test(s.geometry) ? "## Areas these points fall in" : "## Point layers that fall in these areas", "");
+    out.push(`${line(areas[0].joins[0].how)}`, "");
+    out.push(areas.map((r) => `[${line(r.title)}](https://${host}/sources/${r.slug})`).join(", ") + ".", "");
+    out.push("Untested so far. After you run one, report it with `lattice_report_join` (counts only).", "");
   }
 
   if (s.builderJoins.length) {
