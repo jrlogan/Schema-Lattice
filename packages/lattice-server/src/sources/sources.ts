@@ -1672,8 +1672,8 @@ export function detectGeometry(fields: SourceField[]): string | null {
   return locationFields(fields) ? "point" : null;
 }
 
-const LAT_RE = /^(lat|latitude|y_?lat|lat_?y)$/i;
-const LNG_RE = /^(lng|lon|long|longitude|x_?lon|lon_?x)$/i;
+const LAT_RE = /^(lat|latitude|decimal_?latitude|y_?lat|lat_?y)$/i;
+const LNG_RE = /^(lng|lon|long|longitude|decimal_?longitude|x_?lon|lon_?x)$/i;
 const NUMERIC = new Set(["number", "double", "float", "decimal", "integer", "single", "unknown", "string", "text"]);
 
 /** Which fields carry a point location, described for a builder; null when none do. */

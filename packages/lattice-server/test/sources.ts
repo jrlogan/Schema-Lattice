@@ -442,6 +442,7 @@ async function main() {
   check("lat-lng-is-a-point", detectGeometry([{ name: "lat", type: "number" }, { name: "lng", type: "number" }]) === "point");
   check("geojson-point-is-a-point", detectGeometry([{ name: "point", type: "object" }, { name: "point.type", type: "string" }, { name: "point.coordinates", type: "array" }]) === "point");
   check("nested-lat-lng", locationFields([{ name: "location.latitude", type: "double" }, { name: "location.longitude", type: "double" }])?.includes("`location.latitude`") === true);
+  check("darwin-core-lat-lng-is-a-point", detectGeometry([{ name: "decimalLatitude", type: "number" }, { name: "decimalLongitude", type: "number" }]) === "point");
   check("unpaired-lat-is-not-a-point", detectGeometry([{ name: "lat", type: "number" }, { name: "zip", type: "string" }]) === null);
   const issues = await S.propose({
     accessUrl: "https://api.example.org/issues?place=new-haven", platform: "manual", slug: "nh-issues", title: "Issues",
@@ -468,6 +469,8 @@ async function main() {
       l.some((x) => x.jurisdiction === "US-CT") && !l.some((x) => x.jurisdiction === "US-NY");
   })(), S.listAll("US-CT/new-haven").map((x) => x.jurisdiction).join(","));
   check("point-in-polygon-names-fields-for-api-points", /`lat`/.test(pip?.how ?? ""), pip?.how);
+  const parcelsPage = renderSourcePage(S.resolve("ct-parcels")!, "x");
+  check("point-layers-listed-compactly", parcelsPage.includes("## Point layers that fall in these areas") && !parcelsPage.includes(`### Issues (\`${issues.slug}\``), parcelsPage.slice(parcelsPage.indexOf("## Point"), parcelsPage.indexOf("## Point") + 300));
   check("polygons-still-overlay", S.resolve("ct-parcels")!.overlays.some((o) => o.slug === zones.slug));
 
   // --- what builders found -------------------------------------------------------------------
