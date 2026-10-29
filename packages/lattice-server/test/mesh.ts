@@ -125,6 +125,37 @@ async function main() {
   const eventsAfter = (instance.store.db.prepare("SELECT COUNT(*) AS n FROM events").get() as { n: number }).n;
   check("manifest-not-stored", eventsAfter === eventsBefore, `${eventsBefore} → ${eventsAfter}`);
 
+  // An unpublished fork is compared through its parent, never dropped.
+  const forked = {
+    project: { name: "fork-app" },
+    concepts: {
+      Sitting: { status: "forked", forkedFrom: MEETING },
+      Draft: { status: "originated", definition: "Something not yet published." },
+    },
+    fieldMaps: { out: { source: { concept: "Sitting" }, target: { concept: "Sitting" }, fields: [{ target: "startsAt", from: "when" }, { target: "wire_code", from: "x" }] } },
+  };
+  const fk = await call("lattice_mesh_report", { a: "app:club-a", b: { manifest: forked } });
+  const sitting = !isToolError(fk) && fk.pairs.find((p: any) => p.b?.locals?.includes("Sitting"));
+  check("unpublished-fork-compared-through-parent", sitting?.grade === "translate" && sitting.match === "lineage" && /unpublished fork/.test(sitting.how), JSON.stringify(sitting).slice(0, 300));
+  check("fork-noted", !isToolError(fk) && fk.notes.some((n: string) => /unpublished fork/.test(n)) && fk.notes.some((n: string) => /Draft: originated/.test(n)));
+  check("field-map-local-names-and-wire-names", !isToolError(fk) && fk.notes.some((n: string) => /1 of 2 target field\(s\) are wire names/.test(n)) &&
+    sitting.fields.some((f: any) => f.conceptField === "startsAt" && f.status === "direct"), JSON.stringify(fk.notes));
+  const arr = await call("lattice_mesh_report", { a: "app:club-a", b: { manifest: { concepts: [{ shortName: "Person", uri: MEMBER2, status: "adopted" }] } } });
+  check("array-manifest-shape", !isToolError(arr) && arr.pairs.some((p: any) => p.b?.locals?.includes("Person") && p.grade === "direct"), isToolError(arr) ? arr.error.message : "");
+
+  // Location: records with latitude/longitude meet a polygon layer by point in polygon.
+  const SPOT = await pub("Reported Spot", "A place a resident flagged on a map, with its coordinates and when it was flagged for the city to look at.", [
+    { name: "latitude", type: "number" }, { name: "longitude", type: "number" }, { name: "flaggedAt", type: "datetime" },
+  ]);
+  await instance.sources.propose({
+    accessUrl: "https://gis.example.gov/wards.geojson", platform: "manual", slug: "test-wards", title: "Wards", publisher: "City",
+    jurisdiction: "US-CT/new-haven", recordDescription: "One ward of the city with its boundary.",
+    fields: [{ name: "ward", type: "integer" }, { name: "shape", type: "polygon" }],
+  }, "operator");
+  const sp = await call("lattice_mesh_report", { a: { manifest: { project: { name: "spots" }, concepts: { Spot: { uri: SPOT, status: "adopted" } } } }, b: "source:test-wards" });
+  check("spatial-connection-found", !isToolError(sp) && sp.spatial.length === 1 && sp.counts.spatial === 1 && sp.challenges[0].includes("point in polygon") &&
+    !sp.challenges.some((c: string) => /nothing in common to connect/.test(c)), isToolError(sp) ? sp.error.message : JSON.stringify(sp.challenges));
+
   const bad = await call("lattice_mesh_report", { a: "app:nope", b: "app:club-b" });
   check("unknown-app-refused", isToolError(bad) && bad.error.code === "invalid-parameter");
   const badShape = await call("lattice_mesh_report", { a: "club-a", b: "app:club-b" });

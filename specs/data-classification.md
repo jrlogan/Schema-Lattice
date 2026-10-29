@@ -31,6 +31,7 @@ concepts only. Contents:
 | `confidential` | 2 | Restricted org information; disclosure causes real harm |
 | `personal-contact` | 3 | Name + email, phone, address, handles |
 | `personal-identity` | 4 | Government IDs, birth date, photos, biometrics |
+| `personal-location` | 3 | Where a particular person was or is: precise points, home address, check-ins, tracks (added 2026-10-29 from the civic case studies) |
 | `personal-financial` | 4 | Payment details, billing, dues, salary |
 | `personal-health` | 5 | Medical notes, injuries, allergies, waivers |
 | `personal-minor` | 5 | Anything about a person under the age of majority |
@@ -45,6 +46,26 @@ All classes sit `broader` → skeleton `Classification`. Personal-data
 classes carry `closeMatch` references into the W3C Data Privacy
 Vocabulary (`dpv:` / `dpv-pd:` prefixes, added to the approved
 external-vocabulary list).
+
+### The forwarding-consent record (conceptKind: entity)
+
+`governance/forwarding-consent` describes a person's agreement that a record
+they made may be sent to a named recipient: a volunteer's observation
+forwarded to the city's 311, a survey answer shared with a partner. Its
+fields:
+- `subjectRecord`;
+- `recipient`;
+- `purpose`;
+- `includedFields`;
+- `identityShared`;
+- `grantedAt`;
+- `method`;
+- `withdrawnAt`.
+
+Like the classes, it is vocabulary, not enforcement. Whether consent is
+needed, and what counts, is the adopting party's decision. Apps that pass
+citizen-generated data on can record consent in one shape, and another app
+can read it.
 
 ### The attestation record (conceptKind: entity)
 

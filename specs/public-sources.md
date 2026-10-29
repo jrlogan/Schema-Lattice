@@ -254,6 +254,39 @@ other metadata:
 `null` clears a key. Builders who aren't the proposer add the same facts
 as `access` notes.
 
+## Submit endpoints
+
+A source's `direction` is `read` (the default) or `submit`: an endpoint that
+takes records to the publisher, such as an Open311 `POST /requests`. This is
+how a resident's report gets from an app to the city.
+- **Recording one:** a submit endpoint is recorded like any source. Its
+  fields are the request's fields, and they can be mapped onto concepts.
+  So an app can line its records up with what the city accepts.
+- **What the page says:** it warns that records sent there reach the
+  publisher, and that they should carry only what the person agreed to
+  share. It shows no example request.
+- **How submitted records relate:** the publisher's per-type rules (Open311
+  service definitions and their required attributes) are a read source of
+  their own. They relate to the submit endpoint through the service code.
+
+## Sensitive fields
+
+Public data can identify people:
+- SeeClickFix publishes reporter names;
+- agenda titles carry testimony with home addresses;
+- tax-relief orders name residents.
+
+A source field's sensitivity is, highest rank first:
+1. **stated** for the source (`fieldClassifications`, governance class slugs, set by the curator or proposer);
+2. else **carried** by the concept field it maps onto, when that is not `public`;
+3. else **reported** by builders' `personal-data` field notes.
+
+`resolve` gives `classification` and `classifiedBy` on each field. The page
+lists them under "Personal and sensitive fields" and points to
+`governance/forwarding-consent` (specs/data-classification.md) for
+recording a person's agreement before passing their data on.
+`personal-location` was added for where a particular person was.
+
 ## Who can add what
 
 | Caller | Source or mapping they submit |

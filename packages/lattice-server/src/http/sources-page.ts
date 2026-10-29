@@ -62,6 +62,13 @@ export function renderSourcePage(s: Resolved, host: string): string {
     );
   }
   out.push(`_${UNTRUSTED_NOTICE}_`, "");
+  if (s.direction === "submit") {
+    out.push(
+      "**This is a submit endpoint:** records sent here go to the publisher. Test against a sandbox if one exists, " +
+        "send only what the person agreed to share, and never submit on someone's behalf without their say-so.",
+      "",
+    );
+  }
 
   out.push("## What you can rely on", "");
   out.push(`- **Access:** ${accessLine(s.access)}`);
@@ -132,6 +139,21 @@ export function renderSourcePage(s: Resolved, host: string): string {
       " Field names below are exact; use them as written.",
     "",
   );
+
+  const sensitive = s.fields.filter((f) => "classification" in f && f.classification);
+  if (sensitive.length) {
+    out.push("## Personal and sensitive fields", "");
+    out.push(
+      "Public data can still identify people. Don't republish these fields, or pass them to another party, without a reason " +
+        "and the person's agreement (governance/forwarding-consent describes how to record it).",
+      "",
+    );
+    for (const f of sensitive) {
+      const by = "classifiedBy" in f ? (f.classifiedBy === "source" ? "stated for this source" : f.classifiedBy === "concept" ? "from the concept field it maps to" : "reported by builders") : "";
+      out.push(`- \`${cell(f.name)}\`: ${cell(f.classification)} (${by})`);
+    }
+    out.push("");
+  }
 
   if (s.carries.length) {
     out.push("## What the records are", "");

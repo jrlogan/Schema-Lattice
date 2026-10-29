@@ -718,8 +718,9 @@ Results are ordered by the adjusted score; `similarity` stays raw and
     fit: number,                         // 0-100: how cleanly the shared part connects
     overlap: { connected, aConcepts, bConcepts, ofSmaller },   // how much there is to connect
     score: number,                       // = fit
-    counts: { direct, translate, manual, gap },
+    counts: { direct, translate, manual, gap, spatial },
     challenges: string[],                // plain English, most important first
+    spatial: Array<{ points, areas, method: "point-in-polygon", how }>,
     pairs: Array<{ grade: "direct" | "translate" | "manual" | "gap",
                    match: "same" | "lineage" | "coreference" | "similar" | null,
                    a, b: { locals, uri, label } | null, similarity?, how,
@@ -738,6 +739,23 @@ fills: from registered usage `fields` (see `lattice_register_app`), from a
 source's mappings, or from a manifest's `fieldMaps`. A pasted manifest is
 used for the computation and never stored or logged. `GET /mesh` is the
 same report as a page.
+
+**Manifests:**
+- `concepts` may be the manifest's object form or the registry's array form (`[{ shortName, uri }]`).
+- A concept with `status: "forked"` and a `forkedFrom` but no `uri` of its
+  own (an unpublished fork) is compared through its parent. It is a
+  `lineage` match at best, never `same`, and is noted. An honest fork
+  therefore scores just below plain adoption, instead of disappearing.
+- `fieldMaps` `source.concept` and `target.concept` may be local names.
+  Field names that are not fields of the concept (wire names such as
+  Open311's `service_code`) are reported in `notes` and not counted.
+
+**Spatial:** when one side's records carry a point location and the other
+side is an area layer, the report adds a point-in-polygon entry to
+`spatial` and to the challenges. A point location comes from a concept's
+latitude/longitude or point-geometry fields, or from a source's geometry.
+Sides that share no concept but connect by location are not reported as
+having nothing in common.
 
 ## Public source tools (evidence phase 2)
 
