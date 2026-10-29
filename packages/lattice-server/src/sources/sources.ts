@@ -742,7 +742,7 @@ export class Sources {
     const listed = advisorOnly ? new Set(this.advisorCandidates([], [slug])) : this.listedSlugs();
     const allPairs = advisorOnly ? this.advisorPairs(slug) : this.listedPairs();
     const pairs = allPairs.filter((p) => p.source === slug);
-    const profile = this.profileOf(slug);
+    const profile = this.profileOf(slug, new Set(pairs.map((p) => p.sourceField)));
     const fields = (JSON.parse(r.fields) as SourceField[]).map((f) => {
       const meanings = pairs
         .filter((p) => p.sourceField === f.name)
@@ -1157,7 +1157,7 @@ export class Sources {
         jurisdiction: r.jurisdiction,
         kind: r.kind,
         // Mapped fields the profile shows are blank or not degrees: a builder relying on the mapping is misled.
-        fieldWarnings: this.profileOf(r.slug).warnings.filter((w) => mappedHere.has(w.field) && w.problem !== "mostly-empty"),
+        fieldWarnings: this.profileOf(r.slug, mappedHere).warnings.filter((w) => mappedHere.has(w.field) && w.problem !== "mostly-empty"),
         access: this.access(r, now),
         drifted: last?.ok === true && last.changed,
         readiness: r.readiness,
@@ -1423,18 +1423,26 @@ export class Sources {
         const base = r.access_url.replace(/\/(query)?\/?$/, "");
         const total = Number(((await this.fetchJson(`${base}/query?where=1%3D1&returnCountOnly=true&f=json`)) as { count?: number }).count);
         if (!Number.isFinite(total)) throw new SourceFetchError("no row count");
-        const stats = chosen.flatMap((f, i) => [
-          { statisticType: "count", onStatisticField: f.name, outStatisticFieldName: `c${i}` },
-          ...(numeric(f) ? [
-            { statisticType: "min", onStatisticField: f.name, outStatisticFieldName: `n${i}` },
-            { statisticType: "max", onStatisticField: f.name, outStatisticFieldName: `x${i}` },
-          ] : []),
-        ]);
-        const body = (await this.fetchJson(`${base}/query?where=1%3D1&outStatistics=${encodeURIComponent(JSON.stringify(stats))}&f=json`)) as {
-          features?: Array<{ attributes: Record<string, number | null> }>; error?: { message?: string };
-        };
-        if (body.error || !body.features?.[0]) throw new SourceFetchError(body.error?.message ?? "no statistics");
-        const a = lowerKeys(body.features[0].attributes);
+        // A few fields per request: some servers (IIS-hosted ArcGIS Online among
+        // them) answer 404 to a query string over about 2,000 characters.
+        const a: Record<string, number | null> = {};
+        for (let start = 0; start < chosen.length; start += 8) {
+          const stats = chosen.slice(start, start + 8).flatMap((f, j) => {
+            const i = start + j;
+            return [
+              { statisticType: "count", onStatisticField: f.name, outStatisticFieldName: `c${i}` },
+              ...(numeric(f) ? [
+                { statisticType: "min", onStatisticField: f.name, outStatisticFieldName: `n${i}` },
+                { statisticType: "max", onStatisticField: f.name, outStatisticFieldName: `x${i}` },
+              ] : []),
+            ];
+          });
+          const body = (await this.fetchJson(`${base}/query?where=1%3D1&outStatistics=${encodeURIComponent(JSON.stringify(stats))}&f=json`)) as {
+            features?: Array<{ attributes: Record<string, number | null> }>; error?: { message?: string };
+          };
+          if (body.error || !body.features?.[0]) throw new SourceFetchError(body.error?.message ?? "no statistics");
+          Object.assign(a, lowerKeys(body.features[0].attributes));
+        }
         let blankChecks = 0;
         for (const [i, f] of chosen.entries()) {
           let filled = Number(a[`c${i}`] ?? 0);
@@ -1477,15 +1485,20 @@ export class Sources {
   }
 
   /** Server-observed problems with a source's fields, from its latest profile. */
-  profileOf(slug: string) {
+  profileOf(slug: string, mappedFields?: Set<string>) {
     const rows = this.db.prepare("SELECT * FROM source_profiles WHERE slug = ?").all(slug) as Array<{
       field: string; total: number; filled: number; min_value: number | null; max_value: number | null; profiled_at: string;
     }>;
     const byField = new Map(rows.map((p) => [p.field, p]));
+    // Optional fields (unit, building name) are often sparse; that only matters
+    // when a mapping tells builders to rely on the field.
+    const mapped = mappedFields ?? new Set(this.listedPairs().filter((p) => p.source === slug).map((p) => p.sourceField));
     const warnings: Array<{ field: string; problem: "always-empty" | "mostly-empty" | "not-degrees"; detail: string }> = [];
     for (const p of rows) {
       if (p.total > 0 && p.filled === 0) warnings.push({ field: p.field, problem: "always-empty", detail: `blank on all ${p.total} rows` });
-      else if (p.total > 0 && p.filled / p.total < 0.5) warnings.push({ field: p.field, problem: "mostly-empty", detail: `filled on ${p.filled} of ${p.total} rows` });
+      else if (p.total > 0 && p.filled / p.total < 0.5 && mapped.has(p.field)) {
+        warnings.push({ field: p.field, problem: "mostly-empty", detail: `filled on ${p.filled} of ${p.total} rows, though it is mapped` });
+      }
       if (outsideDegrees(p.field, p.min_value, p.max_value)) {
         warnings.push({ field: p.field, problem: "not-degrees", detail: `values run ${p.min_value} to ${p.max_value}, outside the range for degrees` });
       }
