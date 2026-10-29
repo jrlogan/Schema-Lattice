@@ -244,15 +244,15 @@ export class LatticeInstance {
   }
 
   /**
-   * Which unmet searches belong to a community: asked with its name, filtered
-   * to one of its contexts, or nearest to a concept in one of them.
+   * Which unmet searches belong to a community: asked with its name, or
+   * filtered to one of its contexts. Not "nearest to one of its concepts": an
+   * unmet search is far from everything, so its nearest concept is noise. On
+   * the live catalog that rule filed marina searches under New Haven civic.
    */
   private communityDemandFilter(slug: string) {
     const uris = new Set(this.communities.contextUris(slug));
-    return (e: { community: string | null; contexts: string[]; topUri: string | null }) =>
-      e.community === slug ||
-      e.contexts.some((c) => uris.has(c)) ||
-      (e.topUri !== null && uris.has((this.store.getConcept(e.topUri)?.inScheme as string | undefined) ?? ""));
+    return (e: { community: string | null; contexts: string[] }) =>
+      e.community === slug || e.contexts.some((c) => uris.has(c));
   }
 
   resolve(uri: string, sessionId?: string): ConceptRecord | null {

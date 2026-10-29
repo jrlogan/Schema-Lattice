@@ -204,8 +204,9 @@ spec adds to an agent's default context.
     slug);
   - `community` on `lattice_discover`, `lattice_demand_report` and `lattice_publish_context`;
   - `communities` on `lattice_register_app`.
-- A community's unmet searches are those asked with its name, filtered to one of its contexts,
-  or nearest to a concept in one of them. Discover events now record their context filter and
+- A community's unmet searches are those asked with its name or filtered to one of its
+  contexts. Attributing searches by their nearest concept was tried and dropped on the first
+  live run: an unmet search is far from every concept, so its nearest one is noise. Discover events now record their context filter and
   community.
 - Pages: `/community` and `/community/{slug}` (markdown), and `GET /discover?community=`. The
   pack is `/pack/{its contexts}`. The client and skill accept `discover --community <slug>`.
