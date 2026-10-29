@@ -258,7 +258,9 @@ export class SourceFindings {
     const transform = text(input.transform, "transform", 200);
     // One key per join whichever way round it was reported.
     if (b < a) [a, b, fieldsA, fieldsB] = [b, a, fieldsB, fieldsA];
-    const claimKey = joinKey(a, b, method, fieldsA, fieldsB);
+    // A match that needed a transform is a different finding from an exact one:
+    // its own key, so the two never average into a misleading rate.
+    const claimKey = joinKey(a, b, method, fieldsA, fieldsB) + (transform ? `|t:${digest(transform)}` : "");
     const rate = matched / tried;
     if (input.partialCoverage !== undefined && typeof input.partialCoverage !== "boolean") throw new FindingRejected('"partialCoverage" must be true or false');
     const partial = input.partialCoverage === true;

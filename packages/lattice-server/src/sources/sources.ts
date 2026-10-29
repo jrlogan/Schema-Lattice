@@ -1099,7 +1099,7 @@ export class Sources {
     }
     const jurisdiction = input.jurisdiction?.trim();
     if (!jurisdiction || !JURISDICTION_RE.test(jurisdiction)) throw new SourceRejected('"jurisdiction" is required, e.g. US-CT/new-haven');
-    const near = Math.min(Math.max(input.distanceMeters ?? 200, 10), 2000);
+    const near = Math.min(Math.max(input.distanceMeters ?? 250, 10), 2000);
     const listed = this.listedSlugs();
     const pairs = this.listedPairs();
     const rows = (this.db.prepare("SELECT * FROM sources WHERE withdrawn_reason IS NULL AND kind = 'dataset' AND geometry IS NOT NULL").all() as SourceRow[])
@@ -1108,7 +1108,9 @@ export class Sources {
     const entries = rows
       .map((r) => {
         const shape = shapeOf(r.geometry!);
-        if (shape !== "area" && shape !== "line") return null;
+        if (shape === "unknown") return null;
+        // Point layers (outfalls, stations, trees) only from ArcGIS, where a distance query works.
+        if (shape === "point" && r.platform !== "arcgis") return null;
         const mine = pairs.filter((p) => p.source === r.slug);
         // What the layer's rows are, else what they point at; an unmapped layer still answers "what is here".
         const carried = this.carries(r.slug, pairs);
@@ -1122,8 +1124,12 @@ export class Sources {
           title: r.title,
           jurisdiction: r.jurisdiction,
           coverage: coverage(r.jurisdiction, jurisdiction)!,
-          test: shape === "area" ? "contains the point" : `within ${near} m of the point`,
-          query: r.platform === "arcgis" ? arcgisPointQuery(r.access_url, lat, lng, fields, shape === "line" ? near : 0) : null,
+          test: shape === "area"
+            ? `query: the feature containing the point (none means nothing at that exact spot); nearby: features within ${near} m`
+            : `query: features within ${near} m of the point`,
+          // All attributes: a layer's answer field (a canopy share, an impairment cause) is often unmapped.
+          query: r.platform === "arcgis" ? arcgisPointQuery(r.access_url, lat, lng, shape === "area" ? 0 : near) : null,
+          ...(r.platform === "arcgis" && shape === "area" ? { nearbyQuery: arcgisPointQuery(r.access_url, lat, lng, near) } : {}),
           howToQuery: r.platform === "arcgis" ? null : "Not an ArcGIS layer: see the source page for how to query it by location.",
           fields: meaning,
           publisherUpdatedAt: r.publisher_updated_at,
@@ -1141,9 +1147,10 @@ export class Sources {
       jurisdiction,
       layers: entries,
       notice:
-        "Run each query yourself: the catalog points at publishers and never fetches records. A layer that contains " +
-        "nothing at the point is an answer too (not in a flood zone, not an EJ area). Report what you ran with " +
-        "lattice_report_join or lattice_note_source. " + UNTRUSTED_NOTICE,
+        "Run each query yourself: the catalog points at publishers and never fetches records. An empty result means " +
+        "nothing at that exact point, not nothing nearby: a riverbank point misses the river, and a sidewalk point " +
+        `misses every parcel. Use nearbyQuery (within ${near} m) before concluding, and say which you used. ` +
+        "Report what you ran with lattice_report_join or lattice_note_source. " + UNTRUSTED_NOTICE,
     };
   }
 
@@ -1829,11 +1836,11 @@ function geometryName(type: string): string {
 }
 
 /** An ArcGIS query for the features at (or within `distance` metres of) a point, attributes only. */
-function arcgisPointQuery(accessUrl: string, lat: number, lng: number, fields: string[], distance: number): string {
+function arcgisPointQuery(accessUrl: string, lat: number, lng: number, distance: number): string {
   const base = accessUrl.replace(/\/(query)?\/?$/, "");
   const q = new URLSearchParams({
     geometry: `${lng},${lat}`, geometryType: "esriGeometryPoint", inSR: "4326", spatialRel: "esriSpatialRelIntersects",
-    outFields: fields.length ? fields.join(",") : "*", returnGeometry: "false", f: "json",
+    outFields: "*", returnGeometry: "false", f: "json",
     ...(distance ? { distance: String(distance), units: "esriSRUnit_Meter" } : {}),
   });
   return `${base}/query?${q.toString()}`;

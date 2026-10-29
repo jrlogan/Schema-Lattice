@@ -377,7 +377,7 @@ export function renderPlaceProfile(p: Profile, host: string): string {
   out.push(`# What the map layers say at ${p.point.latitude}, ${p.point.longitude} (${p.jurisdiction})`, "");
   out.push(
     `${p.layers.length} layers cover this place. Each query below returns just the mapped fields for what is at the point; ` +
-      "an empty result is an answer too. The catalog fetches nothing: run them yourself.",
+      "an empty result means nothing at that exact point, so check the nearby query too. The catalog fetches nothing: run them yourself.",
     "",
   );
   let current = "";
@@ -388,6 +388,7 @@ export function renderPlaceProfile(p: Profile, host: string): string {
     }
     out.push(`### [${line(l.title)}](https://${host}${l.page}) (${l.jurisdiction}, ${l.test})`, "");
     if (l.query) out.push(l.query, "");
+    if ("nearbyQuery" in l && l.nearbyQuery) out.push(`Nearby: ${l.nearbyQuery}`, "");
     else if (l.howToQuery) out.push(line(l.howToQuery), "");
     const fields = Object.entries(l.fields);
     if (fields.length) out.push(fields.map(([f, m]) => `\`${cell(f)}\` = ${cell(m)}`).join(" · "), "");
