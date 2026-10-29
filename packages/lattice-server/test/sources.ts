@@ -419,11 +419,19 @@ async function main() {
   }, "operator", at(41));
   const issuesView = S.resolve(issues.slug)!;
   const toParcels = issuesView.related.find((r) => r.slug === "ct-parcels");
-  check("point-layer-gets-geometry", issuesView.geometry === "point" && issuesView.locationFields === "latitude `lat`, longitude `lng`", issuesView.locationFields ?? "none");
+  check("point-layer-gets-geometry", issuesView.geometry === "point" && issuesView.locationFields?.startsWith("latitude `lat`, longitude `lng`") === true, issuesView.locationFields ?? "none");
   check("point-in-polygon-is-a-join", toParcels?.joins[0]?.method === "point-in-polygon" && /Point in polygon/.test(toParcels.joins[0].how) &&
     toParcels.joins[0].how.includes("`lat`"), JSON.stringify(toParcels?.joins));
   check("polygon-side-lists-point-layer", S.resolve("ct-parcels")!.related.some((r) => r.slug === issues.slug));
   check("points-do-not-overlay-points", !issuesView.related.some((r) => r.slug === stops.slug) && !issuesView.overlays.some((o) => o.slug === stops.slug));
+  const pip = S.resolve("ct-parcels")!.related.find((r) => r.slug === issues.slug)?.joins[0];
+  check("listing-by-place-is-complete-and-local-first", (() => {
+    const l = S.listAll("US-CT/new-haven");
+    const firstBroader = l.findIndex((x) => x.jurisdiction !== "US-CT/new-haven");
+    return l.length >= 3 && firstBroader > 0 && l.slice(firstBroader).every((x) => x.jurisdiction !== "US-CT/new-haven") &&
+      l.some((x) => x.jurisdiction === "US-CT") && !l.some((x) => x.jurisdiction === "US-NY");
+  })(), S.listAll("US-CT/new-haven").map((x) => x.jurisdiction).join(","));
+  check("point-in-polygon-names-fields-for-api-points", /`lat`/.test(pip?.how ?? ""), pip?.how);
   check("polygons-still-overlay", S.resolve("ct-parcels")!.overlays.some((o) => o.slug === zones.slug));
 
   // --- a concept gets a new version ---------------------------------------------------------

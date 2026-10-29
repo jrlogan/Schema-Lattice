@@ -733,7 +733,7 @@ export class Sources {
       recentChecks: this.checksOf(slug, 5),
       readiness: this.readinessOf(r),
       geometry: r.geometry,
-      locationFields: locationFields(JSON.parse(r.fields) as SourceField[]),
+      locationFields: r.platform === "arcgis" ? null : locationFields(JSON.parse(r.fields) as SourceField[]),
       conformsTo: JSON.parse(r.conforms_to) as string[],
       fieldsVerified: r.fields_verified === 1,
       fieldsCheckedAt: r.fields_checked_at,
@@ -861,6 +861,11 @@ export class Sources {
         for (const a of mine.filter((p) => lineage(p.conceptUri) === conceptUri)) {
           for (const b of theirs.filter((p) => lineage(p.conceptUri) === conceptUri && p.conceptField === a.conceptField)) {
             const kind = fieldJoinKind(a.conceptField, paths.get(a.conceptField), isReferenced(a.conceptField));
+            // Two sources whose rows are both records of a concept, sharing only
+            // a name-like attribute, are two lists, not a join: wards and
+            // neighborhoods are both City Districts and never share a name.
+            // An attribute joins only when one side's rows point at the other's.
+            if (kind === "attribute" && a.role !== "reference" && b.role !== "reference") continue;
             if (kind) shared.push({ a: a.sourceField, b: b.sourceField, conceptField: a.conceptField, kind });
           }
         }
@@ -918,11 +923,24 @@ export class Sources {
       }));
   }
 
-  /** Every source, grouped for the /sources index. Listed ones only. */
-  listAll(): Array<{ slug: string; title: string; publisher: string; jurisdiction: string; recordDescription: string; kind: SourceKind }> {
+  /**
+   * Every listed source, grouped for the /sources index. With a jurisdiction,
+   * only those covering it, the place's own first, then narrower, then
+   * broader (state, national, global): a city builder wants the city's layers
+   * before 360Giving.
+   */
+  listAll(jurisdiction?: string): Array<{ slug: string; title: string; publisher: string; jurisdiction: string; recordDescription: string; kind: SourceKind }> {
     const listed = this.listedSlugs();
-    return (this.db.prepare("SELECT * FROM sources WHERE withdrawn_reason IS NULL ORDER BY jurisdiction, title").all() as SourceRow[])
-      .filter((r) => listed.has(r.slug))
+    const rank = { exact: 0, narrower: 1, broader: 2 } as const;
+    const rows = (this.db.prepare("SELECT * FROM sources WHERE withdrawn_reason IS NULL ORDER BY jurisdiction, title").all() as SourceRow[])
+      .filter((r) => listed.has(r.slug) && (!jurisdiction || coverage(r.jurisdiction, jurisdiction) !== null));
+    if (jurisdiction) {
+      // Broader levels by specificity: US-CT before US before global.
+      const depth = (j: string) => (j === "global" ? 0 : j.split(/[-/]/).length);
+      rows.sort((a, b) => rank[coverage(a.jurisdiction, jurisdiction)!] - rank[coverage(b.jurisdiction, jurisdiction)!] ||
+        depth(b.jurisdiction) - depth(a.jurisdiction) || a.jurisdiction.localeCompare(b.jurisdiction) || a.title.localeCompare(b.title));
+    }
+    return rows
       .map((r) => ({ slug: r.slug, title: r.title, publisher: r.publisher, jurisdiction: r.jurisdiction, recordDescription: r.record_description, kind: r.kind }));
   }
 
@@ -1396,7 +1414,7 @@ export function locationFields(fields: SourceField[]): string | null {
   const sameParent = (a: SourceField, b: SourceField) => a.name.split(".").slice(0, -1).join(".") === b.name.split(".").slice(0, -1).join(".");
   for (const lat of fields.filter((f) => LAT_RE.test(leaf(f)) && NUMERIC.has(f.type.toLowerCase()))) {
     const lng = fields.find((f) => LNG_RE.test(leaf(f)) && NUMERIC.has(f.type.toLowerCase()) && sameParent(f, lat));
-    if (lng) return `latitude \`${lat.name}\`, longitude \`${lng.name}\``;
+    if (lng) return `latitude \`${lat.name}\`, longitude \`${lng.name}\` (check they hold degrees: -90..90 and -180..180)`;
   }
   const coords = fields.find((f) => /(^|\.)coordinates$/.test(f.name) && /point|location|geo/i.test(f.name));
   if (coords) return `GeoJSON \`${coords.name}\` ([longitude, latitude])`;
@@ -1424,7 +1442,12 @@ function overlayHow(me: SourceRow, other: SourceRow): string {
   const pointSide = [me, other].find((r) => shapeOf(r.geometry!) === "point");
   const areaSide = [me, other].find((r) => shapeOf(r.geometry!) === "area");
   if (pointSide && areaSide) {
-    const where = locationFields(JSON.parse(pointSide.fields) as SourceField[]);
+    // A platform layer's own geometry is authoritative; its lat/long columns
+    // can be in another coordinate system (New Haven LCI lots store State
+    // Plane feet in "lat"/"long").
+    const where = pointSide.platform === "arcgis"
+      ? "the layer's own point geometry, requested with outSR=4326"
+      : locationFields(JSON.parse(pointSide.fields) as SourceField[]);
     return (
       `Point in polygon: find which ${areaSide.slug} polygon contains each ${pointSide.slug} point` +
       `${where ? ` (${where})` : ""}, with both in the same coordinate system (request outSR=4326 from ArcGIS layers). ` +

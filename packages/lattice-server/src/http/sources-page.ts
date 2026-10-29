@@ -175,32 +175,47 @@ export function renderSourcePage(s: Resolved, host: string): string {
   return out.join("\n");
 }
 
-export function renderSourcesIndex(
-  instance: LatticeInstance,
-  host: string,
-  found?: { query: string; jurisdiction?: string; results: Array<{ slug: string; title: string; jurisdiction: string; recordDescription: string; similarity?: number; coverage?: string | null }> },
-): string {
-  const out: string[] = [];
-  if (found) {
-    out.push(`# Public data sources: ${line(found.query || found.jurisdiction)}`, "");
-    if (found.results.length === 0) {
-      out.push(
-        "Nothing listed matches. If you find the dataset yourself, add it with `lattice_propose_source` " +
-          `(or \`POST https://${host}/api/tools/lattice_propose_source\`) so the next builder doesn't have to search.`,
-        "",
-      );
-    }
-    for (const r of found.results) {
-      out.push(
-        `- **[${line(r.title)}](https://${host}/sources/${r.slug})** (${r.jurisdiction}${r.coverage && r.coverage !== "exact" ? `, ${r.coverage}` : ""}` +
-          `${r.similarity !== undefined ? `, ${r.similarity.toFixed(2)}` : ""}): ${line(r.recordDescription)}`,
-      );
-    }
-    out.push("", `_${UNTRUSTED_NOTICE}_`, "");
-    return out.join("\n");
-  }
+type Found = {
+  query: string;
+  jurisdiction?: string;
+  results: Array<{ slug: string; title: string; jurisdiction: string; recordDescription: string; similarity?: number; coverage?: string | null }>;
+};
 
-  out.push("# Public data sources", "");
+/** `/sources`: every listed source; with a jurisdiction, all that cover it; with a search, the matches. */
+export function renderSourcesIndex(instance: LatticeInstance, host: string, found?: Found, jurisdiction?: string): string {
+  return found ? renderSearch(host, found) : renderIndex(instance, host, jurisdiction);
+}
+
+function renderSearch(host: string, found: Found): string {
+  const out: string[] = [];
+  out.push(`# Public data sources: ${line(found.query || found.jurisdiction)}`, "");
+  if (found.results.length === 0) {
+    out.push(
+      "Nothing listed matches. If you find the dataset yourself, add it with `lattice_propose_source` " +
+        `(or \`POST https://${host}/api/tools/lattice_propose_source\`) so the next builder doesn't have to search.`,
+      "",
+    );
+  }
+  for (const r of found.results) {
+    out.push(
+      `- **[${line(r.title)}](https://${host}/sources/${r.slug})** (${r.jurisdiction}${r.coverage && r.coverage !== "exact" ? `, ${r.coverage}` : ""}` +
+        `${r.similarity !== undefined ? `, ${r.similarity.toFixed(2)}` : ""}): ${line(r.recordDescription)}`,
+    );
+  }
+  out.push(
+    "",
+    `Showing the ${found.results.length} best matches.` +
+      (found.jurisdiction ? ` Every source covering ${line(found.jurisdiction)}: https://${host}/sources?jurisdiction=${encodeURIComponent(found.jurisdiction)}` : ""),
+    "",
+    `_${UNTRUSTED_NOTICE}_`,
+    "",
+  );
+  return out.join("\n");
+}
+
+function renderIndex(instance: LatticeInstance, host: string, jurisdiction?: string): string {
+  const out: string[] = [];
+  out.push(jurisdiction ? `# Public data sources: ${line(jurisdiction)}` : "# Public data sources", "");
   out.push(
     "Public datasets the catalog knows about, with what each field means in catalog terms and how the " +
       "datasets join. Search: `/sources?q=property+sales&jurisdiction=US-CT/new-haven`. Jurisdictions are " +
@@ -208,7 +223,8 @@ export function renderSourcesIndex(
       `Which sources the server can still read, and what is unconfirmed: https://${host}/sources/health`,
     "",
   );
-  const all = instance.sources.listAll();
+  const all = instance.sources.listAll(jurisdiction);
+  if (jurisdiction) out.push(`**${all.length} listed sources cover ${line(jurisdiction)}**: the place's own first, then broader ones.`, "");
   if (all.length === 0) out.push("No sources are listed yet.", "");
   let current = "";
   for (const s of all) {
