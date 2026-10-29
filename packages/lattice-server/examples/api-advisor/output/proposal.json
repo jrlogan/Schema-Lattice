@@ -1,0 +1,633 @@
+{
+  "advisorVersion": "api-design-advisor-v1",
+  "request": {
+    "app": "waste-service-demo",
+    "purpose": "Expose service requests for pickup support while preserving richer workflow states and collection schedule extensions.",
+    "consumers": [
+      "Resident reminder application",
+      "Municipal service-request integration"
+    ],
+    "resources": [
+      {
+        "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+        "path": "/v1/requests",
+        "idField": "requestId",
+        "fieldNames": {
+          "createdAt": "created_at"
+        }
+      }
+    ]
+  },
+  "app": {
+    "slug": "waste-service-demo",
+    "name": "Waste Service Demo (fictional)",
+    "status": "experiment"
+  },
+  "modelBasis": "Explicit resource bindings to registered concept fields",
+  "resources": [
+    {
+      "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+      "path": "/v1/requests",
+      "component": "Resource1",
+      "idField": "requestId",
+      "bindings": [
+        {
+          "conceptField": "requestId",
+          "apiField": "requestId"
+        },
+        {
+          "conceptField": "jurisdiction",
+          "apiField": "jurisdiction"
+        },
+        {
+          "conceptField": "description",
+          "apiField": "description"
+        },
+        {
+          "conceptField": "state",
+          "apiField": "state"
+        },
+        {
+          "conceptField": "createdAt",
+          "apiField": "created_at"
+        },
+        {
+          "conceptField": "latitude",
+          "apiField": "latitude"
+        },
+        {
+          "conceptField": "longitude",
+          "apiField": "longitude"
+        },
+        {
+          "conceptField": "collectionDay",
+          "apiField": "collectionDay"
+        }
+      ],
+      "externalReferences": [],
+      "lineage": null
+    }
+  ],
+  "candidates": [
+    {
+      "id": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110|open311-georeport-v2",
+      "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+      "source": "open311-georeport-v2",
+      "title": "Open311 GeoReport v2",
+      "kind": "standard",
+      "implementationGuide": {
+        "version": "Open311 GeoReport v2",
+        "steward": "Open311 community",
+        "reviewedOn": "2026-10-13",
+        "evidenceUrl": "https://wiki.open311.org/GeoReport_v2/",
+        "scope": "Location-based, non-emergency service requests; not collection schedules or arbitrary municipal records.",
+        "requirements": [
+          "Provide service discovery and the service/service-request methods required for the chosen implementation role.",
+          "XML support is required by GeoReport v2; JSON alone is not full conformance.",
+          "Request creation uses form-encoded input; the native JSON read API proposed here does not implement request creation.",
+          "Preserve timezone information on request timestamps.",
+          "Request status is open or closed. Preserve finer workflow states separately rather than silently discarding them.",
+          "Use jurisdiction_id when serving multiple jurisdictions; establish identifier scope explicitly."
+        ],
+        "conformance": "Not assessed: these notes are a review checklist, not a complete conformance suite."
+      },
+      "coverage": {
+        "mapped": 6,
+        "total": 8,
+        "ratio": 0.75
+      },
+      "authority": {
+        "publisher": "Open311 community (open311.org)",
+        "specificationUrl": "https://wiki.open311.org/GeoReport_v2/",
+        "assessment": "Publisher attribution in the catalog; authority has not been independently ranked."
+      },
+      "adoption": {
+        "declaredConformers": [
+          "legacy-demo-export"
+        ],
+        "sharedConceptApps": [
+          "peer-demo"
+        ],
+        "acceptedDesignApps": [],
+        "meaning": "Catalog observations only. Shared concepts and accepted designs do not prove API implementation or conformance."
+      },
+      "usability": {
+        "publisherFieldsVerified": false,
+        "schemaUrl": null,
+        "behaviorTests": "unassessed"
+      },
+      "maintenance": {
+        "declaredUpdateFrequency": "version v2 (spec page says it is 'frozen and finalized')",
+        "fieldsCheckedAt": null,
+        "assessment": "No maintenance or deprecation guarantee."
+      },
+      "mappings": [
+        {
+          "conceptField": "requestId",
+          "apiField": "requestId",
+          "targetField": "requests.service_request_id",
+          "evidence": {
+            "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+            "source": "open311-georeport-v2",
+            "sourceUrl": "https://wiki.open311.org/GeoReport_v2/",
+            "curatedBy": "operator",
+            "corroboratedBy": null
+          },
+          "status": "review-required",
+          "reasons": [
+            "At least one field has an unsupported, complex or unspecified wire type."
+          ],
+          "executable": false
+        },
+        {
+          "conceptField": "state",
+          "apiField": "state",
+          "targetField": "requests.status",
+          "evidence": {
+            "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+            "source": "open311-georeport-v2",
+            "sourceUrl": "https://wiki.open311.org/GeoReport_v2/",
+            "curatedBy": "operator",
+            "corroboratedBy": null
+          },
+          "status": "review-required",
+          "reasons": [
+            "Recorded conversion: open or closed; finer workflow states require explicit mapping and retention in status_notes; direction, implementation and loss are unverified.",
+            "At least one field has an unsupported, complex or unspecified wire type.",
+            "Enumeration domains differ or are unspecified on one side."
+          ],
+          "executable": false
+        },
+        {
+          "conceptField": "description",
+          "apiField": "description",
+          "targetField": "requests.description",
+          "evidence": {
+            "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+            "source": "open311-georeport-v2",
+            "sourceUrl": "https://wiki.open311.org/GeoReport_v2/",
+            "curatedBy": "operator",
+            "corroboratedBy": null
+          },
+          "status": "review-required",
+          "reasons": [
+            "At least one field has an unsupported, complex or unspecified wire type.",
+            "Constraint differs or is unspecified: maxLength."
+          ],
+          "executable": false
+        },
+        {
+          "conceptField": "createdAt",
+          "apiField": "created_at",
+          "targetField": "requests.requested_datetime",
+          "evidence": {
+            "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+            "source": "open311-georeport-v2",
+            "sourceUrl": "https://wiki.open311.org/GeoReport_v2/",
+            "curatedBy": "operator",
+            "corroboratedBy": null
+          },
+          "status": "review-required",
+          "reasons": [
+            "At least one field has an unsupported, complex or unspecified wire type.",
+            "Formats differ or are unspecified on one side."
+          ],
+          "executable": false
+        },
+        {
+          "conceptField": "latitude",
+          "apiField": "latitude",
+          "targetField": "requests.lat",
+          "evidence": {
+            "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+            "source": "open311-georeport-v2",
+            "sourceUrl": "https://wiki.open311.org/GeoReport_v2/",
+            "curatedBy": "operator",
+            "corroboratedBy": null
+          },
+          "status": "review-required",
+          "reasons": [
+            "At least one field has an unsupported, complex or unspecified wire type.",
+            "Constraint differs or is unspecified: minimum.",
+            "Constraint differs or is unspecified: maximum."
+          ],
+          "executable": false
+        },
+        {
+          "conceptField": "longitude",
+          "apiField": "longitude",
+          "targetField": "requests.long",
+          "evidence": {
+            "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+            "source": "open311-georeport-v2",
+            "sourceUrl": "https://wiki.open311.org/GeoReport_v2/",
+            "curatedBy": "operator",
+            "corroboratedBy": null
+          },
+          "status": "review-required",
+          "reasons": [
+            "At least one field has an unsupported, complex or unspecified wire type.",
+            "Constraint differs or is unspecified: minimum.",
+            "Constraint differs or is unspecified: maximum."
+          ],
+          "executable": false
+        }
+      ],
+      "unmappedAppFields": [
+        "jurisdiction",
+        "collectionDay"
+      ],
+      "unmappedTargetFields": [
+        "services.service_code",
+        "services.service_name",
+        "services.description",
+        "services.metadata",
+        "services.type",
+        "services.keywords",
+        "services.group",
+        "requests.status_notes",
+        "requests.service_name",
+        "requests.service_code",
+        "requests.agency_responsible",
+        "requests.service_notice",
+        "requests.updated_datetime",
+        "requests.expected_datetime",
+        "requests.address",
+        "requests.address_id",
+        "requests.zipcode",
+        "requests.media_url"
+      ],
+      "conformance": "not-tested",
+      "guidance": "Review this standard as a compatibility target; implement its full endpoint and payload contract separately."
+    },
+    {
+      "id": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110|legacy-demo-export",
+      "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+      "source": "legacy-demo-export",
+      "title": "Legacy export (fictional comparison fixture)",
+      "kind": "dataset",
+      "implementationGuide": null,
+      "coverage": {
+        "mapped": 3,
+        "total": 8,
+        "ratio": 0.375
+      },
+      "authority": {
+        "publisher": "Fictional demo municipality",
+        "specificationUrl": "https://example.invalid/demo-legacy-export",
+        "assessment": "Publisher attribution in the catalog; authority has not been independently ranked."
+      },
+      "adoption": {
+        "declaredConformers": [],
+        "sharedConceptApps": [
+          "peer-demo"
+        ],
+        "acceptedDesignApps": [],
+        "meaning": "Catalog observations only. Shared concepts and accepted designs do not prove API implementation or conformance."
+      },
+      "usability": {
+        "publisherFieldsVerified": false,
+        "schemaUrl": null,
+        "behaviorTests": "unassessed"
+      },
+      "maintenance": {
+        "declaredUpdateFrequency": null,
+        "fieldsCheckedAt": null,
+        "assessment": "No maintenance or deprecation guarantee."
+      },
+      "mappings": [
+        {
+          "conceptField": "requestId",
+          "apiField": "requestId",
+          "targetField": "REQUEST_ID",
+          "evidence": {
+            "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+            "source": "legacy-demo-export",
+            "sourceUrl": "https://example.invalid/demo-legacy-export",
+            "curatedBy": "operator",
+            "corroboratedBy": null
+          },
+          "status": "structurally-aligned",
+          "reasons": [],
+          "executable": false
+        },
+        {
+          "conceptField": "description",
+          "apiField": "description",
+          "targetField": "DETAIL",
+          "evidence": {
+            "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+            "source": "legacy-demo-export",
+            "sourceUrl": "https://example.invalid/demo-legacy-export",
+            "curatedBy": "operator",
+            "corroboratedBy": null
+          },
+          "status": "review-required",
+          "reasons": [
+            "Constraint differs or is unspecified: maxLength."
+          ],
+          "executable": false
+        },
+        {
+          "conceptField": "state",
+          "apiField": "state",
+          "targetField": "STATE",
+          "evidence": {
+            "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+            "source": "legacy-demo-export",
+            "sourceUrl": "https://example.invalid/demo-legacy-export",
+            "curatedBy": "operator",
+            "corroboratedBy": null
+          },
+          "status": "review-required",
+          "reasons": [
+            "Recorded conversion: Legacy enumeration has not been verified; direction, implementation and loss are unverified.",
+            "Enumeration domains differ or are unspecified on one side."
+          ],
+          "executable": false
+        }
+      ],
+      "unmappedAppFields": [
+        "jurisdiction",
+        "createdAt",
+        "latitude",
+        "longitude",
+        "collectionDay"
+      ],
+      "unmappedTargetFields": [],
+      "conformance": "not-tested",
+      "guidance": "This is an observed implementation, useful as an integration target but not a standard."
+    }
+  ],
+  "ranking": "Descending mapped-field coverage, then source slug; authority and popularity are not blended into a score.",
+  "openapi": {
+    "openapi": "3.1.0",
+    "info": {
+      "title": "Waste Service Demo (fictional) API proposal",
+      "version": "0.1.0",
+      "description": "Expose service requests for pickup support while preserving richer workflow states and collection schedule extensions. — review draft; not a deployed or standards-certified API."
+    },
+    "security": [
+      {
+        "appBearer": []
+      }
+    ],
+    "paths": {
+      "/v1/requests": {
+        "get": {
+          "operationId": "listResource1",
+          "summary": "List Demo Service Request",
+          "description": "Proposed cursor pagination contract; implement and test this behavior.",
+          "parameters": [
+            {
+              "name": "limit",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "default": 25
+              }
+            },
+            {
+              "name": "cursor",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "One page of resources",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/Resource1"
+                        }
+                      },
+                      "nextCursor": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "items",
+                      "nextCursor"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid query parameters"
+            },
+            "401": {
+              "description": "Authentication required"
+            }
+          }
+        }
+      },
+      "/v1/requests/{id}": {
+        "get": {
+          "operationId": "getResource1",
+          "summary": "Read one resource",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "Confirm uniqueness scope; preserve upstream identifiers separately."
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Resource",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Resource1"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Authentication required"
+            },
+            "404": {
+              "description": "Resource not found"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Resource1": {
+          "type": "object",
+          "properties": {
+            "requestId": {
+              "x-lattice-field-definition": {
+                "name": "requestId",
+                "type": "string",
+                "required": true,
+                "description": "Identifier scoped to one jurisdiction.",
+                "x-concept-field": "requestId"
+              },
+              "type": "string",
+              "description": "Identifier scoped to one jurisdiction.",
+              "x-lattice-field": "requestId"
+            },
+            "jurisdiction": {
+              "x-lattice-field-definition": {
+                "name": "jurisdiction",
+                "type": "string",
+                "required": true,
+                "x-concept-field": "jurisdiction"
+              },
+              "type": "string",
+              "x-lattice-field": "jurisdiction"
+            },
+            "description": {
+              "x-lattice-field-definition": {
+                "name": "description",
+                "type": "string",
+                "maxLength": 4000,
+                "x-concept-field": "description"
+              },
+              "type": "string",
+              "maxLength": 4000,
+              "x-lattice-field": "description"
+            },
+            "state": {
+              "x-lattice-field-definition": {
+                "name": "state",
+                "type": "string",
+                "values": [
+                  "new",
+                  "assigned",
+                  "resolved"
+                ],
+                "x-concept-field": "state"
+              },
+              "type": "string",
+              "enum": [
+                "new",
+                "assigned",
+                "resolved"
+              ],
+              "x-lattice-field": "state"
+            },
+            "created_at": {
+              "x-lattice-field-definition": {
+                "name": "created_at",
+                "type": "datetime",
+                "required": true,
+                "x-concept-field": "createdAt"
+              },
+              "type": "string",
+              "format": "date-time",
+              "x-lattice-field": "createdAt"
+            },
+            "latitude": {
+              "x-lattice-field-definition": {
+                "name": "latitude",
+                "type": "number",
+                "minimum": -90,
+                "maximum": 90,
+                "x-concept-field": "latitude"
+              },
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90,
+              "x-lattice-field": "latitude"
+            },
+            "longitude": {
+              "x-lattice-field-definition": {
+                "name": "longitude",
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180,
+                "x-concept-field": "longitude"
+              },
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180,
+              "x-lattice-field": "longitude"
+            },
+            "collectionDay": {
+              "x-lattice-field-definition": {
+                "name": "collectionDay",
+                "type": "string",
+                "description": "App extension, not a service request field in Open311.",
+                "x-concept-field": "collectionDay"
+              },
+              "type": "string",
+              "description": "App extension, not a service request field in Open311.",
+              "x-lattice-field": "collectionDay"
+            }
+          },
+          "required": [
+            "requestId",
+            "jurisdiction",
+            "created_at"
+          ],
+          "additionalProperties": false,
+          "x-lattice-concept": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110"
+        }
+      },
+      "securitySchemes": {
+        "appBearer": {
+          "type": "http",
+          "scheme": "bearer",
+          "description": "Proposed application authentication; configure authorization and exposure before deployment."
+        }
+      }
+    },
+    "x-schemalattice": {
+      "advisorVersion": "api-design-advisor-v1",
+      "app": "waste-service-demo",
+      "consumers": [
+        "Resident reminder application",
+        "Municipal service-request integration"
+      ],
+      "manifestConcepts": [
+        "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110"
+      ],
+      "conformance": "not-tested"
+    }
+  },
+  "schemaIssues": [],
+  "validation": {
+    "schemaCompleteness": "declared-fields-translated",
+    "structuralChecks": "passed",
+    "errors": [],
+    "behavior": "not-tested",
+    "standardsConformance": "not-tested"
+  },
+  "recommendations": [
+    {
+      "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+      "preferredCandidate": "open311-georeport-v2",
+      "action": "Review the highest-coverage candidate and its losses; preserve app-only fields in the native API."
+    },
+    {
+      "action": "Confirm identifier scope, field exposure, units, enum semantics, pagination and error behavior. A shared meaning does not establish a record join."
+    }
+  ],
+  "adapterPolicy": "No executable cross-source adapter emitted: catalog mappings do not establish lossless reversible conversions.",
+  "reviewRequired": true,
+  "evidenceHash": "192c1df34d9c34cf39c309d7988d39fa9a2d5ec59e1188615995d861b538654f",
+  "proposalId": "fecaeffb0d6fd7537c02c17e2ecd6bac886728f7ce45422a9b72a76bbf07d238"
+}

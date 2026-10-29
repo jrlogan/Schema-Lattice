@@ -108,6 +108,7 @@ async function main() {
   const locker = pairOf("Tool Locker");
   check("unmatched-is-gap", locker?.grade === "gap" && !locker.b);
   check("score-in-range", r.score > 0 && r.score < 100, String(r.score));
+  check("fit-ignores-gaps", r.fit === r.score && r.overlap.connected === r.pairs.filter((p: any) => p.grade !== "gap").length && r.overlap.ofSmaller > 0, JSON.stringify(r.overlap));
   check("counts-add-up", r.counts.direct + r.counts.translate + r.counts.manual + r.counts.gap === r.pairs.length);
 
   // A pasted manifest: same answer, nothing stored.

@@ -182,7 +182,18 @@ export function meshReport(instance: LatticeInstance, aSide: MeshSide, bSide: Me
   const order: Record<Grade, number> = { direct: 0, translate: 1, manual: 2, gap: 3 };
   pairs.sort((p, q) => order[p.grade] - order[q.grade] || q.score - p.score);
   const count = (g: Grade) => pairs.filter((p) => p.grade === g).length;
-  const score = pairs.length ? Math.round((100 * pairs.reduce((s, p) => s + p.score, 0)) / pairs.length) : 0;
+  // Two different questions, kept apart: how cleanly the shared part connects
+  // (fit), and how much there is to connect (overlap). Mixing them made two big
+  // apps that share six concepts perfectly look like a bad match.
+  const connected = pairs.filter((p) => p.grade !== "gap");
+  const fit = connected.length ? Math.round((100 * connected.reduce((s, p) => s + p.score, 0)) / connected.length) : 0;
+  const smaller = Math.min(a.entries.length, b.entries.length);
+  const overlap = {
+    connected: connected.length,
+    aConcepts: a.entries.length,
+    bConcepts: b.entries.length,
+    ofSmaller: smaller ? Number((connected.length / smaller).toFixed(3)) : 0,
+  };
 
   // Plain-English challenges, most important first.
   const challenges: string[] = [];
@@ -202,13 +213,14 @@ export function meshReport(instance: LatticeInstance, aSide: MeshSide, bSide: Me
   const manual = pairs.filter((p) => p.grade === "manual");
   if (manual.length) challenges.push(`${manual.length} connection(s) are only similar and need a human decision: ` + manual.slice(0, 6).map((p) => `${p.a!.label} ~ ${p.b!.label}`).join(", ") + ".");
   const lost = pairs.flatMap((p) => (p.fields ?? []).filter((f) => f.status === "a-only").map((f) => `${p.a!.label}.${f.conceptField}`));
-  if (lost.length) challenges.push(`${b.name} won't receive ${lost.length} field(s) ${a.name} fills, e.g. ${lost.slice(0, 5).join(", ")}.`);
+  if (lost.length) challenges.push(`${lost.length} shared-concept field(s) are filled only by ${a.name}, so ${b.name} has nothing for them, e.g. ${lost.slice(0, 5).join(", ")}.`);
   const missing = pairs.flatMap((p) => (p.fields ?? []).filter((f) => f.status === "b-only").map((f) => `${p.b!.label}.${f.conceptField}`));
-  if (missing.length) challenges.push(`${b.name} expects ${missing.length} field(s) ${a.name} never fills, e.g. ${missing.slice(0, 5).join(", ")}.`);
+  if (missing.length) challenges.push(`${missing.length} shared-concept field(s) are filled only by ${b.name}, so ${a.name} has nothing for them, e.g. ${missing.slice(0, 5).join(", ")}.`);
   const converts = pairs.flatMap((p) => (p.fields ?? []).filter((f) => f.status === "convert").map((f) => `${f.conceptField} (${f.why})`));
   if (converts.length) challenges.push(`${converts.length} shared field(s) need converting, e.g. ${converts.slice(0, 4).join("; ")}.`);
   const gapsA = pairs.filter((p) => p.grade === "gap" && p.a).length, gapsB = pairs.filter((p) => p.grade === "gap" && p.b).length;
-  if (gapsA || gapsB) challenges.push(`${gapsA} of ${a.name}'s concept(s) and ${gapsB} of ${b.name}'s have no counterpart: they stay on one side.`);
+  if (gapsA || gapsB) challenges.push(`${gapsA} of ${a.name}'s concept(s) and ${gapsB} of ${b.name}'s have no counterpart. That is normal for apps that do different things; it only matters if the integration needs them.`);
+  if (!connected.length) challenges.unshift(`${a.name} and ${b.name} share no concepts: there is nothing in common to connect yet.`);
   if (a.entries.some((e) => e.fields === null) || b.entries.some((e) => e.fields === null)) {
     challenges.push("Field-level detail is partial: a side that doesn't say which fields it fills is assumed to fill all of them. Registering with field lists (from schemalattice.json field maps) sharpens this report.");
   }
@@ -216,7 +228,10 @@ export function meshReport(instance: LatticeInstance, aSide: MeshSide, bSide: Me
   return {
     a: { kind: a.kind, id: a.id, name: a.name, concepts: a.entries.length },
     b: { kind: b.kind, id: b.id, name: b.name, concepts: b.entries.length },
-    score,
+    fit,
+    overlap,
+    /** Same as fit; kept so callers have one headline number. */
+    score: fit,
     counts: { direct: count("direct"), translate: count("translate"), manual: count("manual"), gap: count("gap") },
     challenges,
     pairs,
@@ -226,7 +241,8 @@ export function meshReport(instance: LatticeInstance, aSide: MeshSide, bSide: Me
       translate: "Related by lineage (fork or version) or a declared co-reference: translation code, guided by the changeset.",
       manual: `Only similar in meaning (≥ ${MESH_SIMILAR}): a person decides whether they are the same thing.`,
       gap: "No counterpart: the data stays on one side.",
-      score: "Average over every concept on either side: direct 1, lineage 0.75, co-reference 0.6, similar 0.3, gap 0, each scaled by the share of filled fields that line up when the sides say which fields they fill.",
+      fit: "How cleanly the shared part connects, 0-100: the average over connected concepts of direct 1, lineage 0.75, co-reference 0.6, similar 0.3, each scaled by the share of filled fields that line up when the sides say which fields they fill. Gaps don't lower it.",
+      overlap: "How much there is to connect: connected concepts, and that as a share of the smaller side.",
     },
   };
 }

@@ -344,10 +344,17 @@ an app and a public data source (`"source:<slug>"`), or pasted manifests
 (`{ "manifest": <schemalattice.json> }`, never stored), it grades every
 connection direct / translate / manual / gap, compares fields where the
 sides say which they fill, flags personal data that would cross, and
-scores the pair out of 100 with plain-English challenges. When you are
+reports two numbers: fit (out of 100, how cleanly the shared part
+connects) and overlap (how many concepts the two share), with
+plain-English challenges. Tell the person both: a high fit with a small
+overlap means a small, easy integration, not a bad match. When you are
 planning an integration with a person, offer them the page
 `https://schemalattice.com/mesh?a=app:<slug>&b=app:<slug>` so they see the
-work involved before any code is written. The steps below are how to go
+work involved before any code is written. To show where an app sits in
+the whole catalog, link `https://schemalattice.com/atlas?focus=app:<slug>`
+(add `&with=<other-slug>` to compare two apps, or use `focus=ctx:<context>`,
+`focus=place:<jurisdiction>`, or `q=<text>`; `view=lineage`, `view=time` or
+`view=turn` lays the map out by family, by arrival, or turns it). The steps below are how to go
 deeper on any one connection.
 
 If the user brings in a second project and wants them to interop:

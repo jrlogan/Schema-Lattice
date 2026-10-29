@@ -1,0 +1,18 @@
+{
+  "app": "waste-service-demo",
+  "purpose": "Expose service requests for pickup support while preserving richer workflow states and collection schedule extensions.",
+  "consumers": [
+    "Resident reminder application",
+    "Municipal service-request integration"
+  ],
+  "resources": [
+    {
+      "conceptUri": "https://schemalattice.com/c/advisor-demo/service-request@c1cb9fec0110",
+      "path": "/v1/requests",
+      "idField": "requestId",
+      "fieldNames": {
+        "createdAt": "created_at"
+      }
+    }
+  ]
+}
