@@ -17,6 +17,7 @@ import { cosine } from "../discover/embedder.ts";
 import type { EvidenceLedger } from "../evidence/ledger.ts";
 import { EvidenceRejected } from "../evidence/ledger.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
+import { dataClassSlugs } from "../seed/governance.ts";
 import { SourceFindings, joinKey, type FieldAssertion, type JoinEvidence } from "./findings.ts";
 import {
   DESCRIPTION_MAX, LABEL_MAX, SourceFetchError, introspect, platformOf, safeFetchJson,
@@ -58,6 +59,13 @@ export const SOURCE_CONFIG = {
 } as const;
 
 const KINDS = ["dataset", "standard"] as const;
+/**
+ * Which way records move: `read` (the default), or `submit`, an endpoint that
+ * takes records to the publisher, such as an Open311 POST. The second is how
+ * a resident's report gets from an app to the city.
+ */
+const DIRECTIONS = ["read", "submit"] as const;
+export type SourceDirection = (typeof DIRECTIONS)[number];
 export type SourceKind = (typeof KINDS)[number];
 const ROLES = ["record", "reference"] as const;
 export type SourceRole = (typeof ROLES)[number];
@@ -145,6 +153,8 @@ interface SourceRow {
   readiness_note: string | null;
   review_by: string | null;
   query_notes: string | null;
+  direction: SourceDirection;
+  field_classes: string | null;
   publisher_updated_at: string | null;
   proposed_by: string;
   withdrawn_reason: string | null;
@@ -175,6 +185,9 @@ export interface SourceInput {
   reviewBy?: string;
   /** How the source behaves when queried; merged into what is there, null clears a key. */
   queryNotes?: unknown;
+  direction?: string;
+  /** Sensitivity of particular fields, as governance class slugs: { "reporter.name": "personal-identity" }. Merged; null clears. */
+  fieldClassifications?: unknown;
   conformsTo?: string[];
   /** Only for sources the server cannot read itself (`manual`). */
   fields?: unknown;
@@ -315,6 +328,7 @@ export class Sources {
     for (const [name, decl] of [
       ["cost", "TEXT"], ["contact", "TEXT"], ["readiness", "TEXT NOT NULL DEFAULT 'not-assessed'"],
       ["readiness_note", "TEXT"], ["review_by", "TEXT"], ["publisher_updated_at", "TEXT"], ["query_notes", "TEXT"],
+      ["direction", "TEXT NOT NULL DEFAULT 'read'"], ["field_classes", "TEXT"],
     ]) {
       if (!columns.has(name)) this.db.exec(`ALTER TABLE sources ADD COLUMN ${name} ${decl}`);
     }
@@ -464,6 +478,8 @@ export class Sources {
       readiness_note: optionalText(input.readinessNote, "readinessNote", SOURCE_CONFIG.readinessNoteMax) ?? existing?.readiness_note ?? null,
       review_by: optionalDate(input.reviewBy, "reviewBy") ?? existing?.review_by ?? null,
       query_notes: mergeQueryNotes(existing?.query_notes ?? null, input.queryNotes),
+      direction: optionalOneOf(input.direction, "direction", DIRECTIONS) ?? existing?.direction ?? "read",
+      field_classes: mergeFieldClasses(existing?.field_classes ?? null, input.fieldClassifications, fields.map((f) => f.name)),
       publisher_updated_at: intro?.publisherUpdatedAt ?? existing?.publisher_updated_at ?? null,
       conforms_to: JSON.stringify(conformsTo),
       fields: JSON.stringify(fields),
@@ -478,11 +494,11 @@ export class Sources {
         .prepare(
           `INSERT INTO sources (slug, kind, title, publisher, jurisdiction, record_description, landing_page, access_url, access_key,
              schema_url, platform, format, license, update_frequency, cost, contact, readiness, readiness_note, review_by,
-             query_notes, publisher_updated_at, conforms_to, fields, fields_verified, fields_checked_at, geometry,
+             query_notes, direction, field_classes, publisher_updated_at, conforms_to, fields, fields_verified, fields_checked_at, geometry,
              proposed_by, withdrawn_reason, vec, created_at, updated_at)
            VALUES (@slug, @kind, @title, @publisher, @jurisdiction, @record_description, @landing_page, @access_url, @access_key,
              @schema_url, @platform, @format, @license, @update_frequency, @cost, @contact, @readiness, @readiness_note, @review_by,
-             @query_notes, @publisher_updated_at, @conforms_to, @fields, @fields_verified, @fields_checked_at,
+             @query_notes, @direction, @field_classes, @publisher_updated_at, @conforms_to, @fields, @fields_verified, @fields_checked_at,
              @geometry, @proposed_by, NULL, @vec, @now, @now)`,
         )
         .run({ ...row, proposed_by: source, vec: Buffer.from(Float32Array.from(vec).buffer), now: now.toISOString() });
@@ -493,7 +509,7 @@ export class Sources {
              record_description = @record_description, landing_page = @landing_page, access_url = @access_url,
              schema_url = @schema_url, platform = @platform, format = @format, license = @license,
              update_frequency = @update_frequency, cost = @cost, contact = @contact, readiness = @readiness,
-             readiness_note = @readiness_note, review_by = @review_by, query_notes = @query_notes, publisher_updated_at = @publisher_updated_at,
+             readiness_note = @readiness_note, review_by = @review_by, query_notes = @query_notes, direction = @direction, field_classes = @field_classes, publisher_updated_at = @publisher_updated_at,
              conforms_to = @conforms_to, fields = @fields,
              fields_verified = @fields_verified, fields_checked_at = @fields_checked_at, geometry = @geometry,
              withdrawn_reason = CASE WHEN @curator = 1 THEN NULL ELSE withdrawn_reason END,
@@ -743,6 +759,20 @@ export class Sources {
     const allPairs = advisorOnly ? this.advisorPairs(slug) : this.listedPairs();
     const pairs = allPairs.filter((p) => p.source === slug);
     const profile = this.profileOf(slug, new Set(pairs.map((p) => p.sourceField)));
+    // A field's sensitivity: stated for the source, else carried by the concept
+    // field it maps onto, else reported by builders. Highest rank wins.
+    const stated = r.field_classes ? (JSON.parse(r.field_classes) as Record<string, string>) : {};
+    const reported = new Set(this.findings.notesFor(slug).filter((n) => n.assertion === "personal-data" && n.field).map((n) => n.field!));
+    const classOf = (name: string, meanings: Array<{ conceptUri: string; field: string }>): { class: string; by: "source" | "concept" | "builders" } | null => {
+      if (stated[name]) return { class: stated[name], by: "source" };
+      let best: string | null = null;
+      for (const m of meanings) {
+        const c = conceptFieldPaths(this.store.getConcept(m.conceptUri)!).get(m.field) as { classification?: string } | undefined;
+        if (c?.classification && c.classification !== "public" && rankOf(c.classification) > rankOf(best)) best = c.classification;
+      }
+      if (best) return { class: best, by: "concept" };
+      return reported.has(name) ? { class: "personal (reported by builders)", by: "builders" } : null;
+    };
     const fields = (JSON.parse(r.fields) as SourceField[]).map((f) => {
       const meanings = pairs
         .filter((p) => p.sourceField === f.name)
@@ -754,9 +784,11 @@ export class Sources {
           ...(p.curatedBy ? { curatedBy: p.curatedBy } : { corroboratedBy: p.sources }),
         }));
       const prof = profile.byField.get(f.name);
+      const cls = classOf(f.name, meanings);
       return {
         ...f,
         ...(meanings.length ? { means: meanings } : {}),
+        ...(cls ? { classification: cls.class, classifiedBy: cls.by } : {}),
         ...(prof && prof.total > 0 ? { filled: Number((prof.filled / prof.total).toFixed(3)) } : {}),
       };
     });
@@ -773,7 +805,8 @@ export class Sources {
       accessUrl: r.access_url,
       platform: r.platform,
       schemaUrl: r.schema_url,
-      exampleQuery: exampleQuery(r),
+      direction: r.direction,
+      exampleQuery: r.direction === "submit" ? null : exampleQuery(r),
       queryNotes: r.query_notes ? (JSON.parse(r.query_notes) as Partial<Record<QueryNoteKey, string>>) : {},
       format: r.format,
       license: r.license,
@@ -1759,6 +1792,28 @@ function optionalText(value: unknown, key: string, max: number): string | undefi
   if (!v) return undefined;
   if (v.length > max) throw new SourceRejected(`"${key}" must be ${max} characters or fewer`);
   return v;
+}
+
+const RANKS: Record<string, number> = {
+  public: 0, internal: 1, confidential: 2, "personal-contact": 3, "personal-location": 3, "personal-identity": 4,
+  "personal-financial": 4, "personal-health": 5, "personal-minor": 5, "access-secret": 6,
+};
+function rankOf(cls: string | null): number {
+  return cls ? RANKS[cls] ?? 1 : -1;
+}
+
+function mergeFieldClasses(existing: string | null, raw: unknown, fieldNames: string[]): string | null {
+  const current = existing ? (JSON.parse(existing) as Record<string, string>) : {};
+  if (raw === undefined || raw === null) return existing;
+  if (typeof raw !== "object" || Array.isArray(raw)) throw new SourceRejected('"fieldClassifications" must be an object of { field: class }');
+  const classes = new Set(dataClassSlugs());
+  for (const [field, cls] of Object.entries(raw as Record<string, unknown>)) {
+    if (!fieldNames.includes(field)) throw new SourceRejected(`fieldClassifications: "${field}" is not a field of this source`);
+    if (cls === null || cls === "") { delete current[field]; continue; }
+    if (typeof cls !== "string" || !classes.has(cls)) throw new SourceRejected(`fieldClassifications.${field}: use one of ${[...classes].join(", ")}`);
+    current[field] = cls;
+  }
+  return Object.keys(current).length ? JSON.stringify(current) : null;
 }
 
 function mergeQueryNotes(existing: string | null, raw: unknown): string | null {

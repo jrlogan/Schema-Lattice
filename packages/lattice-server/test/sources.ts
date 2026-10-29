@@ -516,6 +516,27 @@ async function main() {
   check("query-notes-keys-checked", (await rejects(() => S.propose({ accessUrl: PARCELS, queryNotes: { speed: "fast" } }, "operator", at(43)))) !== null);
   check("query-notes-on-page", renderSourcePage(S.resolve("ct-parcels")!, "x").includes("- **Link to a record:** https://example.gov/parcel/{Parcel_ID}"));
 
+  // --- submit endpoints -------------------------------------------------------------------------
+  const post = await S.propose({
+    accessUrl: "https://api.example.org/open311/requests.json", platform: "manual", slug: "nh-311-post", title: "311 create request",
+    publisher: "City", jurisdiction: "US-CT/new-haven", recordDescription: "One new service request a resident sends to the city.", direction: "submit",
+    fields: [{ name: "service_code", type: "string" }, { name: "lat", type: "number" }, { name: "long", type: "number" }],
+  }, "operator", at(43));
+  const postView = S.resolve(post.slug)!;
+  check("submit-direction-recorded", postView.direction === "submit" && postView.exampleQuery === null);
+  check("submit-page-warns", renderSourcePage(postView, "x").includes("This is a submit endpoint"));
+  await S.propose({ accessUrl: "https://api.example.org/open311/requests.json", platform: "manual", fieldClassifications: { lat: "personal-location", long: "personal-location" },
+    fields: [{ name: "service_code", type: "string" }, { name: "lat", type: "number" }, { name: "long", type: "number" }] }, "operator", at(43));
+  const classed = S.resolve(post.slug)!.fields.find((f) => f.name === "lat");
+  check("field-classification-stated", classed?.classification === "personal-location" && classed.classifiedBy === "source", JSON.stringify(classed));
+  check("field-classification-validated", (await rejects(() => S.propose({ accessUrl: "https://api.example.org/open311/requests.json", platform: "manual",
+    fieldClassifications: { lat: "secret-ish" }, fields: [{ name: "service_code", type: "string" }, { name: "lat", type: "number" }, { name: "long", type: "number" }] }, "operator", at(43)))) !== null);
+  F.note({ source: "ct-parcels", topic: "field", field: "Location", assertion: "personal-data", text: "Owner home addresses appear here for some rows." }, "operator", at(43), "operator");
+  const reportedField = S.resolve("ct-parcels")!.fields.find((f) => f.name === "Location");
+  check("personal-data-note-classifies", reportedField?.classifiedBy === "builders", JSON.stringify(reportedField));
+  check("page-lists-sensitive-fields", renderSourcePage(S.resolve(post.slug)!, "x").includes("## Personal and sensitive fields"));
+  check("direction-checked", (await rejects(() => S.propose({ accessUrl: PARCELS, direction: "write" }, "operator", at(43)))) !== null);
+
   // --- field profiles --------------------------------------------------------------------------
   await S.propose({ accessUrl: LOTS, slug: "nh-lots", publisher: "City", jurisdiction: "US-CT/new-haven", recordDescription: "One city-managed lot with its parcel number." }, "operator", at(43));
   const before = statsRequests;

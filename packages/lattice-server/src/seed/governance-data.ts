@@ -93,6 +93,16 @@ export const DATA_CLASS_NODES: GovernanceNode[] = [
     sensitivityRank: 4,
   },
   {
+    slug: "personal-location",
+    prefLabel: "Personal Location",
+    definition:
+      "Where a particular person was or is: precise coordinates, a home address, check-ins, or a track tied to the person or their device. A pothole's position is not personal; the route a volunteer walked while recording it is.",
+    conceptKind: "classification",
+    broaderSkeletonSlug: "classification",
+    closeMatch: ["dpv-pd:Location"],
+    sensitivityRank: 3,
+  },
+  {
     slug: "personal-health",
     prefLabel: "Personal Health",
     definition:
@@ -205,8 +215,36 @@ export const ATTESTATION_NODE: GovernanceNode = {
   },
 };
 
+// What a person agreed to when a record they made is passed on: a volunteer's
+// street observation forwarded to the city's 311, a survey answer shared with
+// a partner group. Vocabulary only, like the classes: whether consent is
+// required, and what counts as consent, is the adopting party's decision.
+export const FORWARDING_CONSENT_NODE: GovernanceNode = {
+  slug: "forwarding-consent",
+  prefLabel: "Forwarding Consent",
+  definition:
+    "A person's agreement that a record they made may be sent to a named recipient, with which fields are included, when they agreed and how, and whether they have since withdrawn it.",
+  conceptKind: "entity",
+  broaderSkeletonSlug: "record",
+  closeMatch: ["dpv:Consent"],
+  structure: {
+    kind: "entity",
+    fields: [
+      { name: "subjectRecord", type: "reference", required: true },
+      { name: "recipient", type: "string", required: true },
+      { name: "purpose", type: "string" },
+      { name: "includedFields", type: "string[]" },
+      { name: "identityShared", type: "boolean" },
+      { name: "grantedAt", type: "dateTime", required: true },
+      { name: "method", type: "string" },
+      { name: "withdrawnAt", type: "dateTime" },
+    ],
+  },
+};
+
 export const GOVERNANCE_NODES: GovernanceNode[] = [
   ...DATA_CLASS_NODES,
   ...PROVENANCE_NODES,
   ATTESTATION_NODE,
+  FORWARDING_CONSENT_NODE,
 ];
