@@ -1,0 +1,15 @@
+{
+ "versions": [
+  {"old": "https://schemalattice.com/c/civic-issue-reporting/issue-report@6ab5cb338457", "context": "civic-issue-reporting", "slug": "issue-report", "label": "Issue Report",
+   "definition": "A resident's account of a problem in public space (a pothole, a broken streetlight, flytipping), pinned to a location, categorized, optionally photographed, and tracked by the responsible body from submission through acknowledgement to closure, with the times of each step so response can be measured.",
+   "addFields": [
+    {"name": "reportId", "type": "string", "classification": "public"},
+    {"name": "address", "type": "string", "classification": "public"},
+    {"name": "statusNote", "type": "string", "classification": "public"},
+    {"name": "acknowledged", "type": "dateTime", "classification": "public"},
+    {"name": "expected", "type": "dateTime", "classification": "public"},
+    {"name": "closed", "type": "dateTime", "classification": "public"},
+    {"name": "updated", "type": "dateTime", "classification": "public"}
+   ]}
+ ]
+}
