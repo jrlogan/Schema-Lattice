@@ -835,6 +835,7 @@ export class Sources {
     }
 
     const out = [];
+    const latestCache = new Map<string, string>();
     // A standard is conformed to, not joined against: it relates through conformsTo.
     if (me.kind === "standard") return [];
     for (const other of others) {
@@ -842,14 +843,24 @@ export class Sources {
       if (!r || r.withdrawn_reason !== null || r.kind === "standard") continue;
       const theirs = pairs.filter((p) => p.source === other);
       const joins: SourceJoin[] = [];
-      const concepts = new Set(mine.map((p) => p.conceptUri).filter((c) => theirs.some((t) => t.conceptUri === c)));
+      // Versions of one concept are one concept for joining: a source mapped
+      // onto the new version still joins one that hasn't moved yet.
+      const lineage = (uri: string) => {
+        if (!latestCache.has(uri)) latestCache.set(uri, this.store.latestVersionOf(uri));
+        return latestCache.get(uri)!;
+      };
+      const concepts = new Set(mine.map((p) => lineage(p.conceptUri)).filter((c) => theirs.some((t) => lineage(t.conceptUri) === c)));
       for (const conceptUri of concepts) {
         const record = this.store.getConcept(conceptUri);
         const paths = record ? conceptFieldPaths(record) : new Map<string, ConceptField>();
         const shared: Array<JoinPair & { kind: SourceJoin["kind"] }> = [];
-        for (const a of mine.filter((p) => p.conceptUri === conceptUri)) {
-          for (const b of theirs.filter((p) => p.conceptUri === conceptUri && p.conceptField === a.conceptField)) {
-            const kind = fieldJoinKind(a.conceptField, paths.get(a.conceptField), referenced.has(`${conceptUri}|${a.conceptField}`));
+        const isReferenced = (field: string) => [...referenced].some((k) => {
+          const cut = k.lastIndexOf("|");
+          return k.slice(cut + 1) === field && lineage(k.slice(0, cut)) === conceptUri;
+        });
+        for (const a of mine.filter((p) => lineage(p.conceptUri) === conceptUri)) {
+          for (const b of theirs.filter((p) => lineage(p.conceptUri) === conceptUri && p.conceptField === a.conceptField)) {
+            const kind = fieldJoinKind(a.conceptField, paths.get(a.conceptField), isReferenced(a.conceptField));
             if (kind) shared.push({ a: a.sourceField, b: b.sourceField, conceptField: a.conceptField, kind });
           }
         }
@@ -1149,8 +1160,35 @@ export class Sources {
     return new Set(this.evidence.promotedKeys("source").map((k) => k.claimKey.slice("source|".length)).filter((s) => !withdrawn.has(s)));
   }
 
-  /** Field pairs in effect: curated or corroborated, and not overturned. */
+  /**
+   * Field pairs in effect: curated or corroborated, and not overturned. A
+   * source's pairs onto a superseded concept drop out once the same source is
+   * mapped onto a newer version of it: the old pairs stay in the ledger (and
+   * still count for anyone using the old URI) but would otherwise show the
+   * same source twice.
+   */
   private listedPairs(): ListedPair[] {
+    const all = this.promotedPairs();
+    const superseded = this.store.supersededUris();
+    if (superseded.size === 0) return all;
+    const mapped = new Set(all.map((p) => `${p.source}|${p.conceptUri}`));
+    const newerMapped = new Map<string, boolean>();
+    return all.filter((p) => {
+      if (!superseded.has(p.conceptUri)) return true;
+      const key = `${p.source}|${p.conceptUri}`;
+      if (!newerMapped.has(key)) {
+        // Walk forward through later versions; hide if this source maps any of them.
+        let hit = false;
+        for (let v = this.store.newerVersionOf(p.conceptUri), i = 0; v && i < 100; v = this.store.newerVersionOf(v), i++) {
+          if (mapped.has(`${p.source}|${v}`)) { hit = true; break; }
+        }
+        newerMapped.set(key, hit);
+      }
+      return !newerMapped.get(key);
+    });
+  }
+
+  private promotedPairs(): ListedPair[] {
     return this.evidence.promotedKeys("field-mapping").map(({ claimKey, reason, sources }) => {
       const claim = this.evidence.latestClaim(claimKey) as unknown as MappingClaim;
       const [, source, sourceField, conceptUri, conceptField] = claimKey.split("|");

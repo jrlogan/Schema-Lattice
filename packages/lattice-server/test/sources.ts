@@ -426,6 +426,23 @@ async function main() {
   check("points-do-not-overlay-points", !issuesView.related.some((r) => r.slug === stops.slug) && !issuesView.overlays.some((o) => o.slug === stops.slug));
   check("polygons-still-overlay", S.resolve("ct-parcels")!.overlays.some((o) => o.slug === zones.slug));
 
+  // --- a concept gets a new version ---------------------------------------------------------
+  const PARCEL2 = ((await callTool(instance, "lattice_publish_concept", {
+    contextUri: ctx.uri, prefLabel: "Tax Parcel", conceptSlug: "tax-parcel", previousVersion: PARCEL,
+    definition: "A piece of land with its own identifier on the assessor's map, the unit that taxes and zoning apply to, with its land area.",
+    conceptKind: "place", broader: [instance.skeletonUri("location")!], closeMatch: ["schema:Place"], coRefersWith: [], coRefersRationale: "Test fixture.",
+    structure: { kind: "entity", fields: [{ name: "pin", type: "string" }, { name: "address", type: "string" }, { name: "town", type: "string" },
+      { name: "zoneCode", type: "string" }, { name: "geometry", type: "geometry" }, { name: "landArea", type: "number" }] }, sessionId,
+  })) as { uri: string }).uri;
+  check("fixture-v2-published", !!PARCEL2 && PARCEL2 !== PARCEL, String(PARCEL2));
+  await S.map({ source: "ct-parcels", conceptUri: PARCEL2, fields: [{ from: "Parcel_ID", to: "pin" }, { from: "Location", to: "address" }] }, "operator", at(42));
+  const carried = S.resolve("ct-parcels")!.carries.filter((c) => c.prefLabel === "Tax Parcel");
+  check("remapped-source-shows-new-version-only", carried.length === 1 && carried[0].conceptUri === PARCEL2, JSON.stringify(carried));
+  check("unmoved-source-keeps-old-version", S.resolve(manual.slug)!.carries.some((c) => c.conceptUri === PARCEL));
+  check("join-survives-across-versions", S.resolve("ct-parcels")!.related.some((r) => r.slug === manual.slug && r.joins.some((j) => j.kind === "key")),
+    JSON.stringify(S.resolve("ct-parcels")!.related.map((r) => [r.slug, r.joins.map((j) => j.kind)])));
+  check("old-pairs-stay-in-ledger", instance.evidence.outcome(`field-mapping|ct-parcels|Parcel_ID|${PARCEL}|pin`, "right").status === "promoted");
+
   // --- the markdown page ---------------------------------------------------------------------
   const page = renderSourcePage(S.resolve("ct-parcels")!, "schemalattice.test");
   check("page-has-endpoint", page.includes("/FeatureServer/0/query?where=1%3D1"));
@@ -455,7 +472,7 @@ async function main() {
   };
   check("atlas-places-concepts", atlas.concepts.length >= 16 && atlas.concepts.every((c) => Number.isFinite(c.x) && Number.isFinite(c.y)));
   check("atlas-excludes-governance", !atlas.concepts.some((c) => c.uri.includes("/c/governance/")));
-  check("atlas-shows-sources", atlas.sources.some((s) => s.slug === "ct-parcels") && atlas.concepts.some((c) => c.uri === PARCEL && c.publicSources > 0));
+  check("atlas-shows-sources", atlas.sources.some((s) => s.slug === "ct-parcels") && atlas.concepts.some((c) => c.uri === PARCEL2 && c.publicSources > 0));
   const atlasPageRes = await fetch(`${http.url}/atlas`);
   const atlasHtml = await atlasPageRes.text();
   check("atlas-page", atlasPageRes.status === 200 && atlasHtml.includes("/atlas.json") && atlasHtml.includes('id="lens"'));
