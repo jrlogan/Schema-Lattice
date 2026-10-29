@@ -165,3 +165,28 @@ working: independent builders reached the same facts.
 One apparent anomaly: an agent's report "replaced" another's. The two
 agents shared a network, so the ledger counts them as one source. That is
 the anti-gaming rule working as designed.
+
+## Fixes from these lessons (2026-10-29, PR #20 and live data)
+
+| Lesson | Fix |
+|---|---|
+| No place profile (asked for by all three place-based apps) | `lattice_place_profile` and `GET /place?lat=&lng=&jurisdiction=`. Every covering area or line layer, grouped by question, each with a ready-to-run point query, what its fields mean and its last change. Checked live: Fair Haven returns Ward 8, EJ 52.2%, zone X, HUC12 Mill River. |
+| Estuary reaches missing | `epa-attains-assessment-areas` (MapServer/2), mapped onto Assessed Waterbody. The lower Mill River is CT-C1_023-SB. |
+| Known gaps | Tree canopy by tract (CIRCA, joins census tracts on the 2020 GEOID scheme), CSO outfall locations (CT DEEP), NWS station observations (rainfall), and the value of volunteer time (Independent Sector; refuses scripts, so it is not checked by the catalog) |
+| Volunteer Event lacked a conditions call and a postponed status | Volunteer Event v2 (`@b3cb435e010f`): `workday`, `postponed`, `conditionsVerdict`, `conditionsNote`, `postponedTo` |
+| No survey-event concept for bioblitzes | Survey Event (`biodiversity/survey-event@dbaba8e783a9`), from the Darwin Core Event class, with protocol, effort, taxa targeted, minors and record license |
+| Consent couldn't say a guardian gave it | Forwarding Consent v2 adds `grantedBy` (self, parent-or-guardian, organization) and `subjectIsMinor`; v1 resolves forward |
+| Concept and source sensitivity disagreed | Issue Report v3 (`@55b4929ae546`) classifies `photo` and `reporter` as personal-identity. All four 311 sources were re-mapped onto it. |
+| Mesh ignored wire names; no nearest join | The mesh reads field-map wire names through the target source's mappings, offers a nearest-point connection, and mentions the right-of-way fallback for parcels |
+| `$schema` URL 404 | `/schema/manifest-v1.json` is served, including `fieldMaps` and `target.source` |
+| Builder brief said little about reading public data | New section 7: find, read the page, treat joins as hypotheses, report back, send data back with consent |
+| Builder findings stuck in quarantine | 10 notes verified and confirmed by the operator, including street trees `Species`/`SiteID` always empty (also shown by the server's profile), GBIF's URL-style occurrenceID, the EJ GEOID county split, SeeClickFix paging and box filters, NOAA tide predictions and the Mill River unit. The other 15 wait for independent corroboration. |
+
+**A slip while doing this.** Re-running the seed file re-asserted its
+original mappings as the operator. That dropped the schemes added live, and
+re-asserted a mapping that had been disputed. Both were restored within
+minutes, and the schemes now live in the seed file. The seed tool now keeps
+live schemes and conversions the seed lacks, and refuses to re-assert a pair
+whose dispute was upheld, saying so in both cases. The lesson is the same
+as the overwrite incident earlier in the day: an automatic re-run must not
+silently undo a later, deliberate change.

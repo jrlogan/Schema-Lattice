@@ -1,0 +1,15 @@
+{
+ "versions": [
+  {"old": "https://schemalattice.com/c/civic-issue-reporting/issue-report@34263088753f", "context": "civic-issue-reporting", "slug": "issue-report", "label": "Issue Report",
+   "definition": "A resident's account of a problem in public space (a pothole, a broken streetlight, flytipping), pinned to a location, categorized, optionally photographed, and tracked by the responsible body from submission through acknowledgement to closure, with the times of each step so response can be measured. The reporter and any photo can identify a person.",
+   "setClassification": {"photo": "personal-identity", "reporter": "personal-identity"}},
+  {"old": "https://schemalattice.com/c/volunteer-engagement/volunteer-event@8e3ef95f7070", "context": "volunteer-engagement", "slug": "volunteer-event", "label": "Volunteer Event",
+   "definition": "A scheduled gathering run by a volunteer group, most often a hands-on work day at a place it looks after, carrying everything a community event does plus the place and segments worked, the meeting point, what to bring, difficulty, turnout including walk-ins, total volunteer hours, the conditions call made beforehand and a recap.",
+   "addValues": {"eventType": ["workday"], "status": ["postponed"]},
+   "addFields": [
+    {"name": "conditionsVerdict", "type": "enum", "values": ["go", "caution", "no-go"], "classification": "public", "description": "The call made before the day (weather, tide, water quality, flood)"},
+    {"name": "conditionsNote", "type": "string", "classification": "public", "description": "Why, with the sources and times consulted"},
+    {"name": "postponedTo", "type": "dateTime", "classification": "public"}
+   ]}
+ ]
+}

@@ -2,7 +2,7 @@
 
 usage: LATTICE_API_KEY=… python3 version.py <target> <spec.json> <replaced-in.json|-> <replaced-out.json>
 spec: { contexts: [{slug,title,definition}], versions: [{ old, context, slug, label, definition,
-        addFields?: [field], broader?: [uri or "@<old uri>"] }] }
+        addFields?: [field], setClassification?: { field: class }, addValues?: { field: [values] }, broader?: [uri or "@<old uri>"] }] }
 Every other part of the record (fields, anchors, attribution, lineage) is kept. References to
 any concept in the replaced map (earlier runs plus this one) are re-pointed to the new version.
 """
@@ -52,6 +52,10 @@ for v in spec["versions"]:
     have = {f["name"] for f in structure.get("fields", [])}
     for f in repoint(v.get("addFields", [])):
         if f["name"] not in have: structure.setdefault("fields", []).append(f)
+    for f in structure.get("fields", []):
+        if f["name"] in v.get("setClassification", {}): f["classification"] = v["setClassification"][f["name"]]
+        for extra in v.get("addValues", {}).get(f["name"], []):
+            if extra not in f.setdefault("values", []): f["values"].append(extra)
     attribution = {k: r[k] for k in ("importedFrom", "sourceLicense", "sourceNotes", "inspiredBySources") if r.get(k)}
     if r.get("createdBy"): attribution["authoredBy"] = r["createdBy"]
     broader = [replaced.get(b, b) for b in (v.get("broader") or r.get("broader") or [])]
