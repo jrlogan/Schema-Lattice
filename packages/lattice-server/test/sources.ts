@@ -83,8 +83,43 @@ const publisher: Record<string, unknown> = {
     columns: [{ fieldName: "amount", name: "Amount", dataTypeName: "number" }],
   },
 };
+// A lot layer whose aggregates the server can ask for: one text field full of
+// blank strings, lat/long in State Plane feet, degrees in latdd.
+const LOTS = "https://gis.example.gov/arcgis/rest/services/Lots/FeatureServer/0";
+publisher[`${LOTS}?f=json`] = {
+  name: "Lots", geometryType: "esriGeometryPoint",
+  fields: [
+    { name: "OBJECTID", type: "esriFieldTypeOID" }, { name: "mbp", type: "esriFieldTypeString" },
+    { name: "nbhd", type: "esriFieldTypeString" }, { name: "lat", type: "esriFieldTypeDouble" },
+    { name: "long", type: "esriFieldTypeDouble" }, { name: "latdd", type: "esriFieldTypeDouble" },
+  ],
+};
+const LOT_STATS: Record<string, { count: number; nonBlank?: number; min?: number; max?: number }> = {
+  mbp: { count: 100, nonBlank: 100 }, nbhd: { count: 100, nonBlank: 0 },
+  lat: { count: 100, min: 668000, max: 690000 }, long: { count: 100, min: 940000, max: 960000 }, latdd: { count: 100, min: 41.2, max: 41.35 },
+};
+let statsRequests = 0;
+function lotsQuery(url: string): unknown {
+  statsRequests++;
+  const q = new URL(url).searchParams;
+  if (q.get("returnCountOnly") === "true") {
+    const where = q.get("where") ?? "";
+    const field = where.match(/^(\w+) IS NOT NULL AND \1 <> ''$/)?.[1];
+    return { count: field ? LOT_STATS[field]?.nonBlank ?? 0 : 100 };
+  }
+  const stats = JSON.parse(q.get("outStatistics") ?? "[]") as Array<{ statisticType: string; onStatisticField: string; outStatisticFieldName: string }>;
+  const attributes: Record<string, number | null> = {};
+  for (const st of stats) {
+    const f = LOT_STATS[st.onStatisticField];
+    // ArcGIS servers often upper-case the output names.
+    attributes[st.outStatisticFieldName.toUpperCase()] = st.statisticType === "count" ? f?.count ?? 0 : st.statisticType === "min" ? f?.min ?? null : f?.max ?? null;
+  }
+  return { features: [{ attributes }] };
+}
+
 const down = new Set<string>();
 const fakeFetch = async (url: string) => {
+  if (url.startsWith(`${LOTS}/query?`)) return lotsQuery(url);
   if (down.has(url)) throw new SourceFetchError("the publisher answered HTTP 503");
   if (!(url in publisher)) throw new SourceFetchError(`the publisher answered HTTP 404`);
   return structuredClone(publisher[url]);
@@ -434,6 +469,77 @@ async function main() {
   })(), S.listAll("US-CT/new-haven").map((x) => x.jurisdiction).join(","));
   check("point-in-polygon-names-fields-for-api-points", /`lat`/.test(pip?.how ?? ""), pip?.how);
   check("polygons-still-overlay", S.resolve("ct-parcels")!.overlays.some((o) => o.slug === zones.slug));
+
+  // --- what builders found -------------------------------------------------------------------
+  const F = S.findings;
+  const anonNote = F.note({ source: "ct-parcels", topic: "field", field: "Location", assertion: "mostly-empty", text: "Location is blank for most condo rows." }, "net:n1", at(42), "w1");
+  check("anonymous-note-pending", anonNote.status === "pending" && anonNote.key === "source-note|ct-parcels|field|Location|mostly-empty", JSON.stringify(anonNote));
+  const sameFinding = F.note({ source: "ct-parcels", topic: "field", field: "Location", assertion: "mostly-empty", text: "Most rows have no Location value at all." }, "net:n2", at(42), "w2");
+  check("same-field-fact-corroborates-whatever-the-words", sameFinding.key === anonNote.key && sameFinding.independentSources === 2);
+  F.note({ source: "ct-parcels", agree: anonNote.key }, "net:n3", at(42), "w3");
+  instance.evidence.rescore(at(50));
+  check("anonymous-notes-need-a-keyed-source", instance.evidence.outcome(anonNote.key, "right").status === "pending");
+  check("note-field-checked", (() => { try { F.note({ source: "ct-parcels", topic: "field", field: "location", assertion: "always-empty", text: "Field is always empty here." }, "net:n1", at(42), "w1"); return false; } catch (e) { return /names are exact/.test((e as Error).message); } })());
+  check("note-assertion-required", (() => { try { F.note({ source: "ct-parcels", topic: "field", field: "Location", text: "Something about the field." }, "net:n1", at(42), "w1"); return false; } catch (e) { return /assertion/.test((e as Error).message); } })());
+  const access = F.note({ source: "ct-parcels", topic: "access", text: "Returns 1,000 rows per request; page with resultOffset." }, "operator", at(42), "operator");
+  check("curated-note-listed", access.status === "promoted" && S.resolve("ct-parcels")!.notes.some((n) => n.key === access.key && n.curatedBy === "operator"));
+  const agreeAccess = F.note({ source: "ct-parcels", agree: access.key }, "net:n4", at(42), "w4");
+  check("agree-by-key", agreeAccess.key === access.key && agreeAccess.independentSources === 2, JSON.stringify(agreeAccess));
+  check("disagreement-needs-other-source", (() => { try { F.note({ source: "ct-parcels", topic: "disagreement", otherSource: "nope", text: "These sources disagree on values." }, "operator", at(42), "operator"); return false; } catch { return true; } })());
+  const disagree = F.note({ source: "ct-parcels", topic: "disagreement", otherSource: "real-estate-sales", text: "Sale prices differ by a few thousand; prefer the state file." }, "operator", at(42), "operator");
+  check("disagreement-listed", S.resolve("ct-parcels")!.notes.some((n) => n.key === disagree.key && n.otherSource === "real-estate-sales"), JSON.stringify(disagree) + JSON.stringify(S.resolve("ct-parcels")!.notes.map((n) => n.key)));
+  F.note({ source: "ct-parcels", agree: disagree.key, verdict: "wrong" }, "operator", at(42), "operator");
+  check("disputed-note-drops-out", !S.resolve("ct-parcels")!.notes.some((n) => n.key === disagree.key));
+  check("report-lists-pending-notes", S.report().pendingNotes.some((n) => n.key === anonNote.key));
+
+  // Joins builders ran.
+  const keyJoinReport = F.reportJoin({ a: manual.slug, b: "ct-parcels", fieldsA: ["pid"], fieldsB: ["Parcel_ID"], tried: 200, matched: 188 }, "operator", at(42), "operator");
+  check("join-report-canonical", keyJoinReport.key === (manual.slug < "ct-parcels" ? `join-report|${manual.slug}|ct-parcels|pid=Parcel_ID` : `join-report|ct-parcels|${manual.slug}|Parcel_ID=pid`), keyJoinReport.key);
+  const offered = S.resolve("ct-parcels")!.related.find((r) => r.slug === manual.slug)!.joins.find((j) => j.kind === "key") as { tested?: { status: string; matchRate: number } | null };
+  check("offered-join-shows-measurement", offered?.tested?.status === "works" && offered.tested.matchRate === 0.94, JSON.stringify(offered?.tested));
+  F.reportJoin({ a: "ct-parcels", b: zones.slug, fieldsA: ["Parcel_ID"], fieldsB: ["zone_code"], tried: 50, matched: 2 }, "operator", at(42), "operator");
+  const extra = S.resolve("ct-parcels")!.builderJoins.find((j) => j.other === zones.slug);
+  check("unoffered-join-listed-as-builder-found", extra?.status === "fails" && extra.matchRate === 0.04 && extra.fields.here[0] === "Parcel_ID", JSON.stringify(extra));
+  const anonJoin = F.reportJoin({ a: "ct-parcels", b: "real-estate-sales", method: "point-in-polygon", tried: 40, matched: 3 }, "net:j1", at(42), "wj1");
+  check("anonymous-join-report-unconfirmed", anonJoin.status === "pending" && anonJoin.evidence?.status === "unconfirmed" && anonJoin.reported === "fails");
+  check("join-counts-checked", (() => { try { F.reportJoin({ a: "ct-parcels", b: zones.slug, fieldsA: ["Parcel_ID"], fieldsB: ["zone_code"], tried: 5, matched: 9 }, "net:j1", at(42), "wj1"); return false; } catch { return true; } })());
+  check("join-fields-checked", (() => { try { F.reportJoin({ a: "ct-parcels", b: zones.slug, fieldsA: ["parcel_id"], fieldsB: ["zone_code"], tried: 5, matched: 1 }, "net:j1", at(42), "wj1"); return false; } catch (e) { return /names are exact/.test((e as Error).message); } })());
+  const findingsPage = renderSourcePage(S.resolve("ct-parcels")!, "schemalattice.test");
+  check("page-shows-builder-findings", findingsPage.includes("## What builders found") && findingsPage.includes("## Joins builders found") &&
+    findingsPage.includes("_Builders ran it: works, median match 94%"));
+
+  // --- query notes ----------------------------------------------------------------------------
+  await S.propose({ accessUrl: PARCELS, queryNotes: { paging: "1,000 per request; page with resultOffset.", defaults: "Every row; no default filter." } }, "operator", at(43));
+  await S.propose({ accessUrl: PARCELS, queryNotes: { defaults: null, recordLink: "https://example.gov/parcel/{Parcel_ID}" } }, "operator", at(43));
+  const qn = S.resolve("ct-parcels")!.queryNotes;
+  check("query-notes-merge-and-clear", qn.paging?.startsWith("1,000") === true && qn.recordLink?.includes("{Parcel_ID}") === true && !qn.defaults, JSON.stringify(qn));
+  check("query-notes-keys-checked", (await rejects(() => S.propose({ accessUrl: PARCELS, queryNotes: { speed: "fast" } }, "operator", at(43)))) !== null);
+  check("query-notes-on-page", renderSourcePage(S.resolve("ct-parcels")!, "x").includes("- **Link to a record:** https://example.gov/parcel/{Parcel_ID}"));
+
+  // --- field profiles --------------------------------------------------------------------------
+  await S.propose({ accessUrl: LOTS, slug: "nh-lots", publisher: "City", jurisdiction: "US-CT/new-haven", recordDescription: "One city-managed lot with its parcel number." }, "operator", at(43));
+  const before = statsRequests;
+  const lotCheck = await S.check("nh-lots", at(43));
+  const lots = S.resolve("nh-lots")!;
+  const warn = (field: string, problem: string) => lots.fieldWarnings.some((w) => w.field === field && w.problem === problem);
+  check("profile-runs-in-check", lotCheck.checked === true && lots.profiledAt === at(43).toISOString() && statsRequests - before >= 3, JSON.stringify(lots.recentChecks[0]));
+  check("profile-catches-blank-strings", warn("nbhd", "always-empty") && lots.fields.find((f) => f.name === "nbhd")?.filled === 0, JSON.stringify(lots.fieldWarnings));
+  check("profile-catches-state-plane", warn("lat", "not-degrees") && warn("long", "not-degrees") && !warn("latdd", "not-degrees"));
+  check("profile-filled-shown", lots.fields.find((f) => f.name === "mbp")?.filled === 1);
+  check("profile-not-for-manual", (await S.profile(manual.slug, at(43))).error !== undefined);
+  for (const [n, w] of [["net:p1", "wp1"], ["net:p2", "wp1"], ["net:p3", "wp2"]]) {
+    F.note({ source: "nh-lots", topic: "field", field: "nbhd", assertion: "always-empty", text: "nbhd is blank on every row I fetched." }, n, at(43), w);
+  }
+  instance.evidence.rescore(at(51));
+  const confirmed = S.resolve("nh-lots")!.notes.find((n) => n.field === "nbhd");
+  check("profile-confirmed-note-lists-anonymously", confirmed?.confirmedByProfile === true && confirmed.corroboratedBy === 3, JSON.stringify(S.resolve("nh-lots")!.notes));
+  F.note({ source: "nh-lots", topic: "field", field: "mbp", assertion: "always-empty", text: "mbp seems always blank to me." }, "net:p1", at(43), "wp1");
+  F.note({ source: "nh-lots", topic: "field", field: "mbp", assertion: "always-empty", text: "mbp seems always blank to me." }, "net:p2", at(43), "wp1");
+  F.note({ source: "nh-lots", topic: "field", field: "mbp", assertion: "always-empty", text: "mbp seems always blank to me." }, "net:p3", at(43), "wp2");
+  instance.evidence.rescore(at(51));
+  check("profile-contradicted-note-stays-pending", !S.resolve("nh-lots")!.notes.some((n) => n.field === "mbp"));
+  const lotsPage = renderSourcePage(S.resolve("nh-lots")!, "schemalattice.test");
+  check("page-shows-profile", lotsPage.includes("| Filled |") && lotsPage.includes("`nbhd` always empty") && lotsPage.includes("`lat` not degrees"));
 
   // --- a concept gets a new version ---------------------------------------------------------
   const PARCEL2 = ((await callTool(instance, "lattice_publish_concept", {

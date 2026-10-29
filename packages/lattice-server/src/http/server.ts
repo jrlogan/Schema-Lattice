@@ -40,6 +40,7 @@ const MAX_BODY_BYTES = 1_000_000;
  */
 const EVIDENCE_TOOLS = new Set([
   "lattice_propose", "lattice_contribute", "lattice_propose_source", "lattice_map_source", "lattice_check_source",
+  "lattice_note_source", "lattice_report_join",
 ]);
 
 export interface HttpServerHandle {

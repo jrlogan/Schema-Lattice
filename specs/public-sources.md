@@ -161,6 +161,99 @@ access status kept apart from readiness, checked dates kept apart from
 publisher dates, unknowns written as unknowns, and scheduled checks
 whose failures stay visible.
 
+## What builders found
+
+The civic case studies (examples/civic-case-studies) showed that builders
+learn the most useful facts about a source and had no way to record them:
+
+- a field that is always empty;
+- a latitude in State Plane feet;
+- a default filter that hides 95% of records;
+- a join that never matches.
+
+Two ledger kinds carry these, with the same quarantine, corroboration and
+curator rules as field mappings.
+
+**Notes** (`lattice_note_source`, claim kind `source-note`):
+
+| Topic | Claim key | Corroborates when |
+|---|---|---|
+| `field` | `source-note\|{slug}\|field\|{field}\|{assertion}` | another builder reports the same assertion on the same field, in any words |
+| `disagreement` | `source-note\|{slug}\|disagreement\|{other}\|{field or all}` | another builder reports the same pair of sources disagreeing |
+| `access`, `caveat` | `source-note\|{slug}\|{topic}\|{hash of the text}` | another builder `agree`s with the key |
+
+- **Field assertions** come from a fixed list, so findings line up:
+  `always-empty`, `mostly-empty`, `not-degrees`, `values-lag`,
+  `personal-data`, `codes-unpublished`, `meaning-differs`, `other`.
+- **Disputing:** `verdict: "wrong"` disputes a note.
+- **Where they show:** listed notes appear in `resolve` as `notes` and on
+  the page under "What builders found". Pending notes are in the sources
+  report.
+- **The structural route:** a field note the server's own profile confirms
+  (`always-empty`, `mostly-empty`, `not-degrees`; see Field profiles) may
+  list on anonymous corroboration, as a checked mapping can.
+
+**Join reports** (`lattice_report_join`, claim kind `join-report`) say a
+builder ran a join and how it went: `tried` and `matched` counts, never
+records.
+- **Methods:** `fields` (fieldsA[i] = fieldsB[i]), `point-in-polygon` or `nearest`.
+- **Direction:** a match rate of 0.5 or more is a "works" claim; below that, a "fails" claim.
+- **Key:** `join-report|{a}|{b}|{fields or method}`, with the sources in sorted order.
+- **Offered joins:** each join the catalog offers gets `tested`:
+  `{ status: works | fails | unconfirmed, reports, matchRate (median), tried }`,
+  or `null` when nobody has run it. The page says "not yet tested by a builder".
+- **New joins:** joins the catalog did not offer are listed as
+  `builderJoins` ("Joins builders found"). This is how a join the catalog
+  cannot infer (Legistar agenda items → matters by file number) reaches the
+  next builder.
+- **The structural route** applies when both sources' field lists were
+  read from the publishers.
+
+## Field profiles
+
+The weekly check also profiles each ArcGIS and Socrata source, using
+aggregates only. No record is fetched or kept.
+
+- **What is read:**
+  - the total row count;
+  - per field, the filled rows (blank strings count as empty);
+  - min/max of numbers.
+- **Which fields:** up to 25 fields, mapped and location fields first.
+  Blank-string counts for up to 10 text fields.
+- **Cost:** at most a dozen small requests per source per week.
+- **On request:** a check asked for by `lattice_check_source` re-profiles
+  at most daily.
+- **Where it shows:** the page's field table gains a Filled column.
+  `resolve` adds `fieldWarnings`:
+  - `always-empty`;
+  - `mostly-empty`, under half filled;
+  - `not-degrees`, a latitude/longitude field with values outside the range for degrees.
+- **Health:** warnings on mapped fields join the health page's "needs
+  attention" list.
+
+A profile cannot see stale values (`values-lag`) or a changed meaning.
+Those come from builders' notes.
+
+## Query notes
+
+A source's `queryNotes` say how it behaves when queried. Each is up to 300
+characters, and the curator or the original proposer sets them, as with
+other metadata:
+
+| Key | Question |
+|---|---|
+| `defaults` | What a plain request returns, and what it leaves out |
+| `allRecords` | How to get every record |
+| `paging` | Page size limits and how to page |
+| `filters` | Filters the API supports |
+| `recordLink` | URL template for one record's public page |
+| `lifecycle` | How records change: statuses, archiving, fields that empty out |
+| `clients` | Clients the publisher refuses or throttles, and what works instead |
+
+`propose_source` merges `queryNotes` into what is already there, and a
+`null` clears a key. Builders who aren't the proposer add the same facts
+as `access` notes.
+
 ## Who can add what
 
 | Caller | Source or mapping they submit |
@@ -297,6 +390,8 @@ they follow corroboration and retraction automatically.
 | `lattice_propose_source` | evidence bucket | Add a source by its `accessUrl`. Curated or proposed per the table above. |
 | `lattice_map_source` | evidence bucket | Map a source's fields onto a concept, or dispute a mapped pair. |
 | `lattice_check_source` | read | Re-read a verified source's field list from the publisher and report drift. The result is recorded. |
+| `lattice_note_source` | evidence bucket | Record a field fact, access behaviour, disagreement or caveat about a source, or agree with or dispute one. |
+| `lattice_report_join` | evidence bucket | Report a join you ran between two sources: tried and matched counts. |
 | `lattice_sources_report` | read | Proposed sources and mappings with corroboration progress, unmet source searches, fields that no mapping covers yet, and sources that need attention. |
 
 `lattice_evidence_admin` gains `withdraw-source`. Existing `freeze`,

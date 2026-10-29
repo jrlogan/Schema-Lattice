@@ -780,6 +780,20 @@ export class EvidenceLedger {
     return rest;
   }
 
+  /**
+   * Every claim body on a key, newest first, with its direction, without who
+   * sent it. For kinds whose claims carry counts (join reports), so a page can
+   * show what builders measured, not just whether the claim is listed.
+   */
+  claimsOf(claimKey: string): Array<{ direction: Direction; claim: Record<string, unknown>; at: string }> {
+    return (this.db
+      .prepare("SELECT polarity, claim, updated_at FROM evidence WHERE claim_key = ? ORDER BY updated_at DESC")
+      .all(claimKey) as Array<{ polarity: number; claim: string; updated_at: string }>).map((r) => {
+      const { note: _note, kind: _kind, ...rest } = JSON.parse(r.claim) as Record<string, unknown>;
+      return { direction: r.polarity === 1 ? "wrong" : "right", claim: rest, at: r.updated_at };
+    });
+  }
+
   /** Operator: freeze / unfreeze / retract a claim, or purge a source. */
   admin(
     action: "freeze" | "unfreeze" | "retract" | "purge-source",

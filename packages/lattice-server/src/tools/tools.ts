@@ -9,6 +9,7 @@ import { DESIGN_REQUEST_SCHEMA } from "../advisor/tool-schema.ts";
 import { EvidenceRejected } from "../evidence/ledger.ts";
 import { ContributionRejected } from "../evidence/contributions.ts";
 import { SourceRejected } from "../sources/sources.ts";
+import { FindingRejected } from "../sources/findings.ts";
 import type { LatticeInstance } from "../server/instance.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
 import { InvalidParameter, NotFound, toToolError, type ToolError } from "./errors.ts";
@@ -1145,6 +1146,13 @@ export const TOOLS: ToolDef[] = [
         },
         readinessNote: { type: "string", description: "What preparation is needed, or what was tested; up to 500 characters" },
         reviewBy: { type: "string", description: "YYYY-MM-DD: when this entry should be looked at again" },
+        queryNotes: {
+          type: "object",
+          description:
+            "How the source behaves when queried, each up to 300 characters (null clears one): defaults (what a plain " +
+            "request leaves out), allRecords, paging, filters, recordLink (URL template), lifecycle, clients (refused or throttled)",
+          properties: Object.fromEntries(["defaults", "allRecords", "paging", "filters", "recordLink", "lifecycle", "clients"].map((k) => [k, { type: ["string", "null"] }])),
+        },
         conformsTo: { ...stringArray, description: "Slugs of registered standards it follows" },
         platform: { type: "string", enum: ["manual"], description: "Only to force a hand-supplied field list" },
         fields: {
@@ -1176,6 +1184,7 @@ export const TOOLS: ToolDef[] = [
             readiness: optionalString(args, "readiness"),
             readinessNote: optionalString(args, "readinessNote"),
             reviewBy: optionalString(args, "reviewBy"),
+            queryNotes: args.queryNotes,
             conformsTo: optionalStringArray(args, "conformsTo"),
             platform: optionalString(args, "platform"),
             fields: args.fields,
@@ -1246,6 +1255,89 @@ export const TOOLS: ToolDef[] = [
       "included, shows on the source as its access status.",
     inputSchema: { type: "object", properties: { slug: { type: "string" } }, required: ["slug"] },
     handler: (instance, args) => sourcesCall(() => instance.sources.check(requireString(args, "slug"))),
+  },
+  {
+    name: "lattice_note_source",
+    // Not key-gated: a note is a quarantined claim, listed once curated or corroborated.
+    write: false,
+    description:
+      "Record what you found out about a public source by using it, so the next builder doesn't learn it " +
+      "the hard way. Topics: field (a fact about one field, with an assertion: always-empty, mostly-empty, " +
+      "not-degrees, values-lag, personal-data, codes-unpublished, meaning-differs, other), access (how the " +
+      "API behaves: default filters, paging, link formats, blocked clients), disagreement (it conflicts " +
+      "with otherSource; say which to prefer) or caveat. Builders who find the same field fact corroborate " +
+      "each other automatically; for other notes, agree with an existing note by its key. Dispute a note " +
+      "with verdict \"wrong\". Never include record values that identify people.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        source: { type: "string", description: "Source slug" },
+        topic: { type: "string", enum: ["field", "access", "disagreement", "caveat"] },
+        field: { type: "string", description: "For field notes (and optionally disagreements): the exact field name" },
+        assertion: {
+          type: "string",
+          enum: ["always-empty", "mostly-empty", "not-degrees", "values-lag", "personal-data", "codes-unpublished", "meaning-differs", "other"],
+        },
+        otherSource: { type: "string", description: "For disagreement: the other source's slug" },
+        text: { type: "string", description: "What you found and what to do about it, up to 300 characters" },
+        agree: { type: "string", description: "Instead of a new note: the key of an existing note you confirm (or dispute)" },
+        verdict: { type: "string", enum: ["right", "wrong"], description: "Default right; wrong disputes the note" },
+      },
+      required: ["source"],
+    },
+    handler: (instance, args, principal, ctx) =>
+      sourcesCall(() =>
+        instance.sources.findings.note(
+          {
+            source: requireString(args, "source"),
+            topic: optionalString(args, "topic"),
+            field: optionalString(args, "field"),
+            assertion: optionalString(args, "assertion"),
+            otherSource: optionalString(args, "otherSource"),
+            text: optionalString(args, "text"),
+            agree: optionalString(args, "agree"),
+            verdict: optionalString(args, "verdict"),
+          },
+          instance.evidence.sourceOf(principal, ctx.clientAddress),
+          new Date(),
+          instance.evidence.wideOf(principal, ctx.clientAddress),
+        ),
+      ),
+  },
+  {
+    name: "lattice_report_join",
+    write: false,
+    description:
+      "Report a join you actually ran between two public sources: how many records you tried and how many " +
+      "matched. Counts only, never records. method fields (fieldsA[i] equals fieldsB[i]), point-in-polygon " +
+      "or nearest. A match rate of 50% or more says the join works; below that, that it fails. Joins the " +
+      "catalog offers show what builders measured; joins it didn't offer are listed as found by builders.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        a: { type: "string", description: "Source slug" },
+        b: { type: "string", description: "The other source's slug" },
+        method: { type: "string", enum: ["fields", "point-in-polygon", "nearest"], description: "Default fields" },
+        fieldsA: { ...stringArray, description: "For method fields: a's fields compared, in order" },
+        fieldsB: { ...stringArray, description: "For method fields: b's fields compared, in the same order" },
+        tried: { type: "integer", description: "Records of a you tried to match" },
+        matched: { type: "integer", description: "How many found a match in b" },
+        note: { type: "string", description: "Optional: normalisation you needed, up to 300 characters" },
+      },
+      required: ["a", "b", "tried", "matched"],
+    },
+    handler: (instance, args, principal, ctx) =>
+      sourcesCall(() =>
+        instance.sources.findings.reportJoin(
+          {
+            a: requireString(args, "a"), b: requireString(args, "b"), method: optionalString(args, "method"),
+            fieldsA: args.fieldsA, fieldsB: args.fieldsB, tried: args.tried, matched: args.matched, note: optionalString(args, "note"),
+          },
+          instance.evidence.sourceOf(principal, ctx.clientAddress),
+          new Date(),
+          instance.evidence.wideOf(principal, ctx.clientAddress),
+        ),
+      ),
   },
   {
     name: "lattice_sources_report",
@@ -1522,7 +1614,9 @@ async function sourcesCall<T>(fn: () => T | Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (err) {
-    if (err instanceof SourceRejected) throw new InvalidParameter(err.message, { rejected: true, ...err.details });
+    if (err instanceof SourceRejected || err instanceof FindingRejected) {
+      throw new InvalidParameter(err.message, { rejected: true, ...err.details });
+    }
     throw err;
   }
 }
