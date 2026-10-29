@@ -526,6 +526,7 @@ async function main() {
   const partial = F.reportJoin({ a: "ct-parcels", b: zones.slug, method: "point-in-polygon", tried: 200, matched: 58, partialCoverage: true }, "operator", at(42), "operator");
   check("partial-coverage-join-works", partial.reported === "works" && partial.evidence?.partialCoverage === true && partial.evidence.status === "works", JSON.stringify(partial));
   check("join-transform-recorded", transformed.evidence?.transforms[0] === "strip the URL prefix from occurrenceID");
+  check("transformed-join-has-own-key", /\|t:[0-9a-f]{12}$/.test(transformed.key), transformed.key);
   const anonJoin = F.reportJoin({ a: "ct-parcels", b: "real-estate-sales", method: "point-in-polygon", tried: 40, matched: 3 }, "net:j1", at(42), "wj1");
   check("anonymous-join-report-unconfirmed", anonJoin.status === "pending" && anonJoin.evidence?.status === "unconfirmed" && anonJoin.reported === "fails");
   check("join-counts-checked", (() => { try { F.reportJoin({ a: "ct-parcels", b: zones.slug, fieldsA: ["Parcel_ID"], fieldsB: ["zone_code"], tried: 5, matched: 9 }, "net:j1", at(42), "wj1"); return false; } catch { return true; } })());
@@ -621,7 +622,9 @@ async function main() {
   check("place-profile-lists-covering-layers", !!parcelLayer && prof.layers.some((l) => l.slug === zones.slug) && !prof.layers.some((l) => l.slug === station.slug),
     prof.layers.map((l) => l.slug).join(","));
   check("place-profile-query-is-point-intersect", !!parcelLayer?.query && parcelLayer.query.includes("geometry=-72.92%2C41.31") && parcelLayer.query.includes("returnGeometry=false") &&
-    /outFields=[^&*]+/.test(parcelLayer.query), parcelLayer?.query ?? "");
+    parcelLayer.query.includes("outFields=*") && !parcelLayer.query.includes("distance="), parcelLayer?.query ?? "");
+  check("place-profile-area-has-nearby-query", !!parcelLayer && "nearbyQuery" in parcelLayer && /distance=250&units=esriSRUnit_Meter/.test(String(parcelLayer.nearbyQuery)));
+  check("place-profile-warns-empty-is-not-nowhere", /not nothing nearby/.test(prof.notice));
   check("place-profile-says-what-fields-mean", Object.values(parcelLayer?.fields ?? {}).some((m) => m.includes("Tax Parcel")));
   check("place-profile-local-first", prof.layers[0].coverage === "exact");
   check("place-profile-rejects-bad-point", (await rejects(() => S.placeProfile({ latitude: 668642, longitude: 947648, jurisdiction: "US-CT" }))) !== null);

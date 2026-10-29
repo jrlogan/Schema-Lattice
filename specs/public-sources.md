@@ -265,14 +265,21 @@ the questions a builder asks about one point:
 
 It lists every listed polygon or line layer that covers the jurisdiction,
 grouped by the concept its rows are. Each entry carries:
-- a ready-to-run ArcGIS point query (intersect for areas, a distance for
-  lines) returning just the mapped fields;
+- a ready-to-run ArcGIS point query returning all attributes (an answer
+  field such as canopy share is often unmapped). For areas: the feature
+  containing the point, plus a `nearbyQuery` within the radius (250 m by
+  default). For lines and point layers: features within the radius;
 - what those fields mean;
 - the publisher's last-change date;
 - the access status, readiness note and builder notes.
 
-The server fetches nothing. The builder runs the queries, and an empty
-result is an answer too. Asked for by all three place-based environmental
+The server fetches nothing; the builder runs the queries. An empty result
+means nothing at that exact point, not nothing nearby. The re-run case
+studies found that a riverbank point misses the river's assessment unit,
+and that a coordinate 300 m off a park misses the park, so the profile
+says so and offers the nearby query. A join report that needed a
+`transform` gets its own key (`…|t:<hash>`), so exact and transformed
+match rates are never averaged. Asked for by all three place-based environmental
 case studies.
 
 ## Submit endpoints
