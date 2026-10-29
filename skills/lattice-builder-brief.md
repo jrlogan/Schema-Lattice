@@ -104,5 +104,51 @@ When discover finds nothing that fits, that is signal:
 - Use `lattice_feedback` for anything else the maintainers should know,
   such as a wrong match, a confusing result or a missing domain.
 
+## 7. Reading public data
+
+If the app uses open data (a city's GIS layers, a state portal, iNaturalist,
+311), the catalog has usually met it before. Use what it learned.
+
+1. **Find the sources.**
+   - `GET /sources?jurisdiction=US-CT/new-haven` lists every source covering
+     a place, its own first.
+   - `GET /sources?q=…` searches.
+   - For one point, `GET /place?lat=…&lng=…&jurisdiction=…`
+     (`lattice_place_profile`) lists every layer that answers "what is
+     here": ward, tract, watershed, flood zone, EJ area, zoning, parcel.
+     Each comes with a ready-to-run query.
+2. **Read the source page before you query.** Look at:
+   - **What you can rely on:** whether the server can read it, the
+     publisher's last change, and what is unconfirmed.
+   - **Query notes:** what a plain request leaves out, how to get every
+     record, paging, link formats, clients that get refused.
+   - **What builders found:** fields that are always empty, coordinates
+     that are not degrees, sources that disagree.
+   - **The field table:** what each field means, and its fill rate.
+   - **Personal and sensitive fields:** what not to republish.
+3. **Treat joins as hypotheses.**
+   - A *key* join between different publishers that says *unchecked*
+     only works if both use the same identifier system. Agencies often
+     don't (station codes, taxon ids, census vintages). Compare a sample
+     first.
+   - Point-in-polygon joins say how to place points in areas.
+4. **Report what you learn.** This is how the next builder avoids your
+   hour of debugging. Counts and field facts only, never records or
+   anything identifying a person:
+   - `lattice_report_join` with real tried/matched counts, plus any
+     `transform` the values needed and `partialCoverage` for layers that
+     only cover some places;
+   - `lattice_note_source` for a field fact (`always-empty`,
+     `not-degrees`, `values-lag`, `personal-data`…), an access behaviour
+     or a disagreement between sources.
+
+   Reports are quarantined until independent builders agree.
+5. **Sending data back** (a 311 request, a biodiversity record): look for
+   a source whose direction is *submit*, and read the publisher's rules
+   (service definitions, required attributes). Pass on only what the
+   person agreed to share. `governance/forwarding-consent` describes how
+   to record that agreement, including a parent's or guardian's for a
+   minor.
+
 Full protocol (checkpoints, publishing, retrofit, attribution):
 `lattice-workflow.md`, served at `/skill`.

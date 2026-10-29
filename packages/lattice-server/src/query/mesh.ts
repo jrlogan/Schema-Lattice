@@ -49,8 +49,9 @@ type Placement = { shape: "point" | "area"; how: string };
 
 export interface MeshSpatial {
   points: string;
+  /** The other side: the areas points fall in, or the points matched to the nearest. */
   areas: string;
-  method: "point-in-polygon";
+  method: "point-in-polygon" | "nearest";
   how: string;
 }
 
@@ -86,8 +87,11 @@ export interface MeshPair {
 }
 
 export function meshReport(instance: LatticeInstance, aSide: MeshSide, bSide: MeshSide) {
-  const a = resolveSide(instance, aSide);
-  const b = resolveSide(instance, bSide);
+  // A manifest's field maps may name the other side's wire fields (Open311's
+  // lat, service_code): those are read through that source's own mappings.
+  const otherSource = (side: MeshSide) => ("source" in side ? side.source : undefined);
+  const a = resolveSide(instance, aSide, otherSource(bSide));
+  const b = resolveSide(instance, bSide, otherSource(aSide));
   const records = new Map<string, ConceptRecord>();
   const rec = (uri: string) => {
     if (!records.has(uri)) records.set(uri, instance.store.getConcept(uri)!);
@@ -215,9 +219,19 @@ export function meshReport(instance: LatticeInstance, aSide: MeshSide, bSide: Me
     if (pt.placement?.shape === "point" && ar.placement?.shape === "area") {
       spatial.push({
         points: pt.name, areas: ar.name, method: "point-in-polygon",
-        how: `Place each ${pt.name} record (${pt.placement.how}) in the ${ar.name} polygon that contains it (${ar.placement.how}), in one coordinate system.`,
+        how: `Place each ${pt.name} record (${pt.placement.how}) in the ${ar.name} polygon that contains it (${ar.placement.how}), in one coordinate system. ` +
+          "Points on sidewalks and streets often fall outside every parcel: fall back to the nearest polygon within a few metres.",
       });
     }
+  }
+  // Two point sides relate by distance: the nearest street tree, the nearest station.
+  if (a.placement?.shape === "point" && b.placement?.shape === "point" && (a.kind !== "source" || b.kind !== "source")) {
+    const [mine, theirs] = a.kind === "source" ? [b, a] : [a, b];
+    spatial.push({
+      points: mine.name, areas: theirs.name, method: "nearest",
+      how: `Match each ${mine.name} record (${mine.placement!.how}) to the nearest ${theirs.name} point (${theirs.placement!.how}) within a distance you choose, ` +
+        "measured in metres in a projected coordinate system, and keep the distance with the match. Report the rate with lattice_report_join (method nearest).",
+    });
   }
   const fit = connected.length ? Math.round((100 * connected.reduce((s, p) => s + p.score, 0)) / connected.length) : 0;
   const smaller = Math.min(a.entries.length, b.entries.length);
@@ -253,7 +267,11 @@ export function meshReport(instance: LatticeInstance, aSide: MeshSide, bSide: Me
   if (converts.length) challenges.push(`${converts.length} shared field(s) need converting, e.g. ${converts.slice(0, 4).join("; ")}.`);
   const gapsA = pairs.filter((p) => p.grade === "gap" && p.a).length, gapsB = pairs.filter((p) => p.grade === "gap" && p.b).length;
   if (gapsA || gapsB) challenges.push(`${gapsA} of ${a.name}'s concept(s) and ${gapsB} of ${b.name}'s have no counterpart. That is normal for apps that do different things; it only matters if the integration needs them.`);
-  if (spatial.length) challenges.unshift(...spatial.map((x) => `${x.points} records can be placed in ${x.areas} by point in polygon: ${x.how}`));
+  if (spatial.length) {
+    challenges.unshift(...spatial.map((x) => x.method === "nearest"
+      ? `${x.points} records can be matched to the nearest ${x.areas} record by distance: ${x.how}`
+      : `${x.points} records can be placed in ${x.areas} by point in polygon: ${x.how}`));
+  }
   if (!connected.length && !spatial.length) challenges.unshift(`${a.name} and ${b.name} share no concepts: there is nothing in common to connect yet.`);
   else if (!connected.length) challenges.push(`${a.name} and ${b.name} share no concepts; they connect only by location.`);
   if (a.entries.some((e) => e.fields === null) || b.entries.some((e) => e.fields === null)) {
@@ -284,7 +302,7 @@ export function meshReport(instance: LatticeInstance, aSide: MeshSide, bSide: Me
   };
 }
 
-function resolveSide(instance: LatticeInstance, side: MeshSide): ResolvedSide {
+function resolveSide(instance: LatticeInstance, side: MeshSide, otherSource?: string): ResolvedSide {
   const latest = (uri: string) => instance.store.latestVersionOf(uri);
   const describe = (uri: string) => {
     const r = instance.store.getConcept(uri);
@@ -370,13 +388,28 @@ function resolveSide(instance: LatticeInstance, side: MeshSide): ResolvedSide {
       const known = new Set(((record.structure as { fields?: Array<{ name: string }> } | undefined)?.fields ?? []).map((f) => f.name));
       const names = (fm.fields ?? []).flatMap((f) => (end === "target" ? [f.target] : [f.from].flat())).filter((n): n is string => typeof n === "string");
       const hit = names.filter((n) => known.has(n));
+      // Wire names of the source on the other side (or the one the map names) are
+      // read through that source's mappings onto this concept.
+      const wireSlug = (end === "target" ? (fm.target as { source?: string } | undefined)?.source : undefined) ?? otherSource;
+      const wire = wireSlug ? instance.sources.resolve(wireSlug) : null;
+      let translated = 0;
+      if (wire && end === "target") {
+        for (const n of names.filter((x) => !known.has(x))) {
+          const f = wire.fields.find((x) => x.name === n);
+          const means = f && "means" in f && f.means ? f.means.filter((m) => latest(m.conceptUri) === latest(uri)) : [];
+          for (const m of means) { hit.push(m.field); translated++; }
+        }
+        if (translated) notes.push(`fieldMaps.${mapName}: ${translated} wire field(s) read through ${wire.slug}'s mappings`);
+      }
       if (hit.length) {
         const s = fieldsByUri.get(latest(uri)) ?? new Set();
         hit.forEach((n) => s.add(n));
         fieldsByUri.set(latest(uri), s);
       }
-      if (end === "target" && names.length && hit.length < names.length) {
-        notes.push(`fieldMaps.${mapName}: ${names.length - hit.length} of ${names.length} target field(s) are wire names, not fields of the concept; not compared`);
+      const unread = names.filter((n) => !known.has(n)).length - translated;
+      if (end === "target" && unread > 0) {
+        notes.push(`fieldMaps.${mapName}: ${unread} of ${names.length} target field(s) are wire names, not fields of the concept; not compared` +
+          (wire ? "" : " (set target.source to the catalog source the payload goes to, and they are read through its mappings)"));
       }
     }
   }

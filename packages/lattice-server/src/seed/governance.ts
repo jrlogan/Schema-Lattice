@@ -19,6 +19,7 @@ import {
   GOVERNANCE_NODES,
   DATA_CLASS_NODES,
   PROVENANCE_NODES,
+  type GovernanceNode,
 } from "./governance-data.ts";
 
 export interface GovernanceSeedResult {
@@ -56,13 +57,14 @@ export function seedGovernance(
   const assurance = new Map<string, number>();
   let created = 0;
 
-  for (const node of GOVERNANCE_NODES) {
+  const recordOf = (node: GovernanceNode): { record: ConceptRecord; uri: string; hash: string } => {
     const broaderUri = skeleton.conceptUris.get(node.broaderSkeletonSlug);
     if (!broaderUri) {
       throw new Error(
         `governance seed: skeleton slug ${node.broaderSkeletonSlug} not found for ${node.slug}`,
       );
     }
+    const previous = node.previous ? recordOf(node.previous).uri : undefined;
     const record: ConceptRecord = {
       type: "Concept",
       inScheme: ctxUri,
@@ -78,10 +80,15 @@ export function seedGovernance(
         ? { assuranceRank: node.assuranceRank }
         : {}),
       ...(node.structure ? { structure: node.structure } : {}),
+      ...(previous ? { previousVersion: previous } : {}),
       rootAncestor: broaderUri,
     };
     const hash = hashConcept(record);
-    const uri = conceptUri(GOVERNANCE_CONTEXT_SLUG, node.slug, hash);
+    return { record, uri: conceptUri(GOVERNANCE_CONTEXT_SLUG, node.slug, hash), hash };
+  };
+
+  for (const node of GOVERNANCE_NODES) {
+    const { record, uri, hash } = recordOf(node);
     bySlug.set(node.slug, uri);
     if (node.sensitivityRank !== undefined) ranks.set(node.slug, node.sensitivityRank);
     if (node.assuranceRank !== undefined) assurance.set(node.slug, node.assuranceRank);

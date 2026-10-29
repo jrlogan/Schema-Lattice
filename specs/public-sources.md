@@ -254,6 +254,27 @@ other metadata:
 `null` clears a key. Builders who aren't the proposer add the same facts
 as `access` notes.
 
+## Place profiles
+
+`lattice_place_profile` (and `GET /place?lat=&lng=&jurisdiction=`) answers
+the questions a builder asks about one point:
+- which ward, neighborhood or census tract;
+- which watershed, and which assessed waterbody;
+- whether it is in a flood zone or an environmental justice area;
+- which zone, parcel or park.
+
+It lists every listed polygon or line layer that covers the jurisdiction,
+grouped by the concept its rows are. Each entry carries:
+- a ready-to-run ArcGIS point query (intersect for areas, a distance for
+  lines) returning just the mapped fields;
+- what those fields mean;
+- the publisher's last-change date;
+- the access status, readiness note and builder notes.
+
+The server fetches nothing. The builder runs the queries, and an empty
+result is an answer too. Asked for by all three place-based environmental
+case studies.
+
 ## Submit endpoints
 
 A source's `direction` is `read` (the default) or `submit`: an endpoint that

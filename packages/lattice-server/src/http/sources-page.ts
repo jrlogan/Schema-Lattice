@@ -358,13 +358,44 @@ export function renderSourcesHealth(h: Health, host: string): string {
     out.push("");
   }
   out.push("## All sources", "");
-  out.push("| Source | Jurisdiction | Access | Last good read | Readiness | Not confirmed |", "|---|---|---|---|---|---|");
+  out.push("| Source | Jurisdiction | Access | Last good read | Builders reporting | Readiness | Not confirmed |", "|---|---|---|---|---|---|---|");
   for (const e of h.sources) {
     out.push(
-      `| [${cell(e.title)}](https://${host}/sources/${e.slug}) | ${e.jurisdiction} | ${e.access.status} | ${day(e.access.lastOkAt)} | ` +
+      `| [${cell(e.title)}](https://${host}/sources/${e.slug}) | ${e.jurisdiction} | ${e.access.status} | ${day(e.access.lastOkAt)} | ${e.builderReports || ""} | ` +
         `${READINESS_LABEL[e.readiness] ?? e.readiness} | ${e.unknowns.join(", ")} |`,
     );
   }
   out.push("", `JSON: \`POST https://${host}/api/tools/lattice_sources_report\` (its \`needsAttention\` list).`, "");
+  return out.join("\n");
+}
+
+type Profile = ReturnType<LatticeInstance["sources"]["placeProfile"]>;
+
+/** `/place?lat=…&lng=…&jurisdiction=…`: the queries that answer the usual questions about one point. */
+export function renderPlaceProfile(p: Profile, host: string): string {
+  const out: string[] = [];
+  out.push(`# What the map layers say at ${p.point.latitude}, ${p.point.longitude} (${p.jurisdiction})`, "");
+  out.push(
+    `${p.layers.length} layers cover this place. Each query below returns just the mapped fields for what is at the point; ` +
+      "an empty result is an answer too. The catalog fetches nothing: run them yourself.",
+    "",
+  );
+  let current = "";
+  for (const l of p.layers) {
+    if (l.question !== current) {
+      current = l.question;
+      out.push(`## ${line(current)}`, "");
+    }
+    out.push(`### [${line(l.title)}](https://${host}${l.page}) (${l.jurisdiction}, ${l.test})`, "");
+    if (l.query) out.push(l.query, "");
+    else if (l.howToQuery) out.push(line(l.howToQuery), "");
+    const fields = Object.entries(l.fields);
+    if (fields.length) out.push(fields.map(([f, m]) => `\`${cell(f)}\` = ${cell(m)}`).join(" · "), "");
+    out.push(`Publisher's last change: ${l.publisherUpdatedAt ? day(l.publisherUpdatedAt) : NOT_CONFIRMED} · access: ${l.access}`, "");
+    if (l.readinessNote) out.push(`> ${line(l.readinessNote)}`, "");
+    for (const n of l.builderNotes ?? []) out.push(`- Builders found: ${line(n)}`);
+    if (l.builderNotes?.length) out.push("");
+  }
+  out.push(`_${p.notice}_`, "");
   return out.join("\n");
 }

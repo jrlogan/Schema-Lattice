@@ -16,7 +16,7 @@ import { BASE_AUTHORITY } from "../hashing/hash.ts";
 import { listContext } from "../query/stats.ts";
 import { landingPage, llmsText } from "./landing.ts";
 import { contributePage } from "./contribute.ts";
-import { renderSourcePage, renderSourcesHealth, renderSourcesIndex } from "./sources-page.ts";
+import { renderPlaceProfile, renderSourcePage, renderSourcesHealth, renderSourcesIndex } from "./sources-page.ts";
 import { atlasPage } from "./atlas-page.ts";
 import { meshPage } from "./mesh-page.ts";
 import { buildAtlas } from "../query/atlas.ts";
@@ -295,7 +295,7 @@ async function handle(
         pack: "GET /pack, /pack/{context}[,{context}] or /pack?q=... (paste-ready vocabulary for hosted app builders without MCP)",
         mesh: "GET /mesh?a=app:<slug>&b=app:<slug> (how well two apps or an app and a data source will exchange data; or POST /api/tools/lattice_mesh_report)",
         atlas: "GET /atlas (every concept placed by meaning, growth over time, unmet searches, public datasets; data at /atlas.json)",
-        sources: "GET /sources, /sources?q=...&jurisdiction=US-CT/new-haven, /sources/{slug}, /sources/health (public datasets: endpoints, what each field means, join keys, which still answer)",
+        sources: "GET /sources, /sources?q=...&jurisdiction=US-CT/new-haven, /sources/{slug}, /sources/health, /place?lat=&lng=&jurisdiction= (public datasets: endpoints, what each field means, join keys, which still answer)",
         client: "GET /cli/schemalattice.mjs (publish a platform's vocabulary from its code; vendor it)",
         resolveConcept: "GET /c/{context}/{slug}@{hash}",
         resolveContext: "GET /s/{context}@{hash}",
@@ -386,6 +386,23 @@ async function handle(
     return;
   }
 
+  // --- one place: which layers answer which question -----------------------
+  if (path === "/place" && isRead) {
+    const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
+    const markdown = "text/markdown; charset=utf-8";
+    const num = (k: string) => Number(url.searchParams.get(k));
+    const found = await callTool(instance, "lattice_place_profile", {
+      latitude: num("lat"), longitude: num("lng"), jurisdiction: url.searchParams.get("jurisdiction") ?? "",
+      ...(url.searchParams.get("distance") ? { distanceMeters: num("distance") } : {}),
+    }, principal, callContext(req));
+    if (isToolError(found)) {
+      sendText(res, 400, `# Place refused\n\n${found.error.message}\n\nUse /place?lat=41.31&lng=-72.92&jurisdiction=US-CT/new-haven\n`, markdown);
+      return;
+    }
+    sendText(res, 200, renderPlaceProfile(found as never, host), markdown, "public, max-age=300");
+    return;
+  }
+
   // --- public data sources as markdown ----------------------------------
   if ((path === "/sources" || path.startsWith("/sources/")) && isRead) {
     const host = (req.headers["x-forwarded-host"] as string) ?? req.headers.host ?? "localhost";
@@ -452,6 +469,17 @@ async function handle(
       return;
     }
     sendText(res, 200, readFileSync(file, "utf8"), "text/javascript; charset=utf-8");
+    return;
+  }
+
+  // The manifest JSON Schema every schemalattice.json names in $schema.
+  if (path === "/schema/manifest-v1.json" && isRead) {
+    const file = join(REPO_ROOT, "specs", "manifest-v1.schema.json");
+    if (!existsSync(file)) {
+      send(res, 404, { error: { code: "not-found", message: "schema not deployed" } });
+      return;
+    }
+    sendText(res, 200, readFileSync(file, "utf8"), "application/schema+json; charset=utf-8", "public, max-age=3600");
     return;
   }
 
