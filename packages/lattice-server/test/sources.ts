@@ -109,6 +109,7 @@ async function main() {
     coverage("global", "US-CT/new-haven") === "broader" && coverage("US-CT", "global") === "narrower");
   check("join-kinds", fieldJoinKind("pin", { name: "pin", type: "string" }) === "key" &&
     fieldJoinKind("parcelId", undefined) === "key" &&
+    fieldJoinKind("identifier", { name: "identifier", type: "string" }) === "key" &&
     fieldJoinKind("address", { name: "address", type: "string" }, true) === "attribute" &&
     fieldJoinKind("address", { name: "address", type: "string" }) === null &&
     fieldJoinKind("zoneCode", { name: "zoneCode", type: "string" }, true) === "key" &&
