@@ -195,10 +195,11 @@ export function renderSourcePage(s: Resolved, host: string, links: { forwardingC
       out.push(`### ${line(r.title)} (\`${r.slug}\`, ${r.jurisdiction})`, "");
       for (const j of r.joins) {
         out.push(`**${j.kind} join${j.via ? ` via ${line(j.via.prefLabel)}` : ""}.** ${line(j.how)}`, "");
-        const t = (j as { tested?: { status: string; matchRate: number; reports: number; transforms?: string[] } | null }).tested;
+        const t = (j as { tested?: { status: string; matchRate: number; reports: number; transforms?: string[]; partialCoverage?: boolean } | null }).tested;
         if (t) {
           out.push(
-            `_Builders ran it: ${t.status === "works" ? "works" : t.status === "fails" ? "fails" : "unconfirmed"}, median match ${Math.round(t.matchRate * 100)}% over ${t.reports} report(s)` +
+            `_Builders ran it: ${t.status === "works" ? "works" : t.status === "fails" ? "fails" : "unconfirmed"}, ` +
+              `${t.partialCoverage ? "covering" : "median match"} ${Math.round(t.matchRate * 100)}%${t.partialCoverage ? " of records (the layer covers only some places)" : ""} over ${t.reports} report(s)` +
               (t.transforms?.length ? `, after: ${t.transforms.map(line).join("; ")}` : "") + "._",
             "",
           );

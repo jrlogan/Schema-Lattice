@@ -1,0 +1,70 @@
+{
+  "$comment": "Shaped to https://schemalattice.com/c/volunteer-engagement/volunteer-event@8e3ef95f7070; site shaped to https://schemalattice.com/c/place-stewardship/stewarded-site@1764e6346b1a. x-* fields are local extensions the concepts lack.",
+  "site": {
+    "@type": "https://schemalattice.com/c/place-stewardship/stewarded-site@1764e6346b1a",
+    "name": "Mill River Trail",
+    "kind": "trail",
+    "about": "A riverside trail along the tidal lower Mill River in New Haven, from Fair Haven to Criscuolo Park at the harbor.",
+    "towns": ["New Haven"],
+    "states": ["CT"],
+    "latitude": 41.3095,
+    "longitude": -72.9035,
+    "neighborhood": "Fair Haven",
+    "publiclyListed": true,
+    "acceptsVolunteerGroups": true,
+    "groupActivities": ["cleanup", "planting"],
+    "timezone": "America/New_York"
+  },
+  "events": [
+    {
+      "@type": "https://schemalattice.com/c/volunteer-engagement/volunteer-event@8e3ef95f7070",
+      "identifier": "mill-river-2026-10-31-criscuolo",
+      "title": "Shoreline cleanup at Criscuolo Park (low-tide window)",
+      "summary": "Litter pickup on the harbor shoreline at low tide, then native planting above the high-water line.",
+      "eventType": "other",
+      "volunteerWork": true,
+      "status": "upcoming",
+      "isPublic": true,
+      "startDate": "2026-10-31T08:30:00-04:00",
+      "endDate": "2026-10-31T11:30:00-04:00",
+      "venueName": "Criscuolo Park",
+      "locality": "New Haven",
+      "region": "CT",
+      "site": "Mill River Trail",
+      "meetingPoint": {"$comment": "concept wants a trail-point reference; inlined", "name": "Criscuolo Park entrance", "latitude": 41.2985, "longitude": -72.9010},
+      "whatToBring": "Work gloves (water is pathogen-impaired: no wading), boots, water. Grabbers and bags provided.",
+      "difficulty": "moderate",
+      "ageRequirement": "13+ with guardian",
+      "capacity": 25,
+      "topics": ["shoreline cleanup", "native planting"],
+      "x-conditionsVerdict": "caution",
+      "x-conditionsCheckedAt": "2026-10-29T05:30:00Z",
+      "x-conditionsSources": [
+        "https://api.weather.gov/gridpoints/OKX/67,74/forecast",
+        "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=8465705&product=predictions&interval=hilo",
+        "https://mywaterway.epa.gov/waterbody-report/CT_DEP01/CT-C1_014-SB/2024",
+        "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
+      ],
+      "x-tideWindow": {"lowTide": "2026-10-31T09:47:00-04:00", "heightFtMLLW": 0.72, "station": "NOAA 8465705"}
+    },
+    {
+      "@type": "https://schemalattice.com/c/volunteer-engagement/volunteer-event@8e3ef95f7070",
+      "identifier": "mill-river-2026-10-31-fair-haven",
+      "title": "Riverbank planting and cleanup, Mill River Trail at Fair Haven",
+      "eventType": "other",
+      "volunteerWork": true,
+      "status": "upcoming",
+      "isPublic": true,
+      "startDate": "2026-10-31T12:30:00-04:00",
+      "endDate": "2026-10-31T15:00:00-04:00",
+      "locality": "New Haven",
+      "region": "CT",
+      "site": "Mill River Trail",
+      "meetingPoint": {"name": "Fair Haven trail access", "latitude": 41.3095, "longitude": -72.9035},
+      "whatToBring": "Work gloves, boots, water.",
+      "difficulty": "moderate",
+      "x-conditionsVerdict": "go",
+      "x-conditionsCheckedAt": "2026-10-29T05:30:00Z"
+    }
+  ]
+}

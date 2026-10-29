@@ -1,0 +1,42 @@
+rank,ct_list_name,inat_name,common_name,field_guide_enemy,ct_status,ct_legal_status,obs_since_2023-10-29,research_grade,obs_last_12_months,most_recent,days_since,example_observation
+1,Ailanthus altissima,Ailanthus altissima,Tree of Heaven,yes,invasive,prohibited,21,19,5,2026-06-28,123,https://www.inaturalist.org/observations/376380610
+2,Alliaria petiolata,Alliaria petiolata,Garlic mustard,yes,invasive,prohibited,18,18,12,2026-05-12,170,https://www.inaturalist.org/observations/378783725
+3,Polygonum cuspidatum,Reynoutria japonica,Japanese knotweed,yes,invasive,prohibited,20,10,7,2026-10-05,24,https://www.inaturalist.org/observations/406215940
+4,Celastrus orbiculatus,Celastrus orbiculatus,Asiatic bittersweet,yes,invasive,prohibited,13,10,4,2026-04-25,187,https://www.inaturalist.org/observations/353555629
+5,Rosa multiflora,Rosa multiflora,Multiflora rose,,invasive,prohibited,22,16,11,2026-06-06,145,https://www.inaturalist.org/observations/369079680
+6,Artemisia vulgaris,Artemisia vulgaris,Mugwort,,invasive,"prohibited (effective October 1, 2024)",15,15,6,2026-06-26,125,https://www.inaturalist.org/observations/375648454
+7,Ranunculus ficaria,Ficaria verna,Fig buttercup,,invasive,prohibited,15,15,6,2026-04-25,187,https://www.inaturalist.org/observations/353575623
+8,Rubus phoenicolasius,Rubus phoenicolasius,Wineberry,,invasive,prohibited,13,13,3,2026-04-25,187,https://www.inaturalist.org/observations/353557544
+9,Iris pseudacorus,Iris pseudacorus,Yellow iris,,invasive,prohibited,12,10,2,2026-05-25,157,https://www.inaturalist.org/observations/369889531
+10,Polygonum caespitosum,Persicaria longiseta,Bristled knotweed,,invasive,prohibited,9,9,5,2026-10-27,2,https://www.inaturalist.org/observations/411215888
+11,Ampelopsis brevipedunculata,Ampelopsis glandulosa brevipedunculata,Porcelainberry,,invasive,"prohibited (effective October 1, 2024)",9,7,4,2026-10-21,8,https://www.inaturalist.org/observations/409859362
+12,Hesperis matronalis,Hesperis matronalis,Dame’s rocket,,invasive,prohibited,8,7,2,2026-05-25,157,https://www.inaturalist.org/observations/369889650
+13,Lonicera morrowii,Lonicera morrowii,Morrow’s honeysuckle,,invasive,prohibited,11,2,4,2026-06-19,132,https://www.inaturalist.org/observations/380986184
+14,Lonicera japonica,Lonicera japonica,Japanese honeysuckle,,invasive,prohibited,7,4,2,2026-06-13,138,https://www.inaturalist.org/observations/371209519
+15,Phragmites australis,Phragmites australis,Common reed,,invasive,prohibited,5,5,1,2025-11-28,335,https://www.inaturalist.org/observations/328630048
+16,Cardamine impatiens,Cardamine impatiens,Narrowleaf bittercress,,invasive,prohibited,4,4,1,2025-11-02,361,https://www.inaturalist.org/observations/324606602
+17,Cynanchum rossicum,Vincetoxicum rossicum,Pale swallow-wort,,invasive,prohibited,4,2,2,2026-09-09,50,https://www.inaturalist.org/observations/399001214
+18,Elaeagnus umbellata,Elaeagnus umbellata,Autumn olive,,invasive,prohibited,6,6,0,2025-10-12,382,https://www.inaturalist.org/observations/320762827
+19,Centaurea stoebe,Centaurea stoebe,Spotted knapweed,,invasive,prohibited,5,3,0,2025-08-05,450,https://www.inaturalist.org/observations/309447834
+20,Lythrum salicaria,Lythrum salicaria,Purple loosestrife,,invasive,prohibited,2,1,1,2026-08-09,81,https://www.inaturalist.org/observations/393877261
+21,Cynanchum louiseae,Vincetoxicum nigrum,Black swallow-wort,,invasive,prohibited,1,1,1,2026-06-26,125,https://www.inaturalist.org/observations/375649694
+22,Lonicera maackii,Lonicera maackii,Amur honeysuckle,,invasive,prohibited,2,0,1,2025-11-28,335,https://www.inaturalist.org/observations/328624362
+23,Aralia elata,Aralia elata,Japanese angelica tree,,invasive,prohibited (effective Oct. 2024),1,1,0,2025-07-16,470,https://www.inaturalist.org/observations/309601191
+24,Euonymus alatus,Euonymus alatus,Winged euonymus,,invasive,prohibited (effective Oct. 2028),38,35,12,2026-10-05,24,https://www.inaturalist.org/observations/406215389
+25,Acer platanoides,Acer platanoides,Norway maple,,invasive,prohibited (effective Oct. 2030),19,16,5,2026-10-12,17,https://www.inaturalist.org/observations/408102305
+26,Berberis thunbergii,Berberis thunbergii,Japanese barberry,,invasive,prohibited (effective Oct. 2028),15,14,5,2026-05-25,157,https://www.inaturalist.org/observations/369889484
+27,Robinia pseudoacacia,Robinia pseudoacacia,Black locust,,invasive,prohibited (effective Oct. 2028),12,3,4,2026-05-23,159,https://www.inaturalist.org/observations/366515288
+28,Frangula alnus,Frangula alnus,Glossy buckthorn,,invasive,prohibited (effective Oct. 2028),4,3,2,2026-04-25,187,https://www.inaturalist.org/observations/353574150
+29,Pyrus calleryana,Pyrus calleryana,Callery pear,,invasive,prohibited (effective Oct. 2027),1,0,0,2025-06-06,510,https://www.inaturalist.org/observations/293606158
+30,Ligustrum obtusifolium,Ligustrum obtusifolium,Border privet,,potentially invasive,prohibited,29,13,14,2026-08-12,78,https://www.inaturalist.org/observations/391173454
+31,Amorpha fruticosa,Amorpha fruticosa,False indigo,,potentially invasive,prohibited,5,2,2,2026-05-25,157,https://www.inaturalist.org/observations/365084487
+32,Wisteria floribunda,Wisteria floribunda,Japanese wisteria,,potentially invasive,prohibited (effective Oct. 2024),3,1,2,2026-10-14,15,https://www.inaturalist.org/observations/408344704
+33,Datura stramonium,Datura stramonium,Jimsonweed,,potentially invasive,prohibited,2,2,2,2026-09-06,53,https://www.inaturalist.org/observations/397783196
+34,Solanum dulcamara,Solanum dulcamara,Bittersweet nightshade,,potentially invasive,prohibited,2,2,1,2026-09-25,34,https://www.inaturalist.org/observations/403294686
+35,Paulownia tomentosa,Paulownia tomentosa,Princess tree,,potentially invasive,prohibited,2,1,1,2026-10-19,10,https://www.inaturalist.org/observations/409569056
+36,Rumex acetosella,Rumex acetosella,Sheep sorrel,,potentially invasive,prohibited,1,1,1,2026-05-09,173,https://www.inaturalist.org/observations/360619159
+37,Ornithogalum umbellatum,Ornithogalum umbellatum,Star-of-Bethlehem,,potentially invasive,not prohibited (N/A),2,2,1,2026-05-16,166,https://www.inaturalist.org/observations/362364935
+38,Rosa rugosa,Rosa rugosa,Rugosa rose,,potentially invasive,not prohibited (N/A),1,1,0,2024-07-08,843,https://www.inaturalist.org/observations/228126806
+39,Acer ginnala,Acer ginnala,Amur maple,,potentially invasive,not prohibited (N/A),1,0,0,2025-09-30,394,https://www.inaturalist.org/observations/318136999
+40,Ligustrum ovalifolium,Ligustrum ovalifolium,California privet,,potentially invasive,not prohibited (N/A),1,0,0,2024-05-18,894,https://www.inaturalist.org/observations/216589884
+41,Ligustrum vulgare,Ligustrum vulgare,European privet,,potentially invasive,prohibited (effective Oct. 2028),1,0,0,2024-10-31,728,https://www.inaturalist.org/observations/254274753

@@ -71,6 +71,12 @@ export interface JoinReportInput {
   matched: unknown;
   /** How values had to change before they matched; a raw comparison would not. */
   transform?: string;
+  /**
+   * The second source only covers some places (designated areas, one
+   * program's sites), so most records rightly find no match: any match
+   * shows the join works, and the rate is coverage, not success.
+   */
+  partialCoverage?: unknown;
   note?: string;
 }
 
@@ -101,6 +107,8 @@ export interface JoinEvidence {
   tried: number;
   /** Transformations builders needed, most recent first. */
   transforms: string[];
+  /** Reported as a partial-coverage layer: matchRate is coverage. */
+  partialCoverage: boolean;
 }
 
 export class SourceFindings {
@@ -252,15 +260,22 @@ export class SourceFindings {
     if (b < a) [a, b, fieldsA, fieldsB] = [b, a, fieldsB, fieldsA];
     const claimKey = joinKey(a, b, method, fieldsA, fieldsB);
     const rate = matched / tried;
-    const claim: JoinClaim = { a, b, method, fieldsA, fieldsB, tried, matched, ...(transform ? { transform } : {}), ...(input.note ? { note: input.note } : {}) };
+    if (input.partialCoverage !== undefined && typeof input.partialCoverage !== "boolean") throw new FindingRejected('"partialCoverage" must be true or false');
+    const partial = input.partialCoverage === true;
+    const works = partial ? matched > 0 : rate >= FINDINGS_CONFIG.worksAt;
+    const claim: JoinClaim = {
+      a, b, method, fieldsA, fieldsB, tried, matched, ...(transform ? { transform } : {}), ...(partial ? { partialCoverage: true } : {}),
+      ...(input.note ? { note: input.note } : {}),
+    };
     const [outcome] = this.claim(() =>
       this.evidence.proposeClaims("join-report", [{
-        claimKey, subject: `${a}|${b}`, direction: rate >= FINDINGS_CONFIG.worksAt ? "right" : "wrong", claim: claim as unknown as Record<string, unknown>,
+        claimKey, subject: `${a}|${b}`, direction: works ? "right" : "wrong", claim: claim as unknown as Record<string, unknown>,
       }], source, now, wide),
     );
     return {
       key: claimKey,
-      reported: rate >= FINDINGS_CONFIG.worksAt ? "works" : "fails",
+      reported: works ? "works" : "fails",
+      ...(partial ? { meaning: "partial coverage: the rate is the share of records inside the covered areas" } : {}),
       matchRate: Number(rate.toFixed(3)),
       status: outcome.status,
       evidence: this.joinEvidence(claimKey),
@@ -283,6 +298,7 @@ export class SourceFindings {
       matchRate: Number(rates[Math.floor(rates.length / 2)].toFixed(3)),
       tried: claims.reduce((s, x) => s + (x.claim.tried as number), 0),
       transforms: [...new Set(claims.map((x) => x.claim.transform).filter((t): t is string => typeof t === "string"))],
+      partialCoverage: claims.some((x) => x.claim.partialCoverage === true),
     };
   }
 
@@ -339,6 +355,7 @@ interface JoinClaim {
   tried: number;
   matched: number;
   transform?: string;
+  partialCoverage?: boolean;
   note?: string;
 }
 
