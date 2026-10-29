@@ -17,6 +17,7 @@ import { cosine } from "../discover/embedder.ts";
 import type { EvidenceLedger } from "../evidence/ledger.ts";
 import { EvidenceRejected } from "../evidence/ledger.ts";
 import type { ConceptRecord } from "../hashing/types.ts";
+import { SourceFindings, joinKey, type FieldAssertion, type JoinEvidence } from "./findings.ts";
 import {
   DESCRIPTION_MAX, LABEL_MAX, SourceFetchError, introspect, platformOf, safeFetchJson,
   type JsonFetcher, type Platform, type SourceField,
@@ -47,6 +48,10 @@ export const SOURCE_CONFIG = {
   staleAfterDays: 21,
   /** Checks kept per source; older ones are pruned. */
   checkHistory: 30,
+  /** Fields profiled per source per check (mapped and location fields first). */
+  profileFields: 25,
+  /** Text fields checked for blank strings, one count request each. */
+  profileBlankChecks: 10,
   costMax: 300,
   contactMax: 300,
   readinessNoteMax: 500,
@@ -74,6 +79,21 @@ export type AccessStatus = "located" | "tested" | "stale" | "failing";
 
 /** Facts about a source that stay "not confirmed" until someone states them. */
 const CONFIRMABLE = ["license", "cost", "contact", "updateFrequency", "publisherUpdatedAt"] as const;
+
+/**
+ * How a source behaves when queried, beyond its field list. Each answers a
+ * question the civic case studies had to work out by hand.
+ */
+export const QUERY_NOTE_KEYS = {
+  defaults: "What a plain request returns, and what it leaves out (default filters, statuses, date windows)",
+  allRecords: "How to get every record",
+  paging: "Page size limits and how to page",
+  filters: "Filters the API supports (by place, date, status)",
+  recordLink: "How to link to one record's public page (a URL template)",
+  lifecycle: "How records change over time (statuses, archiving, fields that empty out)",
+  clients: "Clients the publisher refuses or throttles, and what works instead",
+} as const;
+export type QueryNoteKey = keyof typeof QUERY_NOTE_KEYS;
 
 /** Paths under /sources/ that are pages, not sources. */
 const RESERVED_SLUGS = new Set(["health"]);
@@ -124,6 +144,7 @@ interface SourceRow {
   readiness: Readiness;
   readiness_note: string | null;
   review_by: string | null;
+  query_notes: string | null;
   publisher_updated_at: string | null;
   proposed_by: string;
   withdrawn_reason: string | null;
@@ -152,6 +173,8 @@ export interface SourceInput {
   readinessNote?: string;
   /** YYYY-MM-DD: when someone should look at this entry again. */
   reviewBy?: string;
+  /** How the source behaves when queried; merged into what is there, null clears a key. */
+  queryNotes?: unknown;
   conformsTo?: string[];
   /** Only for sources the server cannot read itself (`manual`). */
   fields?: unknown;
@@ -222,6 +245,8 @@ export interface SourceJoin {
 
 export class Sources {
   private db: Database.Database;
+  /** Notes and join reports from builders who used the sources. */
+  readonly findings: SourceFindings;
 
   constructor(
     private store: Store,
@@ -274,12 +299,22 @@ export class Sources {
         detail     TEXT NOT NULL
       );
       CREATE INDEX IF NOT EXISTS idx_source_checks_slug ON source_checks(slug, checked_at);
+      CREATE TABLE IF NOT EXISTS source_profiles (
+        slug        TEXT NOT NULL,
+        field       TEXT NOT NULL,
+        total       INTEGER NOT NULL,
+        filled      INTEGER NOT NULL,
+        min_value   REAL,
+        max_value   REAL,
+        profiled_at TEXT NOT NULL,
+        PRIMARY KEY (slug, field)
+      );
     `);
     // Added after the first deployment; existing rows read as not confirmed.
     const columns = new Set((this.db.prepare("PRAGMA table_info(sources)").all() as Array<{ name: string }>).map((c) => c.name));
     for (const [name, decl] of [
       ["cost", "TEXT"], ["contact", "TEXT"], ["readiness", "TEXT NOT NULL DEFAULT 'not-assessed'"],
-      ["readiness_note", "TEXT"], ["review_by", "TEXT"], ["publisher_updated_at", "TEXT"],
+      ["readiness_note", "TEXT"], ["review_by", "TEXT"], ["publisher_updated_at", "TEXT"], ["query_notes", "TEXT"],
     ]) {
       if (!columns.has(name)) this.db.exec(`ALTER TABLE sources ADD COLUMN ${name} ${decl}`);
     }
@@ -290,6 +325,16 @@ export class Sources {
       const g = detectGeometry(JSON.parse(u.fields) as SourceField[]);
       if (g) place.run(g, u.slug);
     }
+
+    this.findings = new SourceFindings(
+      this.db,
+      evidence,
+      (slug) => {
+        const r = this.row(slug);
+        return r ? { fields: [...this.sourceFieldNames(r)], verified: r.fields_verified === 1, withdrawn: r.withdrawn_reason !== null } : null;
+      },
+      (slug, field, assertion) => this.profileConfirms(slug, field, assertion),
+    );
 
     evidence.registerKind("source", {
       valid: (slug) => {
@@ -418,6 +463,7 @@ export class Sources {
       readiness: optionalOneOf(input.readiness, "readiness", READINESS) ?? existing?.readiness ?? "not-assessed",
       readiness_note: optionalText(input.readinessNote, "readinessNote", SOURCE_CONFIG.readinessNoteMax) ?? existing?.readiness_note ?? null,
       review_by: optionalDate(input.reviewBy, "reviewBy") ?? existing?.review_by ?? null,
+      query_notes: mergeQueryNotes(existing?.query_notes ?? null, input.queryNotes),
       publisher_updated_at: intro?.publisherUpdatedAt ?? existing?.publisher_updated_at ?? null,
       conforms_to: JSON.stringify(conformsTo),
       fields: JSON.stringify(fields),
@@ -432,11 +478,11 @@ export class Sources {
         .prepare(
           `INSERT INTO sources (slug, kind, title, publisher, jurisdiction, record_description, landing_page, access_url, access_key,
              schema_url, platform, format, license, update_frequency, cost, contact, readiness, readiness_note, review_by,
-             publisher_updated_at, conforms_to, fields, fields_verified, fields_checked_at, geometry,
+             query_notes, publisher_updated_at, conforms_to, fields, fields_verified, fields_checked_at, geometry,
              proposed_by, withdrawn_reason, vec, created_at, updated_at)
            VALUES (@slug, @kind, @title, @publisher, @jurisdiction, @record_description, @landing_page, @access_url, @access_key,
              @schema_url, @platform, @format, @license, @update_frequency, @cost, @contact, @readiness, @readiness_note, @review_by,
-             @publisher_updated_at, @conforms_to, @fields, @fields_verified, @fields_checked_at,
+             @query_notes, @publisher_updated_at, @conforms_to, @fields, @fields_verified, @fields_checked_at,
              @geometry, @proposed_by, NULL, @vec, @now, @now)`,
         )
         .run({ ...row, proposed_by: source, vec: Buffer.from(Float32Array.from(vec).buffer), now: now.toISOString() });
@@ -447,7 +493,7 @@ export class Sources {
              record_description = @record_description, landing_page = @landing_page, access_url = @access_url,
              schema_url = @schema_url, platform = @platform, format = @format, license = @license,
              update_frequency = @update_frequency, cost = @cost, contact = @contact, readiness = @readiness,
-             readiness_note = @readiness_note, review_by = @review_by, publisher_updated_at = @publisher_updated_at,
+             readiness_note = @readiness_note, review_by = @review_by, query_notes = @query_notes, publisher_updated_at = @publisher_updated_at,
              conforms_to = @conforms_to, fields = @fields,
              fields_verified = @fields_verified, fields_checked_at = @fields_checked_at, geometry = @geometry,
              withdrawn_reason = CASE WHEN @curator = 1 THEN NULL ELSE withdrawn_reason END,
@@ -696,6 +742,7 @@ export class Sources {
     const listed = advisorOnly ? new Set(this.advisorCandidates([], [slug])) : this.listedSlugs();
     const allPairs = advisorOnly ? this.advisorPairs(slug) : this.listedPairs();
     const pairs = allPairs.filter((p) => p.source === slug);
+    const profile = this.profileOf(slug);
     const fields = (JSON.parse(r.fields) as SourceField[]).map((f) => {
       const meanings = pairs
         .filter((p) => p.sourceField === f.name)
@@ -706,7 +753,12 @@ export class Sources {
           ...(p.conversion ? { conversion: p.conversion } : {}),
           ...(p.curatedBy ? { curatedBy: p.curatedBy } : { corroboratedBy: p.sources }),
         }));
-      return { ...f, ...(meanings.length ? { means: meanings } : {}) };
+      const prof = profile.byField.get(f.name);
+      return {
+        ...f,
+        ...(meanings.length ? { means: meanings } : {}),
+        ...(prof && prof.total > 0 ? { filled: Number((prof.filled / prof.total).toFixed(3)) } : {}),
+      };
     });
     return {
       slug: r.slug,
@@ -722,6 +774,7 @@ export class Sources {
       platform: r.platform,
       schemaUrl: r.schema_url,
       exampleQuery: exampleQuery(r),
+      queryNotes: r.query_notes ? (JSON.parse(r.query_notes) as Partial<Record<QueryNoteKey, string>>) : {},
       format: r.format,
       license: r.license,
       updateFrequency: r.update_frequency,
@@ -740,10 +793,43 @@ export class Sources {
       carries: this.carries(slug, allPairs),
       fields,
       unmappedFields: fields.filter((f) => !("means" in f)).length,
-      ...(advisorOnly ? {related: [], overlays: []} : this.relatedSplit(slug, allPairs)),
+      notes: this.findings.notesFor(slug),
+      fieldWarnings: profile.warnings,
+      profiledAt: profile.profiledAt,
+      ...(advisorOnly
+        ? { related: [], overlays: [], builderJoins: [] }
+        : this.withJoinEvidence(slug, this.relatedSplit(slug, allPairs))),
       ...(r.kind === "standard" ? { conformedBy: this.conformers(slug) } : {}),
       notice: UNTRUSTED_NOTICE,
     };
+  }
+
+  /**
+   * Put what builders measured next to each join the catalog offers, and list
+   * the joins builders reported that the catalog did not work out itself.
+   */
+  private withJoinEvidence<T extends { related: Array<{ slug: string; joins: SourceJoin[] }> }>(slug: string, split: T) {
+    const reported = this.findings.joinsFor(slug);
+    const used = new Set<string>();
+    const related = split.related.map((r) => ({
+      ...r,
+      joins: r.joins.map((j) => {
+        const method = j.method === "point-in-polygon" ? "point-in-polygon" : "fields";
+        if (method === "fields" && j.pairs.length === 0) return j;
+        const key = joinKey(slug, r.slug, method, j.pairs.map((p) => p.a), j.pairs.map((p) => p.b));
+        const tested = reported.find((x) => x.key === key);
+        if (!tested) return { ...j, tested: null };
+        used.add(key);
+        return { ...j, tested: summarizeJoin(tested) };
+      }),
+    }));
+    const builderJoins = reported.filter((x) => !used.has(x.key)).map((x) => ({
+      other: x.a === slug ? x.b : x.a,
+      method: x.method,
+      fields: x.a === slug ? { here: x.fieldsA, there: x.fieldsB } : { here: x.fieldsB, there: x.fieldsA },
+      ...summarizeJoin(x),
+    }));
+    return { ...split, related, builderJoins };
   }
 
   /** Listed sources that map onto a concept, for lattice_resolve. */
@@ -998,8 +1084,14 @@ export class Sources {
           .filter((s) => s.status === "rejected" && s.claimKey.startsWith(`field-mapping|${slug}|`))
           .map((s) => s.claimKey.split("|")[2])
       : [];
+    // Anyone may ask for a check; a profile is up to a dozen publisher requests,
+    // so on request it is refreshed at most daily. The weekly sweep always profiles.
+    const lastProfile = this.profileOf(slug).profiledAt;
+    const fresh = via === "request" && lastProfile !== null && now.getTime() - Date.parse(lastProfile) < 86_400_000;
+    const profile = fresh ? { fields: 0, skipped: true as const } : await this.profile(slug, now);
     this.recordCheck(slug, now, true, !unchanged, {
       via, ...(unchanged ? {} : { added, removed, retyped }), ...(broken.length ? { mappingsBroken: broken } : {}),
+      ...("skipped" in profile ? {} : profile.error ? { profileError: profile.error } : { profiled: profile.fields }),
     });
     return {
       slug, checked: true, checkedAt: now.toISOString(), unchanged, added, removed, retyped, mappingsBroken: broken,
@@ -1055,13 +1147,17 @@ export class Sources {
     const today = now.toISOString().slice(0, 10);
     const rows = (this.db.prepare("SELECT * FROM sources WHERE withdrawn_reason IS NULL ORDER BY jurisdiction, title").all() as SourceRow[])
       .filter((r) => listed.has(r.slug));
+    const pairsNow = this.listedPairs();
     const entries = rows.map((r) => {
       const last = this.checksOf(r.slug, 1)[0] ?? null;
+      const mappedHere = new Set(pairsNow.filter((p) => p.source === r.slug).map((p) => p.sourceField));
       return {
         slug: r.slug,
         title: r.title,
         jurisdiction: r.jurisdiction,
         kind: r.kind,
+        // Mapped fields the profile shows are blank or not degrees: a builder relying on the mapping is misled.
+        fieldWarnings: this.profileOf(r.slug).warnings.filter((w) => mappedHere.has(w.field) && w.problem !== "mostly-empty"),
         access: this.access(r, now),
         drifted: last?.ok === true && last.changed,
         readiness: r.readiness,
@@ -1134,13 +1230,15 @@ export class Sources {
       counts: { listed: listed.size, proposed: proposed.length, pendingPairs: pendingPairs.length, disputes: disputed.length },
       // What needs a person: sources the server can no longer read, and reviews that are due.
       needsAttention: health.sources
-        .filter((e) => e.access.status === "failing" || e.access.status === "stale" || e.drifted || e.reviewOverdue)
+        .filter((e) => e.access.status === "failing" || e.access.status === "stale" || e.drifted || e.reviewOverdue || e.fieldWarnings.length)
         .map((e) => ({
           slug: e.slug, access: e.access.status, ...(e.access.reason ? { reason: e.access.reason } : {}),
+          ...(e.fieldWarnings.length ? { fieldWarnings: e.fieldWarnings } : {}),
           ...(e.drifted ? { drifted: true } : {}), ...(e.reviewOverdue ? { reviewOverdue: e.reviewBy } : {}),
         })),
       proposed,
       pendingMappings: pendingPairs.slice(0, opts.operator ? 500 : 100),
+      pendingNotes: this.findings.pendingNotes().slice(0, opts.operator ? 500 : 100),
       disputes: disputed,
       unmetSearches: this.unmetSearches(),
       unmappedFields: unmapped,
@@ -1298,6 +1396,113 @@ export class Sources {
     }
     const staleBefore = new Date(now.getTime() - SOURCE_CONFIG.staleAfterDays * 86_400_000).toISOString();
     return { status: lastOkAt && lastOkAt >= staleBefore ? "tested" : "stale", lastCheckedAt, lastOkAt };
+  }
+
+  /**
+   * Aggregate counts for a verified source's important fields, read from the
+   * publisher: total rows, filled rows per field, and min/max of numbers.
+   * Aggregates only: no record is fetched or kept. Mapped fields and location
+   * fields come first, because a mapped field that is always blank, or a
+   * "latitude" outside -90..90, is what misleads a builder.
+   */
+  async profile(slug: string, now: Date = new Date()): Promise<{ fields: number; error?: string }> {
+    const r = this.row(slug);
+    if (!r || r.fields_verified !== 1 || (r.platform !== "arcgis" && r.platform !== "socrata")) return { fields: 0, error: "not profiled: the server can only profile ArcGIS and Socrata sources" };
+    const all = JSON.parse(r.fields) as SourceField[];
+    const mapped = new Set(this.listedPairs().filter((p) => p.source === slug).map((p) => p.sourceField));
+    const located = (f: SourceField) => LAT_RE.test(f.name) || LNG_RE.test(f.name) || /^(lat|lon|long)dd$/i.test(f.name);
+    const profilable = all.filter((f) => !GEOMETRY_TYPES.has(f.type.toLowerCase()) && !/^(oid|globalid|blob|raster|geometry)$/i.test(f.type) && !f.name.startsWith(":"));
+    const chosen = [...profilable.filter((f) => mapped.has(f.name) || located(f)), ...profilable.filter((f) => !mapped.has(f.name) && !located(f))]
+      .slice(0, SOURCE_CONFIG.profileFields);
+    if (chosen.length === 0) return { fields: 0 };
+    const numeric = (f: SourceField) => /^(double|single|integer|smallinteger|biginteger|number|float|money|percent)$/i.test(f.type);
+    const textual = (f: SourceField) => /^(string|text|url)$/i.test(f.type);
+    try {
+      const out: Array<{ field: string; total: number; filled: number; min: number | null; max: number | null }> = [];
+      if (r.platform === "arcgis") {
+        const base = r.access_url.replace(/\/(query)?\/?$/, "");
+        const total = Number(((await this.fetchJson(`${base}/query?where=1%3D1&returnCountOnly=true&f=json`)) as { count?: number }).count);
+        if (!Number.isFinite(total)) throw new SourceFetchError("no row count");
+        const stats = chosen.flatMap((f, i) => [
+          { statisticType: "count", onStatisticField: f.name, outStatisticFieldName: `c${i}` },
+          ...(numeric(f) ? [
+            { statisticType: "min", onStatisticField: f.name, outStatisticFieldName: `n${i}` },
+            { statisticType: "max", onStatisticField: f.name, outStatisticFieldName: `x${i}` },
+          ] : []),
+        ]);
+        const body = (await this.fetchJson(`${base}/query?where=1%3D1&outStatistics=${encodeURIComponent(JSON.stringify(stats))}&f=json`)) as {
+          features?: Array<{ attributes: Record<string, number | null> }>; error?: { message?: string };
+        };
+        if (body.error || !body.features?.[0]) throw new SourceFetchError(body.error?.message ?? "no statistics");
+        const a = lowerKeys(body.features[0].attributes);
+        let blankChecks = 0;
+        for (const [i, f] of chosen.entries()) {
+          let filled = Number(a[`c${i}`] ?? 0);
+          // count() counts blank strings as filled; ask how many are blank.
+          if (textual(f) && filled > 0 && blankChecks++ < SOURCE_CONFIG.profileBlankChecks) {
+            const where = encodeURIComponent(`${f.name} IS NOT NULL AND ${f.name} <> ''`);
+            const n = Number(((await this.fetchJson(`${base}/query?where=${where}&returnCountOnly=true&f=json`)) as { count?: number }).count);
+            if (Number.isFinite(n)) filled = n;
+          }
+          out.push({ field: f.name, total, filled, min: numOrNull(a[`n${i}`]), max: numOrNull(a[`x${i}`]) });
+        }
+      } else {
+        const id = (r.schema_url ?? "").match(/([a-z0-9]{4}-[a-z0-9]{4})\.json$/)?.[1];
+        if (!id) throw new SourceFetchError("no dataset id");
+        const origin = new URL(r.access_url).origin;
+        const select = ["count(*) as total", ...chosen.flatMap((f, i) => [
+          `count(${f.name}) as c${i}`, ...(numeric(f) ? [`min(${f.name}) as n${i}`, `max(${f.name}) as x${i}`] : []),
+        ])].join(", ");
+        const rows = (await this.fetchJson(`${origin}/resource/${id}.json?$select=${encodeURIComponent(select)}`)) as Array<Record<string, string>>;
+        if (!Array.isArray(rows) || !rows[0]) throw new SourceFetchError("no aggregates");
+        const total = Number(rows[0].total);
+        for (const [i, f] of chosen.entries()) {
+          out.push({ field: f.name, total, filled: Number(rows[0][`c${i}`] ?? 0), min: numOrNull(rows[0][`n${i}`]), max: numOrNull(rows[0][`x${i}`]) });
+        }
+      }
+      const put = this.db.prepare(
+        `INSERT INTO source_profiles (slug, field, total, filled, min_value, max_value, profiled_at) VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(slug, field) DO UPDATE SET total = excluded.total, filled = excluded.filled, min_value = excluded.min_value,
+           max_value = excluded.max_value, profiled_at = excluded.profiled_at`,
+      );
+      this.db.transaction(() => { for (const p of out) put.run(slug, p.field, p.total, p.filled, p.min, p.max, now.toISOString()); })();
+      // A profile can newly confirm builders' field notes (the structural route).
+      const noteKeys = this.evidence.statesOf("source-note").map((s) => s.claimKey).filter((k) => k.startsWith(`source-note|${slug}|field|`));
+      if (noteKeys.length) this.evidence.rescore(now, noteKeys);
+      return { fields: out.length };
+    } catch (err) {
+      if (err instanceof SourceFetchError) return { fields: 0, error: err.message };
+      throw err;
+    }
+  }
+
+  /** Server-observed problems with a source's fields, from its latest profile. */
+  profileOf(slug: string) {
+    const rows = this.db.prepare("SELECT * FROM source_profiles WHERE slug = ?").all(slug) as Array<{
+      field: string; total: number; filled: number; min_value: number | null; max_value: number | null; profiled_at: string;
+    }>;
+    const byField = new Map(rows.map((p) => [p.field, p]));
+    const warnings: Array<{ field: string; problem: "always-empty" | "mostly-empty" | "not-degrees"; detail: string }> = [];
+    for (const p of rows) {
+      if (p.total > 0 && p.filled === 0) warnings.push({ field: p.field, problem: "always-empty", detail: `blank on all ${p.total} rows` });
+      else if (p.total > 0 && p.filled / p.total < 0.5) warnings.push({ field: p.field, problem: "mostly-empty", detail: `filled on ${p.filled} of ${p.total} rows` });
+      if (outsideDegrees(p.field, p.min_value, p.max_value)) {
+        warnings.push({ field: p.field, problem: "not-degrees", detail: `values run ${p.min_value} to ${p.max_value}, outside the range for degrees` });
+      }
+    }
+    return { byField, warnings, profiledAt: rows[0]?.profiled_at ?? null };
+  }
+
+  /** Whether the server's own field profile shows a field assertion (§ Field profiles). */
+  profileConfirms(slug: string, field: string, assertion: FieldAssertion): boolean {
+    if (assertion !== "always-empty" && assertion !== "mostly-empty" && assertion !== "not-degrees") return false;
+    const p = this.db.prepare("SELECT * FROM source_profiles WHERE slug = ? AND field = ?").get(slug, field) as
+      | { total: number; filled: number; min_value: number | null; max_value: number | null }
+      | undefined;
+    if (!p || p.total === 0) return false;
+    if (assertion === "always-empty") return p.filled === 0;
+    if (assertion === "mostly-empty") return p.filled / p.total < 0.5;
+    return outsideDegrees(field, p.min_value, p.max_value);
   }
 
   private readinessOf(r: SourceRow) {
@@ -1543,6 +1748,19 @@ function optionalText(value: unknown, key: string, max: number): string | undefi
   return v;
 }
 
+function mergeQueryNotes(existing: string | null, raw: unknown): string | null {
+  const current = existing ? (JSON.parse(existing) as Record<string, string>) : {};
+  if (raw === undefined || raw === null) return existing;
+  if (typeof raw !== "object" || Array.isArray(raw)) throw new SourceRejected('"queryNotes" must be an object');
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (!(k in QUERY_NOTE_KEYS)) throw new SourceRejected(`"queryNotes.${k}" is not a known key; use ${Object.keys(QUERY_NOTE_KEYS).join(", ")}`);
+    if (v === null || v === "") { delete current[k]; continue; }
+    const text = optionalText(v, `queryNotes.${k}`, 300);
+    if (text) current[k] = text;
+  }
+  return Object.keys(current).length ? JSON.stringify(current) : null;
+}
+
 function optionalDate(value: unknown, key: string): string | undefined {
   const v = optionalText(value, key, 10);
   if (v === undefined) return undefined;
@@ -1558,6 +1776,28 @@ function unknownsOf(r: SourceRow): string[] {
     license: r.license, cost: r.cost, contact: r.contact, updateFrequency: r.update_frequency, publisherUpdatedAt: r.publisher_updated_at,
   };
   return CONFIRMABLE.filter((k) => value[k] === null);
+}
+
+function lowerKeys(o: Record<string, number | null>): Record<string, number | null> {
+  return Object.fromEntries(Object.entries(o).map(([k, v]) => [k.toLowerCase(), v]));
+}
+
+function numOrNull(v: unknown): number | null {
+  const n = typeof v === "string" ? Number(v) : v;
+  return typeof n === "number" && Number.isFinite(n) ? n : null;
+}
+
+/** A latitude or longitude field whose values cannot be degrees. */
+function outsideDegrees(field: string, min: number | null, max: number | null): boolean {
+  if (min === null || max === null) return false;
+  const leaf = field.split(".").pop() ?? field;
+  if (LAT_RE.test(leaf) || /^latdd$/i.test(leaf)) return min < -90 || max > 90;
+  if (LNG_RE.test(leaf) || /^(lon|long)dd$/i.test(leaf)) return min < -180 || max > 180;
+  return false;
+}
+
+function summarizeJoin(j: JoinEvidence) {
+  return { status: j.status, reports: j.reports, matchRate: j.matchRate, tried: j.tried, key: j.key };
 }
 
 function optionalStringList(value: unknown, key: string): string[] | undefined {

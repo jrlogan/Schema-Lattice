@@ -81,6 +81,11 @@ export function renderSourcePage(s: Resolved, host: string): string {
       "list could be read, not that every row is there. Test a small request before relying on it.",
     "",
   );
+  if (s.fieldWarnings.length) {
+    out.push(`**The server's field profile (${day(s.profiledAt)}) shows:**`);
+    for (const w of s.fieldWarnings) out.push(`- \`${cell(w.field)}\` ${w.problem.replace(/-/g, " ")}: ${line(w.detail)}`);
+    out.push("");
+  }
   const lastChange = s.recentChecks.find((c) => c.ok && c.changed);
   if (lastChange) {
     const list = (k: "added" | "removed" | "retyped") => (lastChange[k] ?? []).map((n) => `\`${cell(n)}\``).join(", ");
@@ -93,9 +98,31 @@ export function renderSourcePage(s: Resolved, host: string): string {
     );
   }
 
+  if (s.notes.length) {
+    out.push("## What builders found", "");
+    for (const n of s.notes) {
+      const what =
+        n.topic === "field" ? `\`${cell(n.field)}\`: ${n.assertion}` :
+        n.topic === "disagreement" ? `disagrees with [${cell(n.otherSource)}](https://${host}/sources/${cell(n.otherSource)})${n.field ? ` on \`${cell(n.field)}\`` : ""}` :
+        n.topic;
+      const who = n.curatedBy ? "curated" : `${n.corroboratedBy} builders agree`;
+      out.push(`- **${what}** (${who}${n.confirmedByProfile ? "; the server's field profile shows it too" : ""}): ${line(n.text)}`);
+    }
+    out.push(
+      "",
+      `Found something else? \`POST https://${host}/api/tools/lattice_note_source\` with \`{ "source": "${s.slug}", "topic": "field", "field": "…", "assertion": "always-empty", "text": "…" }\`.`,
+      "",
+    );
+  }
+
   out.push("## Get the data", "");
   out.push(`- **Endpoint (${s.platform}):** ${s.accessUrl}`);
   if (s.exampleQuery) out.push(`- **Example request:** ${s.exampleQuery}`);
+  const QN: Array<[keyof typeof s.queryNotes, string]> = [
+    ["defaults", "A plain request returns"], ["allRecords", "Every record"], ["paging", "Paging"], ["filters", "Filters"],
+    ["recordLink", "Link to a record"], ["lifecycle", "How records change"], ["clients", "Clients"],
+  ];
+  for (const [k, label] of QN) if (s.queryNotes[k]) out.push(`- **${label}:** ${line(s.queryNotes[k])}`);
   if (s.schemaUrl) out.push(`- **Live field list:** ${s.schemaUrl}`);
   if (s.landingPage) out.push(`- **About it:** ${s.landingPage}`);
   if (s.geometry) out.push(`- **Geometry:** ${s.geometry}${s.locationFields ? `, from ${s.locationFields}` : ""}`);
@@ -116,12 +143,17 @@ export function renderSourcePage(s: Resolved, host: string): string {
   }
 
   out.push("## Fields", "");
-  out.push("| Field | Type | Label | Means (concept field) |", "|---|---|---|---|");
+  const profiled = s.fields.some((f) => "filled" in f && f.filled !== undefined);
+  out.push(
+    profiled ? "| Field | Type | Label | Filled | Means (concept field) |" : "| Field | Type | Label | Means (concept field) |",
+    profiled ? "|---|---|---|---|---|" : "|---|---|---|---|",
+  );
   for (const f of s.fields) {
     const means = "means" in f && f.means
       ? f.means.map((m) => `${cell(m.concept)}.${cell(m.field)}${m.conversion ? ` (${cell(m.conversion)})` : ""}`).join("; ")
       : "";
-    out.push(`| \`${cell(f.name)}\` | ${cell(f.type)} | ${cell(f.label ?? "")} | ${means} |`);
+    const filled = "filled" in f && f.filled !== undefined ? `${Math.round(f.filled * 100)}%` : "";
+    out.push(`| \`${cell(f.name)}\` | ${cell(f.type)} | ${cell(f.label ?? "")} | ${profiled ? `${filled} | ` : ""}${means} |`);
   }
   out.push("");
   if (s.unmappedFields > 0) {
@@ -134,6 +166,9 @@ export function renderSourcePage(s: Resolved, host: string): string {
       out.push(`### ${line(r.title)} (\`${r.slug}\`, ${r.jurisdiction})`, "");
       for (const j of r.joins) {
         out.push(`**${j.kind} join${j.via ? ` via ${line(j.via.prefLabel)}` : ""}.** ${line(j.how)}`, "");
+        const t = "tested" in j ? j.tested : undefined;
+        if (t) out.push(`_Builders ran it: ${t.status === "works" ? "works" : t.status === "fails" ? "fails" : "unconfirmed"}, median match ${Math.round(t.matchRate * 100)}% over ${t.reports} report(s)._`, "");
+        else if (t === null) out.push("_Not yet tested by a builder. After you run it, report it with `lattice_report_join` (counts only)._", "");
         if (j.pairs.length) {
           out.push(`| This source | ${cell(r.slug)} | Concept field |`, "|---|---|---|");
           for (const p of j.pairs) out.push(`| \`${cell(p.a)}\` | \`${cell(p.b)}\` | ${cell(p.conceptField)} |`);
@@ -142,6 +177,18 @@ export function renderSourcePage(s: Resolved, host: string): string {
       }
       out.push(`Full page: https://${host}/sources/${r.slug}`, "");
     }
+  }
+
+  if (s.builderJoins.length) {
+    out.push("## Joins builders found", "");
+    out.push("Joins the catalog did not work out from its mappings, reported by builders who ran them.", "");
+    for (const j of s.builderJoins) {
+      const how = j.method === "fields"
+        ? j.fields.here.map((f, i) => `\`${cell(f)}\` = \`${cell(j.fields.there[i])}\``).join(" and ")
+        : j.method;
+      out.push(`- **[${cell(j.other)}](https://${host}/sources/${cell(j.other)})**: ${how}. ${j.status === "works" ? "Works" : j.status === "fails" ? "Fails" : "Unconfirmed"}, median match ${Math.round(j.matchRate * 100)}% over ${j.reports} report(s).`);
+    }
+    out.push("");
   }
 
   if ("conformedBy" in s && s.conformedBy) {
@@ -251,7 +298,7 @@ export function renderSourcesHealth(h: Health, host: string): string {
     `_${h.notice}_`,
     "",
   );
-  const attention = h.sources.filter((e) => e.access.status === "failing" || e.access.status === "stale" || e.drifted || e.reviewOverdue);
+  const attention = h.sources.filter((e) => e.access.status === "failing" || e.access.status === "stale" || e.drifted || e.reviewOverdue || e.fieldWarnings.length);
   if (attention.length) {
     out.push("## Needs attention", "");
     for (const e of attention) {
@@ -259,6 +306,7 @@ export function renderSourcesHealth(h: Health, host: string): string {
         e.access.status === "failing" || e.access.status === "stale" ? accessLine(e.access) : "",
         e.drifted ? "field list changed at the last check" : "",
         e.reviewOverdue ? `review overdue since ${e.reviewBy}` : "",
+        ...e.fieldWarnings.map((w) => `mapped field \`${cell(w.field)}\` ${w.problem.replace(/-/g, " ")}`),
       ].filter(Boolean).join("; ");
       out.push(`- [${line(e.title)}](https://${host}/sources/${e.slug}): ${why}`);
     }
