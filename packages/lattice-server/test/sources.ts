@@ -152,6 +152,7 @@ async function main() {
     fieldJoinKind("geometry", { name: "geometry", type: "geometry" }) === "spatial" &&
     fieldJoinKind("mapBlockLot", { name: "mapBlockLot", type: "string" }) === "key" &&
     fieldJoinKind("price", { name: "price", type: "number" }) === null &&
+    fieldJoinKind("rank", { name: "rank", type: "enum" }, true) === null &&
     fieldJoinKind("saleDate", { name: "saleDate", type: "date" }) === null);
 
   // --- an instance with two concepts ------------------------------------------
@@ -522,6 +523,8 @@ async function main() {
   const extra = S.resolve("ct-parcels")!.builderJoins.find((j) => j.other === zones.slug);
   check("unoffered-join-listed-as-builder-found", extra?.status === "fails" && extra.matchRate === 0.04 && extra.fields.here[0] === "Parcel_ID", JSON.stringify(extra));
   const transformed = F.reportJoin({ a: "ct-parcels", b: zones.slug, fieldsA: ["Location"], fieldsB: ["zone_code"], tried: 10, matched: 9, transform: "strip the URL prefix from occurrenceID" }, "operator", at(42), "operator");
+  const partial = F.reportJoin({ a: "ct-parcels", b: zones.slug, method: "point-in-polygon", tried: 200, matched: 58, partialCoverage: true }, "operator", at(42), "operator");
+  check("partial-coverage-join-works", partial.reported === "works" && partial.evidence?.partialCoverage === true && partial.evidence.status === "works", JSON.stringify(partial));
   check("join-transform-recorded", transformed.evidence?.transforms[0] === "strip the URL prefix from occurrenceID");
   const anonJoin = F.reportJoin({ a: "ct-parcels", b: "real-estate-sales", method: "point-in-polygon", tried: 40, matched: 3 }, "net:j1", at(42), "wj1");
   check("anonymous-join-report-unconfirmed", anonJoin.status === "pending" && anonJoin.evidence?.status === "unconfirmed" && anonJoin.reported === "fails");

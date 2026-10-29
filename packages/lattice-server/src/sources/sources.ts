@@ -1671,7 +1671,9 @@ export function fieldJoinKind(path: string, field: ConceptField | undefined, ref
   if (idName) return "key";
   if (!referenced) return null;
   if (/(Code|_code)$/.test(name) || name === "code") return "key";
-  return type === "" || type === "string" || type === "enum" ? "attribute" : null;
+  // An enum value (a rank, a status) is shared by countless unrelated records:
+  // never a join. Free text (an address, a town name) can be.
+  return type === "" || type === "string" ? "attribute" : null;
 }
 
 /** How a source's jurisdiction relates to the one asked for, or null when it doesn't cover it. */
@@ -1913,7 +1915,10 @@ function outsideDegrees(field: string, min: number | null, max: number | null): 
 }
 
 function summarizeJoin(j: JoinEvidence) {
-  return { status: j.status, reports: j.reports, matchRate: j.matchRate, tried: j.tried, key: j.key, ...(j.transforms.length ? { transforms: j.transforms } : {}) };
+  return {
+    status: j.status, reports: j.reports, matchRate: j.matchRate, tried: j.tried, key: j.key,
+    ...(j.transforms.length ? { transforms: j.transforms } : {}), ...(j.partialCoverage ? { partialCoverage: true } : {}),
+  };
 }
 
 function optionalStringList(value: unknown, key: string): string[] | undefined {

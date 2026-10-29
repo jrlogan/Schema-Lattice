@@ -1,0 +1,72 @@
+{
+  "$schema": "https://schemalattice.com/schema/manifest-v1.json",
+  "lattice": "https://schemalattice.com",
+  "project": { "name": "garden-bioblitz", "description": "Season bioblitz: volunteers (some under 18) record plants and pollinators at community gardens and pocket parks in New Haven" },
+  "concepts": {
+    "Observation": {
+      "uri": "https://schemalattice.com/c/biodiversity/species-occurrence@76919b978575",
+      "status": "adopted",
+      "fields": ["occurrenceId","taxon","scientificName","eventDate","latitude","longitude","coordinateUncertaintyMeters","coordinatesObscured","basisOfRecord","identificationQuality","occurrenceStatus","establishmentMeans","recordedBy","license","mediaUrl"],
+      "localLocation": "bioblitz.py",
+      "notes": "recordedBy holds a per-season pseudonym, never a name. latitude/longitude are stored precise internally but published generalized (minors). Local extensions not in the concept: surveyId, observerAgeBand, identifiedBy, idConfidence, dataGeneralizations, informationWithheld, photoLicense, consentRef."
+    },
+    "Taxon": { "uri": "https://schemalattice.com/c/biodiversity/taxon@b05949500581", "status": "adopted", "fields": ["taxonId","authority","scientificName","rank","vernacularName","kingdom","family","acceptedTaxon"] },
+    "InvasiveStatus": { "uri": "https://schemalattice.com/c/biodiversity/regional-species-status@ca696df44edb", "status": "adopted", "fields": ["taxon","scientificName","region","status","legalStatus","effectiveDate","listName","listAuthority"] },
+    "GuideSpecies": { "uri": "https://schemalattice.com/c/place-stewardship/field-guide-species@4946d7816615", "status": "adopted", "fields": ["commonName","scientificName","aliases","role","priority","taxonId"] },
+    "SiteWatchlist": { "uri": "https://schemalattice.com/c/place-stewardship/species-watchlist-entry@463a1ae66165", "status": "adopted", "fields": ["species","site","prevalence","priority"] },
+    "Garden": { "uri": "https://schemalattice.com/c/place-stewardship/stewarded-site@1764e6346b1a", "status": "adopted", "fields": ["name","kind","towns","latitude","longitude","biodiversityProjectUrl"] },
+    "CityPark": { "uri": "https://schemalattice.com/c/real-property/park@a8aec0d4842e", "status": "adopted", "fields": ["parkId","name","category","geometry"], "coRefersWith": ["https://schemalattice.com/c/place-stewardship/stewarded-site@1764e6346b1a"] },
+    "SharingConsent": { "uri": "https://schemalattice.com/c/governance/forwarding-consent@4c3a36c43306", "status": "adopted", "fields": ["subjectRecord","recipient","purpose","includedFields","identityShared","grantedAt","method","withdrawnAt"], "notes": "For a minor the consent must come from a guardian; the concept has no grantedBy/onBehalfOf field." },
+    "BioblitzSurvey": {
+      "status": "originated",
+      "broader": "https://schemalattice.com/c/schemalattice/event@04b611d4b94c",
+      "definition": "One timed effort by a group to record every organism they can find at one site, with its start and end, the taxon groups targeted and the protocol, so species lists can be compared across years and sites.",
+      "fields": [
+        {"name":"site","type":"reference"},
+        {"name":"startedAt","type":"dateTime"},
+        {"name":"endedAt","type":"dateTime"},
+        {"name":"targetGroups","type":"array"},
+        {"name":"protocol","type":"string"},
+        {"name":"participantCount","type":"integer"},
+        {"name":"observerHours","type":"number"}
+      ]
+    },
+    "VolunteerObserver": {
+      "status": "originated",
+      "broader": "https://schemalattice.com/c/schemalattice/person@9db8ed3faa85",
+      "definition": "A person who records observations in one season's survey, known to the public only by a pseudonym, with an age band that decides how their records are shared.",
+      "fields": [
+        {"name":"pseudonym","type":"string","classification":"public"},
+        {"name":"legalName","type":"string","classification":"personal-identity"},
+        {"name":"ageBand","type":"enum","values":["under-13","13-17","adult"],"classification":"personal-minor"},
+        {"name":"guardianContact","type":"string","classification":"personal-contact"},
+        {"name":"schoolGroup","type":"string","classification":"personal-minor"}
+      ]
+    }
+  },
+  "fieldMaps": {
+    "observation-to-dwc": {
+      "source": {"kind":"local-model","concept":"Observation"},
+      "target": {"kind":"file-export","description":"Darwin Core occurrence row (GBIF IPT / DwC-A occurrence.txt)","schema":"https://dwc.tdwg.org/terms/","concept":"Observation"},
+      "fields": [
+        {"target":"occurrenceID","from":"occurrenceId","conversion":"urn:uuid per record; stable"},
+        {"target":"basisOfRecord","constant":"HumanObservation"},
+        {"target":"scientificName","from":"scientificName"},
+        {"target":"taxonID","from":"taxon","conversion":"GBIF backbone key from species/match"},
+        {"target":"eventDate","from":"eventDate","conversion":"date only for minors' records"},
+        {"target":"decimalLatitude","from":"latitude","conversion":"rounded to 3 dp (~100 m) for every record"},
+        {"target":"decimalLongitude","from":"longitude","conversion":"rounded to 3 dp"},
+        {"target":"coordinateUncertaintyInMeters","from":"coordinateUncertaintyMeters","conversion":"max(original, 150)"},
+        {"target":"dataGeneralizations","constant":"Coordinates rounded to 0.001 degrees"},
+        {"target":"recordedBy","from":"recordedBy","conversion":"pseudonym; omitted entirely for minors"},
+        {"target":"license","from":"license","conversion":"CC0 or CC-BY 4.0 URI"},
+        {"target":"identificationVerificationStatus","from":"identificationQuality"}
+      ],
+      "omitted": [
+        {"from":"VolunteerObserver.legalName","reason":"identity never leaves the app"},
+        {"from":"VolunteerObserver.ageBand","reason":"personal-minor"},
+        {"from":"precise latitude/longitude","reason":"minors' locations and times"}
+      ]
+    }
+  }
+}
