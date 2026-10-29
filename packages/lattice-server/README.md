@@ -58,7 +58,9 @@ The HTTP surface:
 | `POST /api/embed` | `{texts}` (≤8, ≤600 chars each; one batch at a time, 503 + Retry-After when the queue is full) → `{model, vectors}` from the catalog's embedder; stateless, nothing stored. Backs the client's `similar` command, which ranks a platform's own unpublished schemas. Counted in the discover rate bucket |
 | `GET /api/tools` | the tool table with schemas |
 | `POST /api/tools/{name}` | call any tool |
-| `POST /mcp` | MCP over streamable HTTP (stateless) |
+| `POST /mcp` | MCP over streamable HTTP (stateless). Lists a **profile** of tools, because every listed schema sits in the client's context all session: anonymous → `build` (5 tools, ~1,100 tokens), app key → `publish` (11, ~3,300), operator → `all` (36, ~9,100). Choose with `?profile=build,sources` (`publish`, `sources`, `reports`, `api`, `contribute`, `all`) or `?tools=discover,resolve`. A profile trims the list only; unlisted tools stay callable. Stdio: `LATTICE_MCP_PROFILE` / `LATTICE_MCP_TOOLS` |
+| `GET /skill/SKILL.md` | the installable skill: the MCP-free path, driving the client's `discover` / `resolve` / `propose` / `contexts` commands (~70 tokens idle, ~900 when triggered) |
+| `GET /cli/schemalattice.mjs`, `/cli/README.md` | the zero-dependency client and its docs |
 
 Canonical URIs stay `https://schemalattice.com/...` no matter which host
 serves them, so the resolution routes match on path alone — a URI minted

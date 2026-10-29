@@ -9,7 +9,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { LatticeInstance } from "../server/instance.ts";
 import type { LatticeConfig } from "../server/config.ts";
-import { createMcpServer } from "../mcp/server.ts";
+import { createMcpServer, toolsFor } from "../mcp/server.ts";
 import { TOOLS, TOOLS_BY_NAME, callTool, type CallContext } from "../tools/tools.ts";
 import { isToolError } from "../tools/errors.ts";
 import { BASE_AUTHORITY } from "../hashing/hash.ts";
@@ -273,7 +273,8 @@ async function handle(
   if (path === "/mcp") {
     // callTool checks each write against this request's principal. Allow
     // anonymous MCP sessions to initialize and use the public read tools.
-    await handleMcp(req, res, instance, principal, callContext(req), isOperator ? null : limiter);
+    const listed = toolsFor(url.searchParams.get("profile"), url.searchParams.get("tools"), principal);
+    await handleMcp(req, res, instance, principal, callContext(req), isOperator ? null : limiter, listed);
     return;
   }
 
@@ -304,6 +305,7 @@ async function handle(
       endpoints: {
         skill: "GET /skill (the workflow instructions for AI clients)",
         builderSkill: "GET /skill/builder (one-page brief for apps built on an existing backend)",
+        skillPackage: "GET /skill/SKILL.md + /cli/schemalattice.mjs into ~/.claude/skills/schemalattice/ — the lightweight alternative to MCP",
         contribute: "GET /contribute (send back types the catalog lacks; or POST /api/tools/lattice_contribute)",
         pack: "GET /pack, /pack/{context}[,{context}] or /pack?q=... (paste-ready vocabulary for hosted app builders without MCP)",
         mesh: "GET /mesh?a=app:<slug>&b=app:<slug> (how well two apps or an app and a data source will exchange data; or POST /api/tools/lattice_mesh_report)",
@@ -318,7 +320,7 @@ async function handle(
         embed: "POST /api/embed with {texts: [...]} (≤8, ≤600 chars) — vectors from the catalog's model, nothing stored; used by the client's `similar` command",
         tools: "GET /api/tools",
         callTool: "POST /api/tools/{name}",
-        mcp: "POST /mcp",
+        mcp: "POST /mcp — lists the `build` tools by default (about 1,100 tokens); ?profile=publish|sources|reports|api|contribute|all, comma-separated, or ?tools=discover,resolve",
       },
       writesRequireKey: config.apiKey !== null,
     });
@@ -464,6 +466,8 @@ async function handle(
   const SKILLS: Record<string, string> = {
     "/skill": "lattice-workflow.md",
     "/skill/builder": "lattice-builder-brief.md",
+    // The installable skill: a short SKILL.md that drives the client below instead of MCP.
+    "/skill/SKILL.md": "schemalattice/SKILL.md",
   };
   if (Object.hasOwn(SKILLS, path) && isRead) {
     const file = join(REPO_ROOT, "skills", SKILLS[path]);
@@ -483,6 +487,16 @@ async function handle(
       return;
     }
     sendText(res, 200, readFileSync(file, "utf8"), "text/javascript; charset=utf-8");
+    return;
+  }
+
+  if (path === "/cli/README.md" && isRead) {
+    const file = join(REPO_ROOT, "packages", "lattice-client", "README.md");
+    if (!existsSync(file)) {
+      send(res, 404, { error: { code: "not-found", message: "client README not deployed" } });
+      return;
+    }
+    sendText(res, 200, readFileSync(file, "utf8"), "text/markdown; charset=utf-8");
     return;
   }
 
@@ -705,8 +719,9 @@ async function handleMcp(
   principal: Principal,
   ctx: CallContext,
   limiter: RateLimiter | null,
+  listed: Set<string>,
 ): Promise<void> {
-  const server = createMcpServer(instance, principal, ctx);
+  const server = createMcpServer(instance, principal, ctx, listed);
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   res.on("close", () => {
     void transport.close();

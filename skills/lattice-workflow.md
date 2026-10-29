@@ -51,6 +51,12 @@ whether the project's own work goes ahead:
 3. Resolve the lattice host, in this order:
    1. **MCP tools.** If `lattice_*` tools are in your tool list, use
       them; the host is whatever the MCP server is configured for.
+      Servers list a *profile* of tools to save context: anonymous
+      sessions see only the search loop (discover, resolve,
+      list_context, propose, feedback). If you need a tool that is not
+      listed (publishing, sources, reports), call it over REST below,
+      or ask the user to connect `/mcp?profile=publish` (or `sources`,
+      `reports`, `all`).
    2. **Manifest.** The `lattice` field of `schemalattice.json`
       names the instance this project publishes to.
    3. **Environment.** A `LATTICE_URL` environment variable, or a

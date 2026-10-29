@@ -7,6 +7,14 @@
  *   node schemalattice.mjs check      fail (exit 1) if the committed files are stale — for CI, offline
  *   node schemalattice.mjs publish    push anything not yet in the catalog (SCHEMALATTICE_KEY)
  *   node schemalattice.mjs status     which of the manifest's URIs the catalog already holds
+ *
+ * Lookups, no config needed (the skill's tools — https://schemalattice.com/skill/SKILL.md):
+ *   node schemalattice.mjs discover "<the record you are about to model>"  [--context slug] [--limit n] [--record]
+ *   node schemalattice.mjs resolve <concept uri>                              [--session id]
+ *   node schemalattice.mjs propose <session id> <concept uri> right|wrong [different-referent|too-broad|too-narrow|wrong-domain]
+ *   node schemalattice.mjs contexts [<context uri>]
+ *   (add --json to any of them for the raw response)
+ *
  *   node schemalattice.mjs similar "<what the new record holds>"
  *                                     before inventing a type: this platform's own schemas, then the
  *                                     wider catalog, nearest first — advisory, never a gate
@@ -651,6 +659,73 @@ function printSimilar(result, app) {
   console.log(out.join('\n'));
 }
 
+// ─── Lookups: the MCP build loop as commands, printed compactly ─────────────────────────────
+
+/** Short, line-per-thing output: an agent pays for every character it reads. */
+const clip = (t, n) => { const s = String(t ?? '').replace(/\s+/g, ' ').trim(); return s.length > n ? `${s.slice(0, n - 1)}…` : s; };
+
+function fieldLine(f, depth = 0) {
+  const type = f.type === 'enum' ? `enum(${(f.values ?? []).slice(0, 8).join('|')}${(f.values?.length ?? 0) > 8 ? '|…' : ''})`
+    : f.type === 'reference' ? `→ ${f.ref ?? f.refUri?.replace(/^https:\/\/schemalattice\.com\/c\//, '') ?? f.description ?? 'reference'}` : f.type === 'array' ? `${f.itemType ?? 'any'}[]` : f.type;
+  const lines = [`${'  '.repeat(depth + 1)}${f.name}${f.required ? '' : '?'}: ${type}${f.unit ? ` (${f.unit})` : ''}`];
+  for (const sub of f.fields ?? []) if (depth < 1) lines.push(...fieldLine(sub, depth + 1));
+  return lines;
+}
+
+async function lookup(command, args, flags, base) {
+  const flag = (name) => { const k = args.indexOf(`--${name}`); return k >= 0 ? args[k + 1] : undefined; };
+  const words = args.filter((a, k) => !a.startsWith('--') && !(k > 0 && args[k - 1].startsWith('--') && !['--json', '--record'].includes(args[k - 1])));
+  const json = flags.has('--json');
+  if (command === 'discover') {
+    const description = words.join(' ').trim();
+    if (!description) throw new Error('usage: schemalattice discover "<the record you are about to model>" [--context slug] [--limit n] [--record]');
+    // Ephemeral unless --record: the query then feeds the public demand report of unmet vocabulary.
+    const body = await call(base, 'lattice_discover', {
+      description, limit: Number(flag('limit') ?? 5), ephemeral: !flags.has('--record'),
+      ...(flag('context') ? { contexts: flag('context').split(',') } : {}),
+    });
+    if (json) return console.log(JSON.stringify(body, null, 2));
+    const out = [`${body.verdict}: ${body.guidance}`, `session ${body.sessionId}`];
+    for (const r of body.results ?? []) {
+      out.push(`${r.similarity.toFixed(2)}  ${r.prefLabel} (${r.context?.title ?? ''})  ${r.uri}`);
+      out.push(`      ${clip(r.definitionExcerpt, 150)}`);
+    }
+    return console.log(out.join('\n'));
+  }
+  if (command === 'resolve') {
+    if (!words[0]) throw new Error('usage: schemalattice resolve <concept uri> [--session id]');
+    const body = await call(base, 'lattice_resolve', { uri: words[0], ...(flag('session') ? { sessionId: flag('session') } : {}) });
+    if (json) return console.log(JSON.stringify(body, null, 2));
+    const r = body.record ?? {};
+    const first = (m) => (m && typeof m === 'object' ? m.en ?? Object.values(m)[0] : m);
+    const out = [`${first(r.prefLabel)}  ${body.uri}`, `  ${clip(first(r.definition), 600)}`];
+    for (const [k, label] of [['broader', 'broader'], ['forkedFrom', 'forked from'], ['closeMatch', 'closeMatch'], ['broadMatch', 'broadMatch'], ['coRefersWith', 'same referent as'], ['related', 'related']]) {
+      const v = [r[k]].flat().filter(Boolean);
+      if (v.length) out.push(`  ${label}: ${v.join(', ')}`);
+    }
+    const fields = r.structure?.fields ?? [];
+    if (fields.length) out.push('  fields:', ...fields.flatMap((f) => fieldLine(f)));
+    if (body.usages?.length) out.push(`  used by: ${body.usages.map((u) => `${u.app ?? u.appSlug ?? u.slug} (${u.status})`).join(', ')}`);
+    return console.log(out.join('\n'));
+  }
+  if (command === 'propose') {
+    const [sessionId, conceptUri, verdict, reason] = words;
+    if (!sessionId || !conceptUri || !['right', 'wrong'].includes(verdict)) {
+      throw new Error('usage: schemalattice propose <session id> <concept uri> right|wrong [different-referent|too-broad|too-narrow|wrong-domain]');
+    }
+    const body = await call(base, 'lattice_propose', { kind: 'match', sessionId, conceptUri, verdict, ...(reason ? { reason } : {}) });
+    return console.log(json ? JSON.stringify(body, null, 2) : `recorded: ${verdict}${reason ? ` (${reason})` : ''} — quarantined until independent sources agree`);
+  }
+  if (command === 'contexts') {
+    const body = await call(base, 'lattice_list_context', words[0] ? { contextUri: words[0] } : {});
+    if (json) return console.log(JSON.stringify(body, null, 2));
+    const rows = body.contexts ?? body.concepts ?? [];
+    return console.log(rows.map((c) => `${c.slug ?? ''}${c.slug ? '  ' : ''}${c.title ?? c.prefLabel ?? ''}${c.conceptCount !== undefined ? ` (${c.conceptCount})` : ''}  ${c.uri}${c.definitionExcerpt ? `\n      ${clip(c.definitionExcerpt, 140)}` : ''}`).join('\n'));
+  }
+}
+
+const LOOKUPS = new Set(['discover', 'resolve', 'propose', 'contexts']);
+
 // ─── CLI ───────────────────────────────────────────────────────────────────────────────────
 
 async function main(argv) {
@@ -658,6 +733,11 @@ async function main(argv) {
   const i = argv.indexOf('--config');
   const configPath = resolve(i >= 0 ? argv[i + 1] : 'schemalattice.config.json');
   if (command === '--version') return console.log(CLIENT_VERSION);
+  if (LOOKUPS.has(command)) {
+    // Works anywhere: a config, when there is one, only says which lattice to ask.
+    const config = existsSync(configPath) ? JSON.parse(readFileSync(configPath, 'utf8')) : {};
+    return lookup(command, argv.slice(1), new Set(argv.filter((a) => a.startsWith('--'))), host(config));
+  }
   const { config, baseDir, generatedPath, manifestPath } = paths(configPath);
   const previous = readJson(generatedPath);
   const existingManifest = readJson(manifestPath);
@@ -707,7 +787,7 @@ async function main(argv) {
     for (const c of previous?.concepts ?? []) console.log(`${(await exists(base, c.uri)) ? 'live   ' : 'pending'} ${c.shortName} ${c.uri}`);
     return;
   }
-  throw new Error(`unknown command ${command}; use generate | check | publish | status | similar`);
+  throw new Error(`unknown command ${command}; use generate | check | publish | status | similar | discover | resolve | propose | contexts`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('schemalattice.mjs')) {

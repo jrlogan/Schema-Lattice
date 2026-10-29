@@ -183,7 +183,11 @@ export function landingPage(host: string, totals: LandingTotals): string {
     <a href="/skill">/skill</a> (<a href="/skill/builder">/skill/builder</a> if you
     are building on someone else's backend). Every tool and its schema is at
     <a href="/api/tools">/api/tools</a>, callable over REST or MCP at
-    <code>/mcp</code>. A plain-markdown version of this page is at
+    <code>/mcp</code>, which lists five search tools by default to keep your context small
+    (<code>?profile=publish</code>, <code>sources</code>, <code>reports</code> or <code>all</code> for more).
+    No MCP? Install the skill instead: <a href="/skill/SKILL.md">/skill/SKILL.md</a> plus the
+    client <a href="/cli/schemalattice.mjs">/cli/schemalattice.mjs</a> in
+    <code>~/.claude/skills/schemalattice/</code>. A plain-markdown version of this page is at
     <a href="/llms.txt">/llms.txt</a>. Reads need no key. App generators that
     cannot use MCP (Lovable, AI Studio, Bolt, v0) can read a paste-ready
     vocabulary from <a href="/pack">/pack</a>. Working with public data? <a href="/sources">/sources</a>
@@ -425,7 +429,8 @@ export function llmsText(host: string, totals: LandingTotals): string {
 
 ## Use it
 - Instructions to follow: https://${host}/skill (building on an existing backend: https://${host}/skill/builder)
-- Tools with JSON schemas: https://${host}/api/tools — call with POST /api/tools/{name}, or over MCP at POST /mcp
+- Tools with JSON schemas: https://${host}/api/tools — call with POST /api/tools/{name}, or over MCP at POST /mcp. MCP lists 5 search tools by default (about 1,100 tokens); add ?profile=publish|sources|reports|api|contribute|all (comma-separated) or ?tools=discover,resolve
+- Lightest option, no MCP: a skill. mkdir -p ~/.claude/skills/schemalattice && cd ~/.claude/skills/schemalattice && curl -sO https://${host}/skill/SKILL.md && curl -sO https://${host}/cli/schemalattice.mjs — then \`node schemalattice.mjs discover "<the record>"\`, \`resolve <uri>\`, \`propose <session> <uri> right|wrong\`
 - Building with a hosted app generator (Lovable, AI Studio, Bolt, v0) that cannot use MCP: paste-ready vocabulary at https://${host}/pack (one domain: /pack/{context}; by description: /pack?q=..., recorded as demand unless &private=1)
 - Working with public data (open-data portals, GIS layers): https://${host}/sources lists known datasets by jurisdiction; /sources/{slug} gives the endpoint, what each field means in catalog terms, and join keys to related datasets (search: /sources?q=...&jurisdiction=US-CT/new-haven). Found one that isn't listed? lattice_propose_source, then lattice_map_source.
 - How well two apps (or an app and a public dataset) will exchange data: https://${host}/mesh?a=app:<slug>&b=app:<slug>, or lattice_mesh_report (pasted manifests are never stored)
