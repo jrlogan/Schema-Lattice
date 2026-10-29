@@ -519,6 +519,24 @@ export class EvidenceLedger {
    * slower than the last. The full pass (hourly, reports, operator actions)
    * still runs, because promotion after the quarantine is time-based.
    */
+  private backgroundRescore: Promise<void> | null = null;
+  /** Hourly maintenance yields between bounded batches; concurrent ticks coalesce. */
+  rescoreInBackground(now: Date = new Date()): Promise<void> {
+    if (this.backgroundRescore) return this.backgroundRescore;
+    this.backgroundRescore = (async () => {
+      let cursor = '';
+      while (this.db.open) {
+        const rows = this.db.prepare('SELECT DISTINCT claim_key FROM evidence WHERE claim_key>? ORDER BY claim_key LIMIT 25')
+          .all(cursor) as Array<{claim_key:string}>;
+        if (!rows.length) break;
+        this.rescore(now, rows.map(row => row.claim_key));
+        cursor = rows[rows.length - 1].claim_key;
+        await new Promise<void>(resolve => setImmediate(resolve));
+      }
+    })().finally(() => { this.backgroundRescore = null; });
+    return this.backgroundRescore;
+  }
+
   rescore(now: Date = new Date(), only?: string[]): void {
     const keys = only
       ? [...new Set(only)].map((claim_key) => ({ claim_key }))

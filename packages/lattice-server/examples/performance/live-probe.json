@@ -1,0 +1,30 @@
+{
+  "measuredAt": "2026-10-13T20:47:46.382181+00:00",
+  "target": "https://schemalattice.com",
+  "apps": 19,
+  "concurrentReportsMs": [
+    1845.3,
+    1852.3,
+    1853.7,
+    1857.9,
+    1904.2,
+    1843.2,
+    1853.8,
+    1844.0
+  ],
+  "healthDuringReportsMs": [
+    391.3,
+    544.4,
+    518.0,
+    533.5
+  ],
+  "warmReportMs": 228.2,
+  "notes": "8 simultaneous reports and 4 health requests after deployment, then one cached report. Includes network latency. Not a capacity test.",
+  "earlierSingleReportMs": 15427,
+  "laterBaselineProbe": "Timed out at 60 seconds before deployment; operating conditions were not controlled.",
+  "validation": [
+    "Full smoke suite passed; final targeted advisor (18) and scaling (8) tests passed.",
+    "All 33 tools exposed, including mesh and advisor.",
+    "Live snapshot reproduced the live advisor proposal exactly offline."
+  ]
+}

@@ -433,7 +433,12 @@ async function main() {
   check("atlas-excludes-governance", !atlas.concepts.some((c) => c.uri.includes("/c/governance/")));
   check("atlas-shows-sources", atlas.sources.some((s) => s.slug === "ct-parcels") && atlas.concepts.some((c) => c.uri === PARCEL && c.publicSources > 0));
   const atlasPageRes = await fetch(`${http.url}/atlas`);
-  check("atlas-page", atlasPageRes.status === 200 && (await atlasPageRes.text()).includes("/atlas.json"));
+  const atlasHtml = await atlasPageRes.text();
+  check("atlas-page", atlasPageRes.status === 200 && atlasHtml.includes("/atlas.json") && atlasHtml.includes('id="lens"'));
+  const atlasAny = atlas as unknown as { concepts: Array<{ pc: number[]; rootAncestor: string | null }>; layoutQuality: { meaning: number; pca: number } };
+  check("atlas-views-data", atlasAny.concepts.every((c) => c.pc.length >= 2 && c.pc.every(Number.isFinite) && c.rootAncestor) &&
+    atlasAny.layoutQuality.meaning > 0, JSON.stringify(atlasAny.layoutQuality));
+  check("atlas-lists-apps", Array.isArray((atlas as unknown as { apps: unknown }).apps));
   const anonPropose = await fetch(`${http.url}/api/tools/lattice_propose_source`, {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ accessUrl: OTHER_STATE.replace("wxyz-9876", "wxyz-9876") }),

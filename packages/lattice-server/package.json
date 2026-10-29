@@ -15,7 +15,7 @@
     "mcp": "tsx src/bin/mcp-stdio.ts",
     "seed": "tsx src/seed/run.ts",
     "serve": "tsx src/bin/serve.ts",
-    "smoke": "npm run smoke:ancestry && npm run smoke:friction && npm run smoke:discover && npm run smoke:classification && npm run smoke:lifecycle && npm run smoke:registry && npm run smoke:tools && npm run smoke:http && npm run smoke:evidence && npm run smoke:contributions && npm run smoke:sources && npm run smoke:versions && npm run smoke:mesh && npm run smoke:client-parity",
+    "smoke": "npm run smoke:ancestry && npm run smoke:friction && npm run smoke:discover && npm run smoke:classification && npm run smoke:lifecycle && npm run smoke:registry && npm run smoke:tools && npm run smoke:http && npm run smoke:evidence && npm run smoke:contributions && npm run smoke:sources && npm run smoke:versions && npm run smoke:mesh && npm run smoke:client-parity && npm run smoke:advisor && npm run smoke:scaling",
     "smoke:ancestry": "tsx test/ancestry.ts",
     "smoke:classification": "tsx test/classification.ts",
     "smoke:discover": "tsx test/discover.ts",
@@ -29,7 +29,12 @@
     "smoke:contributions": "tsx test/contributions.ts",
     "smoke:sources": "tsx test/sources.ts",
     "smoke:versions": "tsx test/versions.ts",
-    "smoke:mesh": "tsx test/mesh.ts"
+    "smoke:mesh": "tsx test/mesh.ts",
+    "advise:api": "tsx src/bin/advise-api.ts",
+    "demo:api-advisor": "tsx examples/api-advisor/demo.ts",
+    "smoke:advisor": "tsx --test test/advisor.ts",
+    "smoke:scaling": "tsx --test test/scaling.ts",
+    "bench:reports": "tsx src/bin/bench-reports.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
@@ -38,6 +43,7 @@
     "sqlite-vec": "^0.1.9"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "^13.1.0",
     "@types/better-sqlite3": "^7.6.11",
     "@types/node": "^20.11.0",
     "tsx": "^4.7.0",

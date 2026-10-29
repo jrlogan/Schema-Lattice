@@ -118,9 +118,30 @@ export interface RegistryDeps {
 
 export class Registry {
   private db: Database.Database;
+  private memoValues: Map<string, unknown> | null = null;
+  private memo<T>(key: string, compute: () => T): T {
+    if (!this.memoValues) return compute();
+    if (this.memoValues.has(key)) return this.memoValues.get(key) as T;
+    const value = compute();
+    if (this.memoValues.size < 50_000) this.memoValues.set(key, value);
+    return value;
+  }
+  private withMemo<T>(compute: () => T): T {
+    if (this.memoValues) return compute();
+    this.memoValues = new Map();
+    try { return compute(); } finally { this.memoValues = null; }
+  }
+  private concept(uri: string) {
+    return this.memo('concept:' + uri, () => this.deps.store.getConcept(uri));
+  }
+  private createdAt(uri: string) {
+    return this.memo('created:' + uri, () => this.deps.store.getConceptMeta(uri)?.createdAt ?? '');
+  }
 
-  constructor(private deps: RegistryDeps) {
+
+  constructor(private deps: RegistryDeps, readonly = false) {
     this.db = deps.store.db;
+    if (readonly) return;
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS apps (
         slug TEXT PRIMARY KEY,
@@ -378,13 +399,13 @@ export class Registry {
   }
 
   usagesOf(appSlug: string): AppUsage[] {
-    return (this.db
+    return this.memo("usages:" + appSlug, () => (this.db
       .prepare(
         `SELECT concept_uri AS uri, status, short_name AS shortName, fields
            FROM app_usages WHERE app_slug = ? ORDER BY concept_uri`,
       )
       .all(appSlug) as Array<AppUsage & { fields: string | null }>)
-      .map(({ fields, ...u }) => (fields ? { ...u, fields: JSON.parse(fields) as string[] } : u));
+      .map(({ fields, ...u }) => (fields ? { ...u, fields: JSON.parse(fields) as string[] } : u)));
   }
 
   attestationsOf(appSlug: string): Array<AttestationInput & { recordedAt: string }> {
@@ -421,12 +442,12 @@ export class Registry {
     const allUris = (this.db
       .prepare("SELECT DISTINCT concept_uri AS uri FROM app_usages")
       .all() as Array<{ uri: string }>).map((r) => r.uri);
-    const createdAt = (u: string) => store.getConceptMeta(u)?.createdAt ?? "";
+    const createdAt = (u: string) => this.createdAt(u);
     const dupFree = usages.filter((u) => !this.findUnlinkedEarlierDup(u.uri, allUris, createdAt)).length;
 
     const anchored = usages.filter((u) => {
       if (u.status === "adopted") return true;
-      const rec = store.getConcept(u.uri);
+      const rec = this.concept(u.uri);
       if (!rec) return false;
       return (
         (rec.closeMatch ?? []).length > 0 ||
@@ -493,9 +514,9 @@ export class Registry {
     const allUris = (this.db
       .prepare("SELECT DISTINCT concept_uri AS uri FROM app_usages")
       .all() as Array<{ uri: string }>).map((r) => r.uri);
-    const createdAt = (u: string) => store.getConceptMeta(u)?.createdAt ?? "";
+    const createdAt = (u: string) => this.createdAt(u);
     const label = (u: string) =>
-      (store.getConcept(u)?.prefLabel as Record<string, string>)?.en ?? u;
+      (this.concept(u)?.prefLabel as Record<string, string>)?.en ?? u;
 
     for (const app of apps) {
       for (const u of this.usagesOf(app)) {
@@ -556,7 +577,21 @@ export class Registry {
   }
 
   /** Everything a program owner wants on one screen. */
-  portfolioReport(): {
+  portfolioReport() {
+    return this.withMemo(() => this.computePortfolio());
+  }
+
+  appReport(app: string) {
+    const apps = this.listApps();
+    return this.withMemo(() => ({
+      app, score: this.scoreApp(app), usages: this.usagesOf(app),
+      profile: this.profileOf(app), attestations: this.attestationsOf(app),
+      overlaps: apps.filter(a => a.slug !== app && apps.some(registered => registered.slug === app)).map(a =>
+        a.slug < app ? this.overlapBetween(a.slug, app) : this.overlapBetween(app, a.slug)),
+    }));
+  }
+
+  private computePortfolio(): {
     apps: Array<{
       slug: string; name: string; unit: string; owner: string; status: AppStatus;
       score: AppScore; profile: SensitivityProfile;
@@ -587,15 +622,16 @@ export class Registry {
   }
 
   private similarity(a: string, b: string): number {
-    const va = this.deps.vectors.vectorOf(a);
-    const vb = this.deps.vectors.vectorOf(b);
-    if (!va || !vb) return 0;
-    return cosine(va, vb);
+    return this.memo(JSON.stringify(['similarity', ...[a, b].sort()]), () => {
+      const va = this.memo("vector:" + a, () => this.deps.vectors.vectorOf(a));
+      const vb = this.memo("vector:" + b, () => this.deps.vectors.vectorOf(b));
+      return va && vb ? cosine(va, vb) : 0;
+    });
   }
 
   private linked(a: string, b: string): boolean {
-    const ra = this.deps.store.getConcept(a);
-    const rb = this.deps.store.getConcept(b);
+    const ra = this.concept(a);
+    const rb = this.concept(b);
     const touches = (rec: typeof ra, other: string) =>
       !!rec &&
       (rec.forkedFrom === other ||
@@ -606,12 +642,16 @@ export class Registry {
   }
 
   private descendsFrom(uri: string, ancestor: string): boolean {
+    return this.memo(JSON.stringify(["ancestry", uri, ancestor]), () => this.computeDescendsFrom(uri, ancestor));
+  }
+
+  private computeDescendsFrom(uri: string, ancestor: string): boolean {
     let cur: string | undefined = uri;
     const seen = new Set<string>();
     while (cur && !seen.has(cur)) {
       seen.add(cur);
       if (cur === ancestor) return true;
-      cur = this.deps.store.getConcept(cur)?.forkedFrom as string | undefined;
+      cur = this.concept(cur)?.forkedFrom as string | undefined;
     }
     return false;
   }

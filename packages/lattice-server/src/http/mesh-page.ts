@@ -168,7 +168,8 @@ export function meshPage(host: string, options: MeshOptions): string {
     out.replaceChildren();
     const sum = html("div", undefined, out, "summary");
     const tile = (n, l, cls) => { const t = html("div", undefined, sum, "tile " + (cls || "")); html("div", String(n), t, "n"); html("div", l, t, "l"); };
-    tile(r.score, "mesh score of 100", "score");
+    tile(r.fit, "fit: how cleanly the shared part connects (of 100)", "score");
+    tile(r.overlap.connected + " of " + Math.min(r.overlap.aConcepts, r.overlap.bConcepts), "overlap: shared concepts, of the smaller side");
     for (const g of ["direct", "translate", "manual", "gap"]) {
       const t = html("div", undefined, sum, "tile");
       const n = html("div", undefined, t, "n");

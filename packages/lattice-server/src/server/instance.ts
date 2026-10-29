@@ -29,6 +29,8 @@ import {
   type DiscoverInput,
   type DiscoverResponse,
 } from "../discover/discover.ts";
+import { BackgroundReports } from "../jobs/reports.ts";
+import { ApiAdvisor } from "../advisor/service.ts";
 import { Registry } from "../registry/registry.ts";
 import {
   publishContext,
@@ -97,6 +99,8 @@ export class LatticeInstance {
   readonly evidence: EvidenceLedger;
   readonly contributions: Contributions;
   readonly sources: Sources;
+  readonly advisor: ApiAdvisor;
+  readonly reports: BackgroundReports;
 
   private constructor(opts: InstanceOptions) {
     this.store = new Store({
@@ -123,6 +127,8 @@ export class LatticeInstance {
       new Set([this.governance.contextUri]),
     );
     this.sources = new Sources(this.store, this.embedder, this.evidence, this.vectors, opts.fetchJson);
+    this.advisor = new ApiAdvisor(this);
+    this.reports = new BackgroundReports(this);
   }
 
   static async create(opts: InstanceOptions): Promise<LatticeInstance> {
@@ -251,6 +257,7 @@ export class LatticeInstance {
   }
 
   close(): void {
+    this.reports.close();
     this.store.close();
   }
 }

@@ -3,6 +3,11 @@
 // Self-contained like the landing page: no external assets, data from
 // /atlas.json, every third-party string inserted as text (never as markup).
 //
+// Four views of the same marks, moved between with a short animation: Meaning
+// (t-SNE, the default), Turn (the first six principal components, one axis
+// swapped at a time, which reads as turning the cloud), Lineage (grouped by the
+// root each concept descends from), and Time (left to right in story order).
+//
 // The story is read from the data, never written by hand: creation times are
 // split into chapters wherever work paused (a gap of 20 minutes or more), and
 // each chapter into beats, one per context that grew, carrying the datasets
@@ -71,12 +76,27 @@ export function atlasPage(host: string): string {
   @media (max-width: 760px) { .swipe { display:block; } }
   /* Marks. Things arrive in place: they grow and fade in, lines draw themselves. */
   .n { transition:opacity .6s ease, transform .75s cubic-bezier(.2,.9,.3,1.25); transform-box:fill-box; transform-origin:center; }
+  .n.dim, .lbl.dim, .e.dim, .fork.dim, .ctx.dim { opacity:.13; }
   .n.off { opacity:0; transform:scale(.15); pointer-events:none; }
   .e { transition:opacity .5s ease; }
   .e.off { opacity:0; }
   .fork { stroke:var(--edge); stroke-width:1.5; fill:none; stroke-dasharray:1; stroke-dashoffset:0; transition:stroke-dashoffset 1s ease .25s, opacity .3s ease; }
   .fork.off { stroke-dashoffset:1; opacity:0; }
   .coref { stroke:var(--edge); stroke-width:1.5; stroke-dasharray:4 4; fill:none; }
+  .kind { stroke:var(--edge); stroke-width:1; fill:none; }
+  .axis text { font-size:11px; fill:var(--muted); paint-order:stroke; stroke:var(--card); stroke-width:3px; }
+  .axis line { stroke:var(--grid); stroke-width:1; }
+  svg.moving .ctx { opacity:0; }
+  .lbl.rootlbl { font-weight:700; font-size:12px; }
+  .views { display:inline-flex; border:1px solid var(--line); border-radius:7px; overflow:hidden; }
+  .views button { border:0; border-radius:0; min-width:0; padding:.25rem .8rem; background:var(--bg); }
+  .views button + button { border-left:1px solid var(--line); }
+  .views button[aria-pressed="true"] { background:var(--fg); color:var(--bg); }
+  .viewbar { display:flex; flex-wrap:wrap; gap:.5rem 1rem; align-items:center; margin:.2rem 0 .5rem; font-size:.92rem; }
+  .viewbar .note { color:var(--muted); font-size:.85rem; flex:1 1 20rem; min-width:0; }
+  .turn { display:flex; gap:.6rem; align-items:center; flex:1 1 22rem; min-width:0; }
+  .turn input { flex:1; min-width:0; }
+  .turn output { font-size:.85rem; color:var(--muted); white-space:nowrap; }
   .srcline { stroke:var(--src); stroke-width:1.5; fill:none; display:none; }
   .srcline.on { display:inline; }
   .ctx { font-size:12px; letter-spacing:.06em; text-transform:uppercase; fill:var(--muted); transition:opacity .6s ease, fill .5s ease;
@@ -88,6 +108,7 @@ export function atlasPage(host: string): string {
   .c { fill:var(--node); stroke:var(--card); stroke-width:2; cursor:pointer; }
   .c.root { fill:var(--card); stroke:var(--fg); stroke-width:1.5; }
   .c.new { fill:var(--new); }
+  .c.bonly { fill:var(--card); stroke:var(--node); stroke-width:2; }
   .ring { fill:none; stroke:var(--new); stroke-width:2; pointer-events:none; }
   .d { fill:none; stroke:var(--ask); stroke-width:2; stroke-dasharray:3 3; cursor:pointer; }
   .s { fill:var(--src); stroke:var(--card); stroke-width:2; cursor:pointer; }
@@ -99,6 +120,21 @@ export function atlasPage(host: string): string {
   .ripple.src { stroke:var(--src); }
   .ripple.ask { stroke:var(--ask); }
   @keyframes ripple { from { transform:scale(1); opacity:.85; } to { transform:scale(3.4); opacity:0; } }
+  .lens { display:flex; flex-wrap:wrap; gap:.5rem 1rem; align-items:center; margin:.2rem 0 .5rem; font-size:.92rem; }
+  .lens label { display:inline-flex; gap:.4rem; align-items:center; min-width:0; }
+  .lens select, .lens input { font:inherit; padding:.2rem .4rem; border:1px solid var(--line); border-radius:6px;
+    background:var(--bg); color:var(--fg); max-width:min(18rem, 100%); }
+  .lens input { width:13rem; }
+  .lensinfo { border-left:3px solid var(--accent); padding:.35rem .8rem; margin:0 0 .6rem; background:var(--card);
+    border-radius:0 8px 8px 0; font-size:.92rem; }
+  .lensinfo .keys { display:flex; flex-wrap:wrap; gap:.2rem 1rem; color:var(--muted); font-size:.85rem; margin-top:.2rem; }
+  .lensinfo svg { vertical-align:-2px; margin-right:.25rem; }
+  .bars button.bar { all:unset; box-sizing:border-box; width:100%; cursor:pointer; display:grid;
+    grid-template-columns:minmax(0, 9rem) 1fr 2rem; gap:.5rem; align-items:center; font-size:.85rem; border-radius:4px; }
+  .bars button.bar:hover span:first-child { text-decoration:underline; }
+  .bars button.bar:focus-visible { outline:2px solid var(--accent); }
+  .linkish { all:unset; cursor:pointer; color:var(--accent); text-decoration:underline; }
+  .linkish:focus-visible { outline:2px solid var(--accent); border-radius:3px; }
   .tip { position:absolute; pointer-events:none; background:var(--bg); border:1px solid var(--line); border-radius:6px;
     padding:.35rem .55rem; font-size:.82rem; max-width:18rem; box-shadow:0 2px 8px rgba(0,0,0,.12); display:none; }
   .legend { display:flex; flex-wrap:wrap; gap:.4rem 1.1rem; font-size:.85rem; color:var(--muted); margin:.6rem 0 0; padding:0; list-style:none; }
@@ -124,6 +160,7 @@ export function atlasPage(host: string): string {
   th, td { text-align:left; padding:.3rem .5rem .3rem 0; border-top:1px solid var(--line); vertical-align:top; }
   .tablewrap { overflow-x:auto; }
   @media (prefers-reduced-motion: reduce) {
+    svg.moving .ctx { opacity:1; }
     .n, .e, .fork, .ctx, .lbl, .story .text { transition:none !important; }
     .ripple { display:none; }
   }
@@ -137,7 +174,8 @@ export function atlasPage(host: string): string {
   together. Press play to watch it being built, one step at a time.
   <span style="color:var(--new);font-weight:600">Blue</span> is what arrived in the chapter shown,
   <span style="color:var(--src);font-weight:600">green</span> diamonds are public datasets mapped onto concepts, and
-  dashed <span style="color:var(--ask);font-weight:600">orange</span> rings are searches that found nothing yet.</p>
+  dashed <span style="color:var(--ask);font-weight:600">orange</span> rings are searches that found nothing yet. Focus on an app, a context or a place to see where it sits
+  among everything else, or compare two apps to see what they share.</p>
 
   <div class="controls">
     <div class="time">
@@ -149,6 +187,15 @@ export function atlasPage(host: string): string {
     <label><input type="checkbox" id="showSrc" checked> Public datasets</label>
     <label><input type="checkbox" id="showLbl"> All labels</label>
   </div>
+  <div class="lens" role="search">
+    <label>Focus on <select id="lens" aria-label="Focus the map on an app, a context or a place">
+      <option value="">the whole catalog</option></select></label>
+    <label id="withWrap" hidden>compared with <select id="with" aria-label="Compare with another app">
+      <option value="">no other app</option></select></label>
+    <label><input id="q" type="search" placeholder="Find a concept or dataset" aria-label="Find a concept or dataset"></label>
+    <button id="clear" type="button" hidden>Clear</button>
+  </div>
+  <div class="lensinfo" id="lensInfo" aria-live="polite" hidden></div>
   <div class="growth" id="growth" aria-hidden="true">
     <svg id="growthSvg" viewBox="0 0 1000 64" preserveAspectRatio="none"></svg>
     <div class="gtip" id="gtip"></div>
@@ -158,6 +205,20 @@ export function atlasPage(host: string): string {
     <div class="counts" id="counts"></div>
   </div>
 
+  <div class="viewbar">
+    <div class="views" role="group" aria-label="How to lay out the map">
+      <button type="button" data-view="meaning" aria-pressed="true">Meaning</button>
+      <button type="button" data-view="turn" aria-pressed="false">Turn</button>
+      <button type="button" data-view="lineage" aria-pressed="false">Lineage</button>
+      <button type="button" data-view="time" aria-pressed="false">Time</button>
+    </div>
+    <div class="turn" id="turnCtl" hidden>
+      <button id="turnPlay" type="button">Turn</button>
+      <input id="angle" type="range" min="0" max="6" step="0.01" value="0" aria-label="Angle to look at the catalog from">
+      <output id="angleText" for="angle"></output>
+    </div>
+    <div class="note" id="viewNote" aria-live="polite"></div>
+  </div>
   <div class="stage">
     <svg class="map" id="map" viewBox="0 0 1000 640" role="img" aria-labelledby="mapTitle mapDesc">
       <title id="mapTitle">Map of the SchemaLattice catalog</title>
@@ -180,10 +241,11 @@ export function atlasPage(host: string): string {
 
   <div class="grid">
     <section class="card"><h2>How it grew</h2><ol class="chapters" id="chapters"></ol></section>
-    <section class="card"><h2>Where it is focused</h2><ul class="bars" id="focus"></ul></section>
+    <section class="card"><h2>Where it is focused</h2><p class="muted" style="font-size:.8rem;margin:-.3rem 0 .4rem">Select a context to focus the map on it.</p><ul class="bars" id="focus"></ul></section>
     <section class="card"><h2>Asked for, not here yet</h2><ol id="asks"></ol>
       <p class="muted" style="font-size:.8rem;margin:.5rem 0 0">Search text from anonymous visitors, shown as data.</p></section>
     <section class="card"><h2>Public data by place</h2><ul id="places"></ul>
+      <p class="muted" style="font-size:.8rem;margin:.4rem 0 0">“Show” focuses the map on that place.</p>
       <p style="font-size:.85rem;margin:.5rem 0 0"><a href="/sources">Every source</a></p></section>
   </div>
 
@@ -253,14 +315,163 @@ export function atlasPage(host: string): string {
       if (!a) continue;
       const k = orbit.get(a) || 0; orbit.set(a, k + 1);
       const ang = -Math.PI / 2 + k * 0.9, dist = a.r + 16 + 9 * Math.floor(k / 7);
-      nodes.push({ type: "s", d: s, t: Date.parse(s.createdAt), r: 5, anchor: a,
+      nodes.push({ type: "s", d: s, t: Date.parse(s.createdAt), r: 5, anchor: a, ang, dist,
         x0: a.x0 + Math.cos(ang) * dist, y0: a.y0 + Math.sin(ang) * dist });
     }
     for (const q of data.demand) {
       nodes.push({ type: "d", d: q, t: Infinity, r: 5 + Math.min(6, Math.sqrt(q.count) * 1.5),
         x0: PAD + q.x * (W - 2 * PAD), y0: PAD + q.y * (H - 2 * PAD) });
     }
+    for (const n of nodes) { n.bx = n.x0; n.by = n.y0; }
     relax(nodes);
+    for (const n of nodes) { n.x = n.tx; n.y = n.ty; }
+
+    // --- lenses: focus the map on an app, a context, a place, or a search ----------
+    const apps = new Map((data.apps || []).map((a) => [a.slug, a]));
+    const appsOf = new Map();
+    for (const a of data.apps || []) for (const u of a.concepts) appsOf.set(u, (appsOf.get(u) || []).concat(a.name));
+    const sourceNodes = nodes.filter((n) => n.type === "s");
+    const lensSel = $("lens"), withSel = $("with"), qIn = $("q");
+    const group = (label, items) => {
+      if (!items.length) return;
+      const g = html("optgroup", undefined, lensSel); g.label = label;
+      for (const [value, text] of items) { const o = html("option", text, g); o.value = value; }
+    };
+    group("Apps", (data.apps || []).map((a) => ["app:" + a.slug, a.name + " (" + a.concepts.length + ")"]));
+    group("Contexts", data.contexts.filter((c) => c.slug !== "schemalattice")
+      .map((c) => ["ctx:" + c.slug, c.title]).sort((a, b) => a[1].localeCompare(b[1])));
+    const STATES = { CT: "Connecticut", MA: "Massachusetts", NY: "New York", RI: "Rhode Island" };
+    const titleCase = (t) => t.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    const placeName = (j) => {
+      if (j === "global") return "Worldwide";
+      if (j === "US") return "United States";
+      const m = /^US-([A-Z]{2})(?:\\/(.+))?$/.exec(j);
+      if (m) return m[2] ? titleCase(m[2].split("/").pop()) + ", " + m[1] : STATES[m[1]] || m[1];
+      return j;
+    };
+    const within = (j, place) => j === place || j.startsWith(place + "/");
+    const jurisdictions = [...new Set(data.sources.map((s) => s.jurisdiction))].sort();
+    group("Places", jurisdictions.map((j) => ["place:" + j, placeName(j)]));
+    for (const a of data.apps || []) { const o = html("option", a.name, withSel); o.value = a.slug; }
+    let focus = null;
+    let view = "meaning";
+    function computeFocus() {
+      const v = lensSel.value, q = qIn.value.trim().toLowerCase();
+      if (!v && !q) return null;
+      let concepts = null, sources = null, demand = new Set();
+      const f = { kind: v.split(":")[0] || "search", a: null, b: null, q };
+      if (f.kind === "app") {
+        f.a = apps.get(v.slice(4)) || null;
+        f.b = withSel.value && withSel.value !== f.a?.slug ? apps.get(withSel.value) || null : null;
+        concepts = new Set((f.a?.concepts || []).concat(f.b?.concepts || []).filter((u) => byUri.has(u)));
+      } else if (f.kind === "ctx") {
+        f.ctx = v.slice(4);
+        concepts = new Set(nodes.filter((n) => n.type === "c" && n.d.context === f.ctx).map((n) => n.d.uri));
+      } else if (f.kind === "place") {
+        f.place = v.slice(6);
+        const here = data.sources.filter((s) => within(s.jurisdiction, f.place));
+        sources = new Set(here.map((s) => s.slug));
+        concepts = new Set(here.flatMap((s) => s.concepts.map((c) => c.conceptUri)).filter((u) => byUri.has(u)));
+      }
+      if (concepts && !sources) sources = new Set(sourceNodes.filter((n) => n.d.concepts.some((c) => concepts.has(c.conceptUri))).map((n) => n.d.slug));
+      if (q) {
+        const hit = (t) => String(t || "").toLowerCase().includes(q);
+        const qc = new Set(nodes.filter((n) => n.type === "c" && (hit(n.d.label) || hit(titles.get(n.d.context)))).map((n) => n.d.uri));
+        const qs = new Set(sourceNodes.filter((n) => hit(n.d.title) || hit(n.d.jurisdiction)).map((n) => n.d.slug));
+        concepts = concepts ? new Set([...concepts].filter((u) => qc.has(u))) : qc;
+        sources = sources ? new Set([...sources].filter((u) => qs.has(u))) : qs;
+        if (!v) demand = new Set(nodes.filter((n) => n.type === "d" && hit(n.d.text)));
+      }
+      f.concepts = concepts; f.sources = sources; f.demand = demand;
+      if (f.a && f.b) {
+        const inB = new Set(f.b.concepts);
+        f.shared = new Set(f.a.concepts.filter((u) => inB.has(u) && byUri.has(u)));
+        f.bOnly = new Set(f.b.concepts.filter((u) => !f.shared.has(u) && byUri.has(u)));
+      }
+      f.labels = concepts.size <= 70;
+      return f;
+    }
+    const inFocus = (n) => !focus || (n.type === "c" ? focus.concepts.has(n.d.uri) : n.type === "s" ? focus.sources.has(n.d.slug) : focus.demand.has(n));
+    const contextsOf = (uris) => new Set([...uris].map((u) => byUri.get(u)?.d.context).filter(Boolean));
+    function glyph(parent, kind) {
+      const g = el("svg", { width: 14, height: 14, "aria-hidden": "true" }, parent);
+      if (kind === "both") el("circle", { cx: 7, cy: 7, r: 5, fill: "var(--new)" }, g);
+      else if (kind === "a") el("circle", { cx: 7, cy: 7, r: 5, fill: "var(--node)" }, g);
+      else el("circle", { cx: 7, cy: 7, r: 4.5, fill: "var(--card)", stroke: "var(--node)", "stroke-width": 2 }, g);
+    }
+    function renderInfo() {
+      const box = $("lensInfo");
+      box.replaceChildren();
+      box.hidden = !focus;
+      $("clear").hidden = !focus;
+      $("withWrap").hidden = !(focus && focus.kind === "app" && focus.a);
+      if (!focus) return;
+      const p = html("div", undefined, box);
+      const nC = focus.concepts.size, nS = focus.sources.size;
+      const ctxCount = contextsOf(focus.concepts).size;
+      const datasets = plural(nS, "public dataset");
+      if (focus.kind === "app" && focus.a && focus.b) {
+        html("strong", focus.a.name, p); p.append(" and "); html("strong", focus.b.name, p);
+        p.append(" share " + plural(focus.shared.size, "concept") + ". ");
+        const a = html("a", "How well will they mesh?", p);
+        a.href = "/mesh?a=app:" + encodeURIComponent(focus.a.slug) + "&b=app:" + encodeURIComponent(focus.b.slug);
+        p.append(" (the mesh report also finds forks, co-references and similar concepts, not only the identical ones counted here).");
+        const keys = html("div", undefined, box, "keys");
+        const aOnly = [...focus.concepts].filter((u) => !focus.shared.has(u) && !focus.bOnly.has(u)).length;
+        for (const [k, text] of [["both", "In both (" + focus.shared.size + ")"], ["a", "Only " + focus.a.name + " (" + aOnly + ")"], ["b", "Only " + focus.b.name + " (" + focus.bOnly.size + ")"]]) {
+          const s = html("span", undefined, keys); glyph(s, k); s.append(text);
+        }
+      } else if (focus.kind === "app" && focus.a) {
+        html("strong", focus.a.name, p);
+        const k = html("span", undefined, html("div", undefined, box, "keys")); glyph(k, "both"); k.append("Used by " + focus.a.name + "; everything else is faded");
+        p.append(" uses " + plural(nC, "concept") + " across " + plural(ctxCount, "context") + "; " + datasets + (nS === 1 ? " maps" : " map") + " onto them.");
+        const mine = new Set(focus.a.concepts);
+        const others = (data.apps || []).filter((o) => o.slug !== focus.a.slug)
+          .map((o) => ({ o, n: o.concepts.filter((u) => mine.has(u)).length })).filter((x) => x.n).sort((x, y) => y.n - x.n);
+        const line = html("div", others.length ? "Shares concepts with " : "No other registered app uses the same concepts yet.", box, "keys");
+        others.slice(0, 8).forEach((x, i) => {
+          if (i) line.append(" · ");
+          const b = html("button", x.o.name + " (" + x.n + ")", line, "linkish");
+          b.type = "button";
+          b.addEventListener("click", () => { withSel.value = x.o.slug; refocus(); });
+        });
+        if (others.length) line.append(". Select one to compare.");
+      } else if (focus.kind === "ctx") {
+        html("strong", titles.get(focus.ctx) || focus.ctx, p);
+        const users = new Set([...focus.concepts].flatMap((u) => appsOf.get(u) || []));
+        p.append(": " + plural(nC, "concept") + ", used by " + (users.size ? listOf([...users].sort(), 4) : "no registered app yet") + "; " + datasets + (nS === 1 ? " maps" : " map") + " onto them.");
+      } else if (focus.kind === "place") {
+        html("strong", placeName(focus.place), p);
+        const nested = jurisdictions.some((j) => j !== focus.place && within(j, focus.place));
+        p.append((nested ? " (including places within it)" : "") + ": " + datasets + ", mapping onto " + plural(nC, "concept") + " in " + plural(ctxCount, "context") + ". ");
+        const a = html("a", "List them", p); a.href = "/sources?jurisdiction=" + encodeURIComponent(focus.place);
+      }
+      if (focus.kind === "ctx" || focus.kind === "place" || focus.kind === "search") {
+        const k = html("div", undefined, box, "keys");
+        const c = html("span", undefined, k); glyph(c, "both"); c.append(focus.kind === "place" ? "Concepts its datasets map onto" : "In focus");
+        const sd = html("span", undefined, k);
+        const g = el("svg", { width: 14, height: 14, "aria-hidden": "true" }, sd); el("path", { d: "M7 1 L13 7 L7 13 L1 7 Z", fill: "var(--src)" }, g);
+        sd.append("Datasets; everything else is faded");
+      }
+      if (focus.q) {
+        const m = html("div", plural(nC, "concept") + ", " + plural(nS, "dataset") + (focus.demand.size ? ", " + plural(focus.demand.size, "unmet search", "unmet searches") : "") + " match “", focus.kind === "search" ? p : box, focus.kind === "search" ? "" : "keys");
+        m.append(focus.q + "”" + (focus.kind === "search" ? "" : " within this focus") + ".");
+      }
+    }
+    function syncUrl() {
+      const u = new URL(location.href);
+      for (const [k, v] of [["focus", lensSel.value], ["with", focus && focus.b ? focus.b.slug : ""], ["q", qIn.value.trim()], ["view", view === "meaning" ? "" : view]]) {
+        if (v) u.searchParams.set(k, v); else u.searchParams.delete(k);
+      }
+      history.replaceState(null, "", u);
+    }
+    function refocus() {
+      focus = computeFocus();
+      renderInfo();
+      for (const n of nodes) if (n.row) n.row.hidden = !!focus && !inFocus(n);
+      apply(frame, { animate: false, ripple: false });
+      syncUrl();
+    }
 
     // --- the story: chapters where work paused, beats per context -------------
     const timed = nodes.filter((n) => n.type !== "d").sort((a, b) => a.t - b.t);
@@ -336,22 +547,34 @@ export function atlasPage(host: string): string {
     }
 
     // --- draw ---------------------------------------------------------------------
-    const gEdges = el("g", {}, svg), gCtx = el("g", {}, svg), gNodes = el("g", {}, svg), gFx = el("g", {}, svg), gLbl = el("g", {}, svg);
+    const gAxis = el("g", {}, svg), gEdges = el("g", {}, svg), gCtx = el("g", {}, svg), gNodes = el("g", {}, svg), gFx = el("g", {}, svg), gLbl = el("g", {}, svg);
+    // Every line, with the two marks it joins, so a change of view can move it.
+    const allEdges = [];
+    const edge = (cls, a, b, extra) => {
+      const line = el("line", { class: cls, x1: a.x, y1: a.y, x2: b.x, y2: b.y, ...(extra || {}) }, gEdges);
+      allEdges.push({ line, a, b });
+      return line;
+    };
     for (const n of nodes) {
       if (n.type !== "c") continue;
       if (n.d.forkedFrom && byUri.has(n.d.forkedFrom)) {
         const p = byUri.get(n.d.forkedFrom);
-        n.edges = (n.edges || []).concat({ line: el("line", { class: "fork off", pathLength: 1, x1: p.x, y1: p.y, x2: n.x, y2: n.y }, gEdges), other: p });
+        n.edges = (n.edges || []).concat({ line: edge("fork off", p, n, { pathLength: 1 }), other: p });
       }
       for (const u of n.d.coRefersWith || []) {
         const p = byUri.get(u);
-        if (p) n.edges = (n.edges || []).concat({ line: el("line", { class: "coref e off", x1: n.x, y1: n.y, x2: p.x, y2: p.y }, gEdges), other: p });
+        if (p) n.edges = (n.edges || []).concat({ line: edge("coref e off", n, p), other: p });
+      }
+      // "A kind of": shown in the lineage view only.
+      for (const u of n.d.broader || []) {
+        const p = byUri.get(u);
+        if (p) n.edges = (n.edges || []).concat({ line: edge("kind e off", n, p), other: p, kind: true });
       }
     }
     for (const n of nodes) {
       if (n.type === "s") {
         n.lines = n.d.concepts.map((c) => byUri.get(c.conceptUri)).filter(Boolean)
-          .map((p) => el("line", { class: "srcline", x1: n.x, y1: n.y, x2: p.x, y2: p.y, "data-to": p.d.uri }, gEdges));
+          .map((p) => edge("srcline", n, p, { "data-to": p.d.uri }));
         n.el = el("path", { class: "s n off", d: "M" + n.x + " " + (n.y - 6) + " L" + (n.x + 6) + " " + n.y + " L" + n.x + " " + (n.y + 6) + " L" + (n.x - 6) + " " + n.y + " Z" }, gNodes);
       } else if (n.type === "d") {
         n.el = el("circle", { class: "d n off", cx: n.x, cy: n.y, r: n.r }, gNodes);
@@ -376,23 +599,31 @@ export function atlasPage(host: string): string {
     for (const n of nodes) if (n.type === "c") {
       const g = groups.get(n.d.context) || []; g.push(n); groups.set(n.d.context, g);
     }
-    const placedBoxes = [];
     const ctxLabels = new Map();
-    for (const [slug, g] of [...groups].sort((a, b) => b[1].length - a[1].length)) {
-      const text = titles.get(slug) || slug;
-      const cx = g.reduce((s, n) => s + n.x, 0) / g.length;
-      let cy = g.reduce((s, n) => s + n.y, 0) / g.length - 14;
-      const w = text.length * 8 + 8;
-      const box = (y) => ({ x0: cx - w / 2, x1: cx + w / 2, y0: y - 12, y1: y + 4 });
-      const hits = (b) => placedBoxes.some((p) => b.x0 < p.x1 && b.x1 > p.x0 && b.y0 < p.y1 && b.y1 > p.y0);
-      let tries = 0;
-      while (hits(box(cy)) && tries < 6) { cy += (tries % 2 ? -1 : 1) * 18 * (tries + 1); tries++; }
-      const free = !hits(box(cy)) && g.length >= 3;
-      if (free) placedBoxes.push(box(cy));
-      const t = el("text", { class: "ctx off", "text-anchor": "middle", x: Math.min(W - w / 2, Math.max(w / 2, cx)), y: cy }, gCtx);
-      t.textContent = text;
-      ctxLabels.set(slug, { el: t, free });
+    for (const [slug] of groups) {
+      const t = el("text", { class: "ctx off", "text-anchor": "middle" }, gCtx);
+      t.textContent = titles.get(slug) || slug;
+      ctxLabels.set(slug, { el: t, free: false });
     }
+    // Named at the middle of their concepts, biggest first, skipping any name that would collide.
+    function placeContextNames() {
+      const placedBoxes = [];
+      for (const [slug, g] of [...groups].sort((a, b) => b[1].length - a[1].length)) {
+        const l = ctxLabels.get(slug), text = l.el.textContent;
+        const cx = g.reduce((s, n) => s + n.x, 0) / g.length;
+        let cy = g.reduce((s, n) => s + n.y, 0) / g.length - 14;
+        const w = text.length * 8 + 8;
+        const box = (y) => ({ x0: cx - w / 2, x1: cx + w / 2, y0: y - 12, y1: y + 4 });
+        const hits = (b) => placedBoxes.some((p) => b.x0 < p.x1 && b.x1 > p.x0 && b.y0 < p.y1 && b.y1 > p.y0);
+        let tries = 0;
+        while (hits(box(cy)) && tries < 6) { cy += (tries % 2 ? -1 : 1) * 18 * (tries + 1); tries++; }
+        l.free = !hits(box(cy)) && g.length >= 3;
+        if (l.free) placedBoxes.push(box(cy));
+        l.el.setAttribute("x", Math.min(W - w / 2, Math.max(w / 2, cx)));
+        l.el.setAttribute("y", cy);
+      }
+    }
+    placeContextNames();
 
     // --- growth chart: cumulative concepts and sources, by step -------------------
     const gs = $("growthSvg");
@@ -453,27 +684,40 @@ export function atlasPage(host: string): string {
         if (n.type === "d") on = on && showAsk.checked;
         if (n.type === "s") on = on && showSrc.checked;
         const wasOn = !n.el.classList.contains("off");
+        const dim = on && !inFocus(n);
         n.el.classList.toggle("off", !on);
+        n.el.classList.toggle("dim", dim);
         n.hit.classList.toggle("off", !on);
         for (const l of n.lines || []) if (!on) l.classList.remove("on");
         if (on && !wasOn && opts.ripple) arriving.push(n);
         if (n.type === "s" && n.beat <= f) nSources++;
         if (n.type !== "c") continue;
-        const isNew = on && !n.d.root && n.chapter === curChapter;
+        // Without a focus, blue is what is new in the chapter; with one, blue is the focus
+        // (or, comparing two apps, what they share).
+        const isNew = focus
+          ? on && !dim && (focus.shared ? focus.shared.has(n.d.uri) : true)
+          : on && !n.d.root && n.chapter === curChapter;
         n.el.classList.toggle("new", isNew);
-        n.ring.classList.toggle("off", !isNew);
-        n.lbl.classList.toggle("off", !on || !(showLbl.checked || n.r >= 7.5 || n === selected || (hotContext && n.d.context === hotContext && n.beat === f)));
-        for (const e of n.edges || []) e.line.classList.toggle("off", !on || e.other.beat > f);
+        n.el.classList.toggle("bonly", !!(on && focus && focus.bOnly && focus.bOnly.has(n.d.uri)));
+        n.ring.classList.toggle("off", !isNew || !!focus);
+        n.lbl.classList.toggle("rootlbl", view === "lineage" && n.d.root);
+        n.lbl.classList.toggle("off", !on || dim || !(showLbl.checked || n.r >= 7.5 || n === selected || (focus && focus.labels) || (view === "lineage" && n.d.root) || (!focus && hotContext && n.d.context === hotContext && n.beat === f)));
+        for (const e of n.edges || []) {
+          e.line.classList.toggle("off", !on || e.other.beat > f || (!!e.kind && view !== "lineage"));
+          e.line.classList.toggle("dim", !!focus && !(inFocus(n) && inFocus(e.other)));
+        }
         if (on) {
           visibleCount.set(n.d.context, (visibleCount.get(n.d.context) || 0) + 1);
           if (!n.d.root) { nConcepts++; contexts.add(n.d.context); }
         }
       }
+      const focusCtx = focus ? contextsOf(focus.concepts) : null;
       for (const [slug, l] of ctxLabels) {
-        const hot = slug === hotContext;
+        const hot = !focus && slug === hotContext;
         const seen = visibleCount.get(slug) || 0;
-        l.el.classList.toggle("off", !((l.free && seen >= 3) || (hot && seen > 0)));
+        l.el.classList.toggle("off", view !== "meaning" || !((l.free && seen >= 3) || (hot && seen > 0)));
         l.el.classList.toggle("hot", hot);
+        l.el.classList.toggle("dim", !!focusCtx && !focusCtx.has(slug));
       }
       head.setAttribute("x1", gx(f)); head.setAttribute("x2", gx(f));
       for (const b of document.querySelectorAll("#chapters button")) {
@@ -543,6 +787,12 @@ export function atlasPage(host: string): string {
     playBtn.addEventListener("click", play);
     slider.addEventListener("input", () => go(Number(slider.value)));
     for (const box of [showAsk, showSrc, showLbl]) box.addEventListener("change", () => apply(frame, { animate: false, ripple: false }));
+    lensSel.addEventListener("change", () => { if (!lensSel.value.startsWith("app:")) withSel.value = ""; refocus(); });
+    withSel.addEventListener("change", refocus);
+    let qTimer = null;
+    qIn.addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(refocus, 150); });
+    $("clear").addEventListener("click", () => { lensSel.value = ""; withSel.value = ""; qIn.value = ""; refocus(); });
+    const focusOn = (value) => { lensSel.value = value; withSel.value = ""; refocus(); lensSel.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" }); };
 
     // --- chapters card ---------------------------------------------------------------
     for (const ch of chapters) {
@@ -570,7 +820,8 @@ export function atlasPage(host: string): string {
       if (n.type === "c") {
         const c = n.d;
         return [c.label, (titles.get(c.context) || c.context) + (c.kind ? " · " + c.kind : "") + (c.root ? " · root" : ""),
-          "Added " + fmt(n.t) + " · " + c.forks + " forks · " + c.usages + " apps · " + c.publicSources + " datasets"];
+          "Added " + fmt(n.t) + " · " + c.forks + " forks · " + c.usages + " apps · " + c.publicSources + " datasets"]
+          .concat(appsOf.has(c.uri) ? ["Used by " + listOf(appsOf.get(c.uri), 4)] : []);
       }
       if (n.type === "s") return [n.d.title, (n.d.kind === "standard" ? "Published standard · " : "Public dataset · ") + n.d.jurisdiction, n.d.concepts.length + " concepts mapped"];
       return ["“" + n.d.text + "”", "Searched " + n.d.count + "×, nothing close enough yet", "Last asked " + fmt(Date.parse(n.d.lastAsked))];
@@ -608,11 +859,14 @@ export function atlasPage(host: string): string {
     // --- the other cards and the table ------------------------------------------------
     const max = Math.max(...data.contexts.map((c) => c.concepts));
     for (const c of data.contexts.filter((c) => c.slug !== "schemalattice").slice(0, 10)) {
-      const li = html("li", undefined, $("focus"), "bar");
-      html("span", c.title, li).title = c.title;
-      const track = html("span", undefined, li);
+      const bar = html("button", undefined, html("li", undefined, $("focus")), "bar");
+      bar.type = "button";
+      bar.setAttribute("aria-label", "Focus the map on " + c.title + ", " + plural(c.concepts, "concept"));
+      html("span", c.title, bar).title = c.title;
+      const track = html("span", undefined, bar);
       html("i", undefined, track).style.width = (100 * c.concepts / max) + "%";
-      html("b", String(c.concepts), li);
+      html("b", String(c.concepts), bar);
+      bar.addEventListener("click", () => focusOn("ctx:" + c.slug));
     }
     for (const q of data.demand.slice(0, 6)) {
       const li = html("li", "“" + q.text + "”", $("asks"));
@@ -623,12 +877,16 @@ export function atlasPage(host: string): string {
     for (const s of data.sources) if (s.kind !== "standard") places.set(s.jurisdiction, (places.get(s.jurisdiction) || 0) + 1);
     for (const [j, n] of [...places].sort()) {
       const li = html("li", undefined, $("places"));
-      const a = html("a", j, li); a.href = "/sources?jurisdiction=" + encodeURIComponent(j);
-      html("span", " · " + plural(n, "dataset"), li, "muted");
+      const a = html("a", placeName(j), li); a.href = "/sources?jurisdiction=" + encodeURIComponent(j);
+      html("span", " · " + plural(n, "dataset") + " · ", li, "muted");
+      const b = html("button", "Show", li, "linkish"); b.type = "button";
+      b.setAttribute("aria-label", "Show " + j + " on the map");
+      b.addEventListener("click", () => focusOn("place:" + j));
     }
     if (!places.size) html("li", "No public datasets yet.", $("places"), "muted");
     for (const n of nodes.filter((n) => n.type === "c").sort((a, b) => b.t - a.t)) {
       const tr = html("tr", undefined, $("rows"));
+      n.row = tr;
       const a = html("a", n.d.label, html("td", undefined, tr)); a.href = path(n.d.uri);
       html("td", titles.get(n.d.context) || n.d.context, tr);
       html("td", fmt(n.t), tr);
@@ -637,14 +895,248 @@ export function atlasPage(host: string): string {
       html("td", String(n.d.publicSources), tr);
     }
 
+
+    // --- views: the same marks, laid out four ways ---------------------------------
+    const pcCount = Math.min(...data.concepts.map((c) => (c.pc || []).length).concat([6]));
+    const TOUR = [[0, 1], [2, 1], [2, 3], [4, 3], [4, 5], [0, 5], [0, 1]].filter(([a, b]) => a < pcCount && b < pcCount);
+    let tourPos = 0;
+    const angle = $("angle");
+    angle.max = String(Math.max(0, TOUR.length - 1));
+    const at = (u, v) => [PAD + u * (W - 2 * PAD), PAD + v * (H - 2 * PAD)];
+    function tourAxes(sPos) {
+      const k = Math.min(TOUR.length - 2, Math.floor(sPos)), t = sPos - k, th = t * Math.PI / 2;
+      const [ax, ay] = TOUR[k], [bx, by] = TOUR[k + 1];
+      return {
+        x: ax === bx ? [[ax, 1]] : [[ax, Math.cos(th)], [bx, Math.sin(th)]],
+        y: ay === by ? [[ay, 1]] : [[ay, Math.cos(th)], [by, Math.sin(th)]],
+      };
+    }
+    const proj = (pc, terms) => 0.5 + terms.reduce((t, [c, w]) => t + w * (((pc || [])[c] ?? 0.5) - 0.5), 0);
+    const conceptNodes = nodes.filter((n) => n.type === "c");
+    // The concepts at each end of each direction, to name what a direction means.
+    const ends = Array.from({ length: pcCount }, (_, c) => {
+      const sorted = conceptNodes.filter((n) => !n.d.root).sort((a, b) => a.d.pc[c] - b.d.pc[c]);
+      return { low: sorted.slice(0, 3).map((n) => n.d.label), high: sorted.slice(-3).reverse().map((n) => n.d.label) };
+    });
+
+    function lineagePlaces() {
+      const level = new Map();
+      const lv = (n, seen) => {
+        if (n.d.root) return 0;
+        if (level.has(n)) return level.get(n);
+        if (seen.has(n)) return 1;
+        seen.add(n);
+        const parents = (n.d.broader || []).concat(n.d.forkedFrom ? [n.d.forkedFrom] : []).map((u) => byUri.get(u)).filter(Boolean);
+        const v = 1 + Math.max(0, ...parents.map((p) => lv(p, seen)));
+        level.set(n, v);
+        return v;
+      };
+      const families = new Map();
+      for (const n of conceptNodes) {
+        const key = n.d.root ? n.d.uri : n.d.rootAncestor || "none";
+        if (!families.has(key)) families.set(key, []);
+        families.get(key).push(n);
+      }
+      const SP = 15;
+      const fams = [...families].map(([key, members]) => {
+        const head = members.find((m) => m.d.uri === key) || null;
+        const rest = members.filter((m) => m !== head).sort((a, b) => lv(a, new Set()) - lv(b, new Set()) ||
+          a.d.context.localeCompare(b.d.context) || a.d.label.localeCompare(b.d.label));
+        return { head, rest, radius: SP * Math.sqrt(rest.length + 1) + 18 };
+      }).sort((a, b) => b.rest.length - a.rest.length);
+      // Shelf-pack the families into rows shaped like the map.
+      const area = fams.reduce((t, f) => t + (2 * f.radius) ** 2, 0);
+      const rowWidth = Math.sqrt(area * (W - 2 * PAD) / (H - 2 * PAD)) * 1.05;
+      let x = 0, y = 0, rowH = 0, maxX = 0;
+      for (const f of fams) {
+        const d = 2 * f.radius;
+        if (x > 0 && x + d > rowWidth) { y += rowH; x = 0; rowH = 0; }
+        f.cx = x + f.radius; f.cy = y + f.radius;
+        x += d; rowH = Math.max(rowH, d); maxX = Math.max(maxX, x);
+      }
+      const totalH = y + rowH;
+      const scale = Math.min((W - 2 * PAD) / (maxX || 1), (H - 2 * PAD) / (totalH || 1));
+      const offX = (W - maxX * scale) / 2, offY = (H - totalH * scale) / 2;
+      for (const f of fams) {
+        const cx = offX + f.cx * scale, cy = offY + f.cy * scale;
+        if (f.head) { f.head.bx = cx; f.head.by = cy; }
+        // Golden-angle spiral around the root: the nearest ring is the root's direct kinds.
+        f.rest.forEach((n, i) => {
+          const rad = SP * scale * Math.sqrt(i + 1.6), ang = i * 2.39996;
+          n.bx = cx + Math.cos(ang) * rad; n.by = cy + Math.sin(ang) * rad;
+        });
+      }
+    }
+
+    function basePositions(mode) {
+      if (mode === "meaning") {
+        for (const n of nodes) if (n.type !== "s") { n.bx = n.x0; n.by = n.y0; }
+      } else if (mode === "turn") {
+        const ax = tourAxes(tourPos);
+        for (const n of nodes) if (n.type !== "s") [n.bx, n.by] = at(proj(n.d.pc, ax.x), proj(n.d.pc, ax.y));
+      } else if (mode === "lineage") {
+        lineagePlaces();
+      } else if (mode === "time") {
+        for (const n of conceptNodes) [n.bx, n.by] = [PAD + (n.beat / Math.max(1, FINAL)) * (W - 2 * PAD), n.y0];
+      }
+      if (mode === "lineage" || mode === "time") {
+        // An unmet search sits beside the concept it came closest to.
+        for (const n of nodes) if (n.type === "d") {
+          const m = n.d.nearest && byUri.get(n.d.nearest);
+          if (mode === "time") [n.bx, n.by] = [W - PAD / 2, n.y0];
+          else if (m) [n.bx, n.by] = [m.bx + 16, m.by - 16];
+          else [n.bx, n.by] = [W - PAD / 2, PAD];
+        }
+      }
+      for (const n of nodes) if (n.type === "s") {
+        n.bx = n.anchor.bx + Math.cos(n.ang) * n.dist; n.by = n.anchor.by + Math.sin(n.ang) * n.dist;
+      }
+    }
+
+    const diamond = (x, y) => "M" + x + " " + (y - 6) + " L" + (x + 6) + " " + y + " L" + x + " " + (y + 6) + " L" + (x - 6) + " " + y + " Z";
+    function render() {
+      for (const n of nodes) {
+        if (n.type === "s") n.el.setAttribute("d", diamond(n.x, n.y));
+        else { n.el.setAttribute("cx", n.x); n.el.setAttribute("cy", n.y); }
+        if (n.ring) { n.ring.setAttribute("cx", n.x); n.ring.setAttribute("cy", n.y); }
+        n.hit.setAttribute("cx", n.x); n.hit.setAttribute("cy", n.y);
+        if (n.lbl) {
+          const flip = n.x > W - 160;
+          n.lbl.setAttribute("x", flip ? n.x - n.r - 3 : n.x + n.r + 3);
+          n.lbl.setAttribute("y", n.y + 4);
+          n.lbl.setAttribute("text-anchor", flip ? "end" : "start");
+        }
+      }
+      for (const e of allEdges) {
+        e.line.setAttribute("x1", e.a.x); e.line.setAttribute("y1", e.a.y);
+        e.line.setAttribute("x2", e.b.x); e.line.setAttribute("y2", e.b.y);
+      }
+    }
+
+    // Axis notes: what each edge of the map means in this view.
+    function drawAxis() {
+      gAxis.replaceChildren();
+      const text = (x, y, s, anchor) => { const t = el("text", { x, y, "text-anchor": anchor || "start" }, gAxis); t.textContent = s; return t; };
+      if (view === "turn") {
+        const ax = tourAxes(tourPos);
+        const dominant = (terms) => terms.reduce((a, b) => (Math.abs(b[1]) > Math.abs(a[1]) ? b : a));
+        const [cx] = dominant(ax.x), [cy] = dominant(ax.y);
+        text(8, H - 10, "← " + ends[cx].low.join(", "));
+        text(W - 8, H - 10, ends[cx].high.join(", ") + " →", "end");
+        text(8, 16, "↑ " + ends[cy].low.join(", "));
+        text(8, H - 28, "↓ " + ends[cy].high.join(", "));
+        const name = (terms) => terms.filter(([, w]) => Math.abs(w) > 0.02).map(([c]) => c + 1).join(" turning to ");
+        $("angleText").textContent = "direction " + name(ax.x) + " across, " + name(ax.y) + " down";
+      } else if (view === "time") {
+        let lastX = -Infinity, lastDay = "";
+        for (const ch of chapters) {
+          const x = PAD + (ch.beats[0].index / Math.max(1, FINAL)) * (W - 2 * PAD);
+          el("line", { x1: x, x2: x, y1: 8, y2: H - 24 }, gAxis);
+          if (x - lastX < 64) continue;
+          lastX = x;
+          const day = fmtShort(ch.start);
+          text(x + 3, H - 8, day === lastDay ? fmtTime(ch.start) : day);
+          lastDay = day;
+        }
+        text(W - 8, 16, "Today →", "end");
+      }
+    }
+
+    let moveAnim = null;
+    function moveTo(animate) {
+      basePositions(view);
+      if (view === "turn") for (const n of nodes) { n.tx = n.bx; n.ty = n.by; }
+      else relax(nodes);
+      if (moveAnim) cancelAnimationFrame(moveAnim);
+      const from = nodes.map((n) => [n.x, n.y]);
+      const done = () => {
+        svg.classList.remove("moving");
+        if (view === "meaning") placeContextNames();
+        drawAxis();
+        apply(frame, { animate: false, ripple: false });
+      };
+      if (!animate || reduceMotion) {
+        for (const n of nodes) { n.x = n.tx; n.y = n.ty; }
+        render(); done(); return;
+      }
+      svg.classList.add("moving");
+      gAxis.replaceChildren();
+      const start = performance.now(), dur = 950;
+      const step = (now) => {
+        const k = Math.min(1, (now - start) / dur), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+        nodes.forEach((n, i) => { n.x = from[i][0] + (n.tx - from[i][0]) * e; n.y = from[i][1] + (n.ty - from[i][1]) * e; });
+        render();
+        if (k < 1) moveAnim = requestAnimationFrame(step); else { moveAnim = null; done(); }
+      };
+      moveAnim = requestAnimationFrame(step);
+    }
+
+    // Turning: follow the angle exactly, no settling, so the cloud reads as one solid thing.
+    function turnTo(sPos) {
+      tourPos = Math.max(0, Math.min(TOUR.length - 1, sPos));
+      angle.value = String(tourPos);
+      basePositions("turn");
+      for (const n of nodes) { n.x = n.tx = n.bx; n.y = n.ty = n.by; }
+      render();
+      drawAxis();
+    }
+    let turnTimer = null;
+    const turnBtn = $("turnPlay");
+    function stopTurn() { if (turnTimer) cancelAnimationFrame(turnTimer); turnTimer = null; turnBtn.textContent = "Turn"; }
+    turnBtn.addEventListener("click", () => {
+      if (turnTimer) return stopTurn();
+      if (reduceMotion) { turnTo((Math.floor(tourPos) + 1) % TOUR.length); return; }
+      turnBtn.textContent = "Stop";
+      let last = performance.now();
+      const step = (now) => {
+        const next = tourPos + ((now - last) / 4000);
+        last = now;
+        turnTo(next >= TOUR.length - 1 ? 0 : next);
+        turnTimer = requestAnimationFrame(step);
+      };
+      turnTimer = requestAnimationFrame(step);
+    });
+    angle.addEventListener("input", () => { stopTurn(); turnTo(Number(angle.value)); });
+
+    const quality = data.layoutQuality;
+    const NOTES = {
+      meaning: "Placed by meaning" + (quality ? ": about " + Math.round(quality.meaning * 100) + "% of each concept's " + quality.neighbours +
+        " nearest neighbours in meaning are among its nearest here (a straight projection keeps " + Math.round(quality.pca * 100) + "%)." : "."),
+      turn: "Meaning has hundreds of directions; this turns through the six that spread the catalog most, one swap at a time. The words at the edges name the concepts furthest out each way.",
+      lineage: "Grouped around the root each concept descends from. Lines show what each is a kind of, and forks.",
+      time: "Left to right in the order things arrived, a column per step of the story; up and down still follows meaning.",
+    };
+    function setView(v, animate) {
+      if (!NOTES[v] || (v === "turn" && TOUR.length < 2)) v = "meaning";
+      stopTurn();
+      view = v;
+      for (const b of document.querySelectorAll(".views button")) b.setAttribute("aria-pressed", String(b.dataset.view === v));
+      $("turnCtl").hidden = v !== "turn";
+      $("viewNote").textContent = NOTES[v];
+      moveTo(animate);
+    }
+    for (const b of document.querySelectorAll(".views button")) b.addEventListener("click", () => { setView(b.dataset.view, true); syncUrl(); });
+
+    // A shared link opens on its focus: /atlas?focus=app:<slug>&with=<slug>&q=<text>.
+    const params = new URLSearchParams(location.search);
+    const wanted = params.get("focus") || "";
+    if ([...lensSel.options].some((o) => o.value === wanted)) lensSel.value = wanted;
+    if (params.get("with") && apps.has(params.get("with"))) withSel.value = params.get("with");
+    qIn.value = (params.get("q") || "").slice(0, 80);
+    focus = computeFocus();
+    renderInfo();
+    for (const n of nodes) if (n.row) n.row.hidden = !!focus && !inFocus(n);
+
     // Open on today, fully built; play tells the story from the start.
-    apply(FINAL, { animate: false, ripple: false });
+    frame = FINAL;
+    setView(params.get("view") || "meaning", false);
     $("beatText").textContent += " Press Play to watch the catalog being built, chapter by chapter.";
   }
 
   // Push overlapping marks apart while pulling each back toward where meaning put it.
+  // Reads each mark's wanted place (bx, by), writes where it can sit (tx, ty).
   function relax(nodes) {
-    for (const n of nodes) { n.x = n.x0; n.y = n.y0; }
+    for (const n of nodes) { n.x0s = n.x; n.y0s = n.y; n.x = n.bx; n.y = n.by; }
     for (let iter = 0; iter < 220; iter++) {
       for (let i = 0; i < nodes.length; i++) {
         const a = nodes[i];
@@ -659,11 +1151,14 @@ export function atlasPage(host: string): string {
         }
       }
       for (const n of nodes) {
-        n.x += (n.x0 - n.x) * 0.03; n.y += (n.y0 - n.y) * 0.03;
+        n.x += (n.bx - n.x) * 0.03; n.y += (n.by - n.y) * 0.03;
         n.x = Math.min(W - 12, Math.max(12, n.x)); n.y = Math.min(H - 12, Math.max(12, n.y));
       }
     }
-    for (const n of nodes) { n.x = Math.round(n.x * 10) / 10; n.y = Math.round(n.y * 10) / 10; }
+    for (const n of nodes) {
+      n.tx = Math.round(n.x * 10) / 10; n.ty = Math.round(n.y * 10) / 10;
+      n.x = n.x0s; n.y = n.y0s;
+    }
   }
 })();
 </script>

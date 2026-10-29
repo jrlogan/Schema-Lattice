@@ -82,7 +82,7 @@ $G --command="sudo cat /etc/schemalattice/env"        # the write key
 ### Deploying a change
 
 ```bash
-tar czf /tmp/lattice.tgz --exclude=node_modules --exclude=var --exclude=.git \
+tar czf /tmp/lattice.tgz --exclude=node_modules --exclude=var --exclude=.git --exclude=.env.deploy \
   packages/lattice-server packages/lattice-client specs skills *.md LICENSE
 gcloud compute scp /tmp/lattice.tgz lattice:~/ --zone=$LATTICE_GCP_ZONE --project=$LATTICE_GCP_PROJECT
 $G --command="sudo tar xzf ~/lattice.tgz -C /srv/schemalattice/app \
@@ -185,6 +185,26 @@ gcloud compute instances create lattice --zone=$LATTICE_GCP_ZONE --machine-type=
 Then: 2 GB swapfile, `build-essential python3 sqlite3`, Node 22.23.4 or newer in the 22.x line via NodeSource,
 Caddy via its apt repo, a `schemalattice` system user, `npm ci`, `npm run seed`,
 and the two config files in this directory.
+
+### Coordinating updates
+
+Deploy a reviewed, complete server revision: a partial deployment of only
+`tools.ts` or `instance.ts` can silently remove tools added by another session.
+Verify `/api/tools` includes both `lattice_mesh_report` and the API advisor tools
+(`lattice_advise_api`, `lattice_api_design_snapshot`,
+`lattice_accept_api_design`, `lattice_api_design_history`) after updating.
+Retain a source rollback archive, compare deployed file hashes before replacing
+files, and serialize deployments with `flock /tmp/schemalattice-runtime-deploy.lock`.
+Do not include `.env.deploy`, runtime data, or unrelated prototype work in an
+archive. Keep these exclusions when adapting the archive command. If direct SSH is unavailable, the same `gcloud compute ssh` and
+`scp` commands support `--tunnel-through-iap` when the operator has IAP access.
+
+The 2026-10-13 scaling deployment installed runtime changes without `npm ci`:
+no runtime dependency changed. The advisor's independent OpenAPI test validator
+is a development dependency; install the updated package lock before running
+those tests on a fresh checkout. Live read-only probe results are recorded in
+`examples/performance/live-probe.json`; these are observations, not a sustained
+capacity guarantee.
 
 ## October 21, 2026 Node runtime patch
 
