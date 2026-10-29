@@ -1268,6 +1268,34 @@ export const TOOLS: ToolDef[] = [
     handler: (instance, args) => sourcesCall(() => instance.sources.check(requireString(args, "slug"))),
   },
   {
+    name: "lattice_place_profile",
+    write: false,
+    description:
+      "What the catalog's map layers say about one place: for a point, every polygon or line layer covering the " +
+      "jurisdiction (ward, neighborhood, census tract, watershed, assessed waterbody, flood zone, environmental " +
+      "justice area, zoning, parcel, park…), grouped by the question it answers, each with a ready-to-run query " +
+      "returning just the mapped fields, what those fields mean, how current the publisher says it is, and what " +
+      "builders found. The server fetches nothing; you run the queries.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        latitude: { type: "number" },
+        longitude: { type: "number" },
+        jurisdiction: { type: "string", description: "US-CT/new-haven, US-CT…: layers covering it are included" },
+        distanceMeters: { type: "number", description: "For line layers (rivers, trails, roads): how near counts; default 200" },
+      },
+      required: ["latitude", "longitude", "jurisdiction"],
+    },
+    handler: (instance, args) =>
+      sourcesCall(() =>
+        instance.sources.placeProfile({
+          latitude: Number(args.latitude), longitude: Number(args.longitude),
+          jurisdiction: requireString(args, "jurisdiction"),
+          ...(args.distanceMeters !== undefined ? { distanceMeters: Number(args.distanceMeters) } : {}),
+        }),
+      ),
+  },
+  {
     name: "lattice_note_source",
     // Not key-gated: a note is a quarantined claim, listed once curated or corroborated.
     write: false,

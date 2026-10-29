@@ -1085,6 +1085,69 @@ export class Sources {
   }
 
   /**
+   * The questions a builder asks about one place ("which ward, which
+   * watershed, is it in a flood zone or an environmental justice area"),
+   * answered with ready-to-run queries against every layer that covers the
+   * place. Nothing is fetched: the server never proxies records. Each entry
+   * says what the layer's mapped fields mean, how current the publisher says
+   * it is, and what builders found about it.
+   */
+  placeProfile(input: { latitude: number; longitude: number; jurisdiction: string; distanceMeters?: number }) {
+    const { latitude: lat, longitude: lng } = input;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      throw new SourceRejected("latitude and longitude must be degrees (-90..90, -180..180)");
+    }
+    const jurisdiction = input.jurisdiction?.trim();
+    if (!jurisdiction || !JURISDICTION_RE.test(jurisdiction)) throw new SourceRejected('"jurisdiction" is required, e.g. US-CT/new-haven');
+    const near = Math.min(Math.max(input.distanceMeters ?? 200, 10), 2000);
+    const listed = this.listedSlugs();
+    const pairs = this.listedPairs();
+    const rows = (this.db.prepare("SELECT * FROM sources WHERE withdrawn_reason IS NULL AND kind = 'dataset' AND geometry IS NOT NULL").all() as SourceRow[])
+      .filter((r) => listed.has(r.slug) && coverage(r.jurisdiction, jurisdiction) !== null);
+    const rank = { exact: 0, narrower: 1, broader: 2 } as const;
+    const entries = rows
+      .map((r) => {
+        const shape = shapeOf(r.geometry!);
+        if (shape !== "area" && shape !== "line") return null;
+        const mine = pairs.filter((p) => p.source === r.slug);
+        // What the layer's rows are, else what they point at; an unmapped layer still answers "what is here".
+        const carried = this.carries(r.slug, pairs);
+        const records = carried.some((c) => c.role === "record") ? carried.filter((c) => c.role === "record") : carried;
+        const fields = [...new Set(mine.filter((p) => records.some((c) => c.conceptUri === p.conceptUri)).map((p) => p.sourceField))];
+        const meaning = Object.fromEntries(fields.map((f) => [f, mine.filter((p) => p.sourceField === f).map((p) => `${this.label(p.conceptUri)}.${p.conceptField}`).join("; ")]));
+        const notes = this.findings.notesFor(r.slug).filter((n) => n.topic !== "field" || fields.includes(n.field ?? "")).map((n) => n.text);
+        return {
+          question: records.length ? records.map((c) => c.prefLabel).join(" / ") : "Other map layers",
+          slug: r.slug,
+          title: r.title,
+          jurisdiction: r.jurisdiction,
+          coverage: coverage(r.jurisdiction, jurisdiction)!,
+          test: shape === "area" ? "contains the point" : `within ${near} m of the point`,
+          query: r.platform === "arcgis" ? arcgisPointQuery(r.access_url, lat, lng, fields, shape === "line" ? near : 0) : null,
+          howToQuery: r.platform === "arcgis" ? null : "Not an ArcGIS layer: see the source page for how to query it by location.",
+          fields: meaning,
+          publisherUpdatedAt: r.publisher_updated_at,
+          access: this.access(r).status,
+          ...(r.readiness_note ? { readinessNote: r.readiness_note } : {}),
+          ...(notes.length ? { builderNotes: notes.slice(0, 5) } : {}),
+          page: `/sources/${r.slug}`,
+        };
+      })
+      .filter((e): e is NonNullable<typeof e> => e !== null)
+      .sort((x, y) => rank[x.coverage] - rank[y.coverage] || x.question.localeCompare(y.question) || x.title.localeCompare(y.title));
+    this.store.logEvent("place-profile", { jurisdiction, layers: entries.length });
+    return {
+      point: { latitude: lat, longitude: lng },
+      jurisdiction,
+      layers: entries,
+      notice:
+        "Run each query yourself: the catalog points at publishers and never fetches records. A layer that contains " +
+        "nothing at the point is an answer too (not in a flood zone, not an EJ area). Report what you ran with " +
+        "lattice_report_join or lattice_note_source. " + UNTRUSTED_NOTICE,
+    };
+  }
+
+  /**
    * Every listed source, grouped for the /sources index. With a jurisdiction,
    * only those covering it, the place's own first, then narrower, then
    * broader (state, national, global): a city builder wants the city's layers
@@ -1233,6 +1296,10 @@ export class Sources {
         kind: r.kind,
         // Mapped fields the profile shows are blank or not degrees: a builder relying on the mapping is misled.
         fieldWarnings: this.profileOf(r.slug, mappedHere).warnings.filter((w) => mappedHere.has(w.field) && w.problem !== "mostly-empty"),
+        // A hand-supplied source the server can't read may still be known to work: builders used it.
+        builderReports: (this.db.prepare(
+          "SELECT COUNT(DISTINCT source) AS n FROM evidence WHERE (kind = 'source-note' AND subject = ?) OR (kind = 'join-report' AND (subject LIKE ? OR subject LIKE ?))",
+        ).get(r.slug, `${r.slug}|%`, `%|${r.slug}`) as { n: number }).n,
         access: this.access(r, now),
         drifted: last?.ok === true && last.changed,
         readiness: r.readiness,
@@ -1759,6 +1826,17 @@ function overlayHow(me: SourceRow, other: SourceRow): string {
 function geometryName(type: string): string {
   const t = type.replace(/^esriGeometry/i, "").toLowerCase();
   return t === "polyline" ? "lines" : t.endsWith("s") ? t : `${t}s`;
+}
+
+/** An ArcGIS query for the features at (or within `distance` metres of) a point, attributes only. */
+function arcgisPointQuery(accessUrl: string, lat: number, lng: number, fields: string[], distance: number): string {
+  const base = accessUrl.replace(/\/(query)?\/?$/, "");
+  const q = new URLSearchParams({
+    geometry: `${lng},${lat}`, geometryType: "esriGeometryPoint", inSR: "4326", spatialRel: "esriSpatialRelIntersects",
+    outFields: fields.length ? fields.join(",") : "*", returnGeometry: "false", f: "json",
+    ...(distance ? { distance: String(distance), units: "esriSRUnit_Meter" } : {}),
+  });
+  return `${base}/query?${q.toString()}`;
 }
 
 function exampleQuery(r: SourceRow): string | null {

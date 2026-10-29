@@ -615,6 +615,17 @@ async function main() {
     JSON.stringify(S.resolve("ct-parcels")!.related.map((r) => [r.slug, r.joins.map((j) => j.kind)])));
   check("old-pairs-stay-in-ledger", instance.evidence.outcome(`field-mapping|ct-parcels|Parcel_ID|${PARCEL}|pin`, "right").status === "promoted");
 
+  // --- place profile ---------------------------------------------------------------------------
+  const prof = S.placeProfile({ latitude: 41.31, longitude: -72.92, jurisdiction: "US-CT/new-haven" });
+  const parcelLayer = prof.layers.find((l) => l.slug === "ct-parcels");
+  check("place-profile-lists-covering-layers", !!parcelLayer && prof.layers.some((l) => l.slug === zones.slug) && !prof.layers.some((l) => l.slug === station.slug),
+    prof.layers.map((l) => l.slug).join(","));
+  check("place-profile-query-is-point-intersect", !!parcelLayer?.query && parcelLayer.query.includes("geometry=-72.92%2C41.31") && parcelLayer.query.includes("returnGeometry=false") &&
+    /outFields=[^&*]+/.test(parcelLayer.query), parcelLayer?.query ?? "");
+  check("place-profile-says-what-fields-mean", Object.values(parcelLayer?.fields ?? {}).some((m) => m.includes("Tax Parcel")));
+  check("place-profile-local-first", prof.layers[0].coverage === "exact");
+  check("place-profile-rejects-bad-point", (await rejects(() => S.placeProfile({ latitude: 668642, longitude: 947648, jurisdiction: "US-CT" }))) !== null);
+
   // --- the markdown page ---------------------------------------------------------------------
   const page = renderSourcePage(S.resolve("ct-parcels")!, "schemalattice.test");
   check("page-has-endpoint", page.includes("/FeatureServer/0/query?where=1%3D1"));

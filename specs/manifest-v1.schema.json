@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemalattice.com/schema/manifest-v1.json",
+  "title": "SchemaLattice project manifest (schemalattice.json), version 1",
+  "description": "Which catalog concepts a project uses and how. See https://schemalattice.com/specs/annotation-standard.md.",
+  "type": "object",
+  "required": ["concepts"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "lattice": { "type": "string", "format": "uri", "description": "Base URL of the catalog the URIs resolve against" },
+    "project": {
+      "type": "object",
+      "properties": { "name": { "type": "string" }, "description": { "type": "string" } }
+    },
+    "concepts": {
+      "description": "Local short name → how the project uses a concept. The registry's array form ([{ shortName, uri, status }]) is accepted by the mesh report too.",
+      "oneOf": [
+        { "type": "object", "additionalProperties": { "$ref": "#/$defs/conceptUse" } },
+        { "type": "array", "items": { "allOf": [{ "$ref": "#/$defs/conceptUse" }, { "required": ["shortName"] }] } }
+      ]
+    },
+    "fieldMaps": {
+      "type": "object",
+      "description": "Local map name → one crossing from a source (spreadsheet, API, local model) to a target (usually a backend payload).",
+      "additionalProperties": { "$ref": "#/$defs/fieldMap" }
+    },
+    "generatedBy": { "type": "string" },
+    "generatedAt": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "conceptUse": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "shortName": { "type": "string" },
+        "uri": { "type": "string", "description": "Content-addressed concept URI; absent for an unpublished fork or originated type" },
+        "status": { "enum": ["adopted", "forked", "originated"] },
+        "forkedFrom": { "type": "string", "description": "Required when status is forked" },
+        "coRefersWith": { "type": "array", "items": { "type": "string" } },
+        "localLocation": { "type": "string" },
+        "notes": { "type": "string" },
+        "inspiredBySources": { "type": "array", "items": { "oneOf": [{ "type": "string" }, { "type": "object", "properties": { "url": { "type": "string" }, "note": { "type": "string" } } }] } },
+        "broader": { "type": "string", "description": "For an unpublished originated type: the root concept it is a kind of" },
+        "definition": { "type": "string", "description": "For an unpublished type: one sentence on what one record is" },
+        "fields": { "type": "array", "items": { "$ref": "#/$defs/structureField" } }
+      },
+      "allOf": [{ "if": { "properties": { "status": { "const": "forked" } } }, "then": { "required": ["forkedFrom"] } }]
+    },
+    "structureField": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "required": { "type": "boolean" },
+        "values": { "type": "array", "items": { "type": "string" } },
+        "unit": { "type": "string" },
+        "classification": { "type": "string", "description": "A governance data class: public, internal, confidential, personal-contact, personal-location, personal-identity, personal-financial, personal-health, personal-minor, access-secret" }
+      }
+    },
+    "endpoint": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "description": "spreadsheet, file-export, app-api, backend-payload, local-model, …" },
+        "description": { "type": "string" },
+        "schema": { "type": "string" },
+        "format": { "type": "string" },
+        "version": { "type": ["string", "number"] },
+        "path": { "type": "string" },
+        "concept": { "type": ["string", "null"], "description": "Concept URI or a local short name from concepts" },
+        "source": { "type": "string", "description": "Optional: the catalog source slug this endpoint is (e.g. new-haven-open311-post); lets tools read wire names through that source's mappings" }
+      }
+    },
+    "fieldMap": {
+      "type": "object",
+      "required": ["fields"],
+      "properties": {
+        "source": { "$ref": "#/$defs/endpoint" },
+        "target": { "$ref": "#/$defs/endpoint" },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["target"],
+            "properties": {
+              "target": { "type": "string" },
+              "from": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }] },
+              "constant": {},
+              "conversion": { "type": "string" },
+              "unit": { "type": "object", "properties": { "from": { "type": "string" }, "to": { "type": "string" } } },
+              "uncertainty": { "type": "string" },
+              "concept": { "type": "string" },
+              "notes": { "type": "string" }
+            }
+          }
+        },
+        "omitted": { "type": "array", "items": { "type": "object", "required": ["from"], "properties": { "from": { "type": "string" }, "reason": { "type": "string" } } } },
+        "validatedAgainst": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

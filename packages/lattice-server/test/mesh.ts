@@ -167,6 +167,19 @@ async function main() {
   const latRow = !isToolError(sens) && sens.pairs.find((p: any) => p.grade === "direct")?.fields?.find((f: any) => f.conceptField === "latitude");
   check("source-sensitivity-reaches-mesh", latRow?.personal === "personal-location" && sens.challenges.some((c: string) => /Personal data would cross/.test(c)), JSON.stringify(latRow));
 
+  // Wire names in a field map are read through the target source's own mappings.
+  const wired = await call("lattice_mesh_report", {
+    a: { manifest: { project: { name: "spots" }, concepts: { Spot: { uri: SPOT, status: "adopted" } },
+      fieldMaps: { out: { target: { concept: "Spot" }, fields: [{ target: "lat", from: "y" }, { target: "lng", from: "x" }] } } } },
+    b: "source:test-sightings",
+  });
+  const wiredRows = !isToolError(wired) && wired.pairs.find((p: any) => p.grade === "direct")?.fields;
+  check("wire-names-read-through-source", !isToolError(wired) && wired.notes.some((n: string) => /2 wire field\(s\) read through test-sightings/.test(n)) &&
+    wiredRows.some((f: any) => f.conceptField === "latitude" && f.status === "direct") && !wiredRows.some((f: any) => f.conceptField === "flaggedAt" && f.status === "direct"),
+    isToolError(wired) ? wired.error.message : JSON.stringify(wired.notes));
+  const nearest = !isToolError(sens) && sens.spatial.find((x: any) => x.method === "nearest");
+  check("points-to-points-is-nearest", !!nearest && /nearest/.test(nearest.how), JSON.stringify(!isToolError(sens) && sens.spatial));
+
   const bad = await call("lattice_mesh_report", { a: "app:nope", b: "app:club-b" });
   check("unknown-app-refused", isToolError(bad) && bad.error.code === "invalid-parameter");
   const badShape = await call("lattice_mesh_report", { a: "club-a", b: "app:club-b" });

@@ -24,6 +24,8 @@ export interface GovernanceNode {
   /** Provenance classes only: how much the capture itself proves (0 = nothing). */
   assuranceRank?: number;
   structure?: unknown;
+  /** The node this one replaces: its URI becomes this record's previousVersion. */
+  previous?: GovernanceNode;
 }
 
 export const GOVERNANCE_CONTEXT_SLUG = "governance";
@@ -219,7 +221,7 @@ export const ATTESTATION_NODE: GovernanceNode = {
 // street observation forwarded to the city's 311, a survey answer shared with
 // a partner group. Vocabulary only, like the classes: whether consent is
 // required, and what counts as consent, is the adopting party's decision.
-export const FORWARDING_CONSENT_NODE: GovernanceNode = {
+const FORWARDING_CONSENT_V1: GovernanceNode = {
   slug: "forwarding-consent",
   prefLabel: "Forwarding Consent",
   definition:
@@ -240,6 +242,23 @@ export const FORWARDING_CONSENT_NODE: GovernanceNode = {
       { name: "withdrawnAt", type: "dateTime" },
     ],
   },
+};
+
+// v2 (2026-10-29), from the Garden BioBlitz case study: a school group's
+// records are consented to by a parent or guardian, not the student.
+export const FORWARDING_CONSENT_NODE: GovernanceNode = {
+  ...FORWARDING_CONSENT_V1,
+  definition:
+    "A person's agreement that a record they made may be sent to a named recipient, with which fields are included, who gave the agreement (the person, or a parent or guardian for a minor), when and how, and whether it has since been withdrawn.",
+  structure: {
+    kind: "entity",
+    fields: [
+      ...(FORWARDING_CONSENT_V1.structure as { fields: unknown[] }).fields,
+      { name: "grantedBy", type: "enum", values: ["self", "parent-or-guardian", "organization"], required: true },
+      { name: "subjectIsMinor", type: "boolean" },
+    ],
+  },
+  previous: FORWARDING_CONSENT_V1,
 };
 
 export const GOVERNANCE_NODES: GovernanceNode[] = [
