@@ -1371,8 +1371,8 @@ export function fieldJoinKind(path: string, field: ConceptField | undefined, ref
   const name = path.split(".").pop() ?? path;
   const idName =
     type === "reference" ||
-    /^(id|pin|uid|key|geoid|fips)$/i.test(name) ||
-    /(Id|ID|Number|Pin|Key|Geoid|GEOID|BlockLot)$/.test(name) ||
+    /^(id|identifier|pin|uid|key|geoid|fips)$/i.test(name) ||
+    /(Id|ID|Identifier|Number|Pin|Key|Geoid|GEOID|BlockLot)$/.test(name) ||
     /_(id|number|pin|key)$/i.test(name);
   if (idName) return "key";
   if (!referenced) return null;
