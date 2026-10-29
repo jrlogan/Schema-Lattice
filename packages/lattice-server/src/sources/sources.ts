@@ -332,6 +332,13 @@ export class Sources {
     ]) {
       if (!columns.has(name)) this.db.exec(`ALTER TABLE sources ADD COLUMN ${name} ${decl}`);
     }
+    // Access keys made before fragments counted (2026-10-29) are recomputed.
+    for (const u of this.db.prepare("SELECT slug, access_url, access_key FROM sources WHERE access_url LIKE '%#%'").all() as Array<{ slug: string; access_url: string; access_key: string }>) {
+      const key = normalizeAccessUrl(new URL(u.access_url));
+      if (key !== u.access_key && !this.db.prepare("SELECT 1 FROM sources WHERE access_key = ?").get(key)) {
+        this.db.prepare("UPDATE sources SET access_key = ? WHERE slug = ?").run(key, u.slug);
+      }
+    }
     // Sources added before point locations were recognised from lat/lng fields.
     const unplaced = this.db.prepare("SELECT slug, fields FROM sources WHERE geometry IS NULL").all() as Array<{ slug: string; fields: string }>;
     const place = this.db.prepare("UPDATE sources SET geometry = ? WHERE slug = ?");
@@ -389,7 +396,17 @@ export class Sources {
       throw new SourceRejected(`"${existing.slug}" was withdrawn by the operator: ${existing.withdrawn_reason}`);
     }
     if (existing && input.slug && existing.slug !== input.slug && existing.access_key === accessKey) {
-      // Same dataset under another name: count toward the existing entry.
+      // Same URL under another name. From a stranger it corroborates the
+      // existing entry. From someone who may edit it (a curator, the
+      // proposer) it is refused: they asked for a new source, and merging
+      // would overwrite a different one's description and fields.
+      if (curator || existing.proposed_by === source) {
+        throw new SourceRejected(
+          `${accessUrl} is already the source "${existing.slug}". To edit it, pass slug "${existing.slug}"; ` +
+            "for a different source, give its own URL (a #fragment naming a section counts).",
+          { slug: existing.slug },
+        );
+      }
       input = { ...input, slug: existing.slug };
     }
     if (existing && existing.access_key !== accessKey) {
@@ -1737,7 +1754,10 @@ function normalizeAccessUrl(url: URL): string {
   const base = `${url.hostname.toLowerCase()}${path.toLowerCase()}`;
   if (platformOf(url.href)) return base;
   const params = [...url.searchParams].sort(([a], [b]) => a.localeCompare(b));
-  return params.length ? `${base}?${new URLSearchParams(params).toString()}` : base;
+  // A fragment names a section of a page, and one page can document several
+  // specifications (Open311's GET and POST requests).
+  const hash = url.hash && url.hash !== "#" ? url.hash.toLowerCase() : "";
+  return `${params.length ? `${base}?${new URLSearchParams(params).toString()}` : base}${hash}`;
 }
 
 /**
