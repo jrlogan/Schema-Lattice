@@ -16,7 +16,22 @@ curl -o tools/lattice/schemalattice.mjs https://schemalattice.com/cli/schemalatt
 | `check` | fails if any of those files is stale — put it in CI | no |
 | `publish` | pushes records the catalog does not hold yet; fails if the catalog would mint a different URI than the committed one | yes, needs `SCHEMALATTICE_KEY` |
 | `status` | which committed URIs are live | yes |
+| `discover "<the record>"`, `resolve <uri>`, `propose <session> <uri> right\|wrong [reason]`, `contexts [uri]` | the search loop as commands, compact output (`--json` for raw). No config needed; `discover` is ephemeral unless `--record` | yes |
 | `similar "<description>"` | before adding a type: the platform's own schemas nearest the description, then other apps' concepts in the catalog. Advisory, never a gate | yes (see below) |
+
+## As a skill instead of MCP
+
+Every MCP tool a session lists costs context for the whole session. The lightest setup is a
+skill, which costs about 70 tokens until it is used. It is a short SKILL.md that drives this
+file's lookup commands:
+
+```bash
+mkdir -p ~/.claude/skills/schemalattice && cd ~/.claude/skills/schemalattice
+curl -sO https://schemalattice.com/skill/SKILL.md && curl -sO https://schemalattice.com/cli/schemalattice.mjs
+```
+
+If you'd rather use MCP, `/mcp` lists five search tools by default; see the server README for
+`?profile=`.
 
 ## `similar`: has this platform already modelled it?
 

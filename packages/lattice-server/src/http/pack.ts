@@ -270,7 +270,7 @@ ${body}${nearby}${anchors}
 - Search by description: ${base}/pack?q=a+short+description+of+the+records
 - One concept as JSON: open its URI
 - When your app works, send the types you designed back. Have the builder print schemalattice.json and paste it here (only names, root kinds, definitions and fields are sent; nothing is published until independent builders agree): ${base}/contribute${opts.query ? `?from=${encodeURIComponent(opts.query)}` : ""}
-- For coding assistants that support MCP (Claude Code, Cursor): connect ${base}/mcp and follow ${base}/skill${recording}
+- For coding assistants that support MCP (Claude Code, Cursor): connect ${base}/mcp and follow ${base}/skill${recording}. Lighter, without MCP: the skill at ${base}/skill/SKILL.md
 `;
 }
 

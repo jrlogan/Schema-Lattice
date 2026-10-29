@@ -7,7 +7,8 @@
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { LatticeInstance } from "../server/instance.ts";
-import { createMcpServer } from "../mcp/server.ts";
+import { createMcpServer, toolsFor } from "../mcp/server.ts";
+import { OPERATOR } from "../server/principals.ts";
 import { loadConfig } from "../server/config.ts";
 
 async function main(): Promise<void> {
@@ -30,7 +31,9 @@ async function main(): Promise<void> {
   // Restore the real stdout writer for the transport only.
   process.stdout.write = stdoutWrite;
 
-  const server = createMcpServer(instance);
+  // The local operator sees every tool unless LATTICE_MCP_PROFILE / LATTICE_MCP_TOOLS narrow it.
+  const listed = toolsFor(process.env.LATTICE_MCP_PROFILE, process.env.LATTICE_MCP_TOOLS, OPERATOR);
+  const server = createMcpServer(instance, OPERATOR, {}, listed);
   const transport = new StdioServerTransport();
   await server.connect(transport);
 

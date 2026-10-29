@@ -155,6 +155,14 @@ async function main() {
     skillRes.status === 200 && skillText.includes("# SchemaLattice workflow skill"),
     `status=${skillRes.status}, ${skillText.length} bytes`,
   );
+  const packaged = await fetch(base + "/skill/SKILL.md").then(async (r) => ({ status: r.status, text: await r.text() }));
+  const clientReadme = await fetch(base + "/cli/README.md");
+  check(
+    "skill-package-served",
+    packaged.status === 200 && packaged.text.startsWith("---\nname: schemalattice\n") && packaged.text.length < 6000 &&
+      clientReadme.status === 200,
+    `SKILL.md ${packaged.status}, ${packaged.text.length} bytes; client README ${clientReadme.status}`,
+  );
   const builderRes = await fetch(base + "/skill/builder");
   const builderText = await builderRes.text();
   check(
@@ -592,6 +600,41 @@ async function main() {
   const statuses = burst.map((b) => b.status);
   check("embed-burst-served-or-turned-away", statuses.filter((x) => x === 200).length >= 4 && statuses.every((x) => x === 200 || x === 503),
     statuses.join(","));
+
+  // --- MCP tool profiles: what a session lists, not what it may call ----
+  const mcpList = async (query: string, key?: string) => {
+    const r = await fetch(`${base}/mcp${query}`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json, text/event-stream",
+        ...(key ? { authorization: `Bearer ${key}` } : {}),
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 9, method: "tools/list", params: {} }),
+    });
+    const text = await r.text();
+    // An SSE frame: the payload is the line starting "data: " (descriptions may contain "data:" too).
+    const frame = text.split("\n").find((l) => l.startsWith("data: "));
+    const json = JSON.parse(frame ? frame.slice(6) : text);
+    return (json.result.tools as Array<{ name: string }>).map((t) => t.name);
+  };
+  const anonTools = await mcpList("");
+  check("mcp-anonymous-lists-build-profile", anonTools.length === 5 && anonTools.includes("lattice_discover") &&
+    !anonTools.includes("lattice_publish_concept"), anonTools.join(","));
+  const combined = await mcpList("?profile=build,sources&tools=mesh_report");
+  check("mcp-profiles-combine", combined.includes("lattice_find_sources") && combined.includes("lattice_mesh_report") &&
+    !combined.includes("lattice_publish_concept"), `${combined.length} tools`);
+  const keyed = await mcpList("", lowKey);
+  check("mcp-key-holder-lists-publish-profile", keyed.includes("lattice_publish_concept") && keyed.includes("lattice_register_app") &&
+    !keyed.includes("lattice_set_app_tier"), `${keyed.length} tools`);
+  const operatorTools = await mcpList("", API_KEY);
+  check("mcp-operator-lists-everything", operatorTools.length === (await get("/api/tools")).body.tools.length, `${operatorTools.length} tools`);
+  const unlisted = await fetch(`${base}/mcp`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 10, method: "tools/call", params: { name: "lattice_stats", arguments: {} } }),
+  }).then((r) => r.text());
+  check("mcp-unlisted-tool-still-callable", unlisted.includes("concepts") && !unlisted.includes("unknown tool"), unlisted.slice(0, 80));
 
   const writeEvents = instance.store.db
     .prepare("SELECT actor, COUNT(*) AS n FROM events WHERE kind = 'publish_context' GROUP BY actor")
