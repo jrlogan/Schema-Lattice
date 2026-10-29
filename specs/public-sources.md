@@ -251,6 +251,15 @@ they follow corroboration and retraction automatically.
   Numbers, dates and flags never join: two sales at the same price are
   not the same sale.
 
+  An `attribute` join also needs one side's rows to point at the other's
+  (role `reference`). Two sources whose rows are both records of a concept,
+  sharing only a name, are two lists, not a join: wards and neighborhoods
+  are both City Districts and never share a name.
+- **Versions:** joins treat every version of a concept as one, so a source
+  mapped onto the new version still joins one that hasn't moved. Once a
+  source is mapped onto a newer version, its pairs onto the older one stop
+  showing. They stay in the ledger, for anyone still using the old URI.
+
   Two fields that make up one key together (`town` + `address`) are
   reported as one composite join.
 - **Standards** are conformed to, not joined against. A standard's page
@@ -264,7 +273,10 @@ they follow corroboration and retraction automatically.
   the same nesting level) or a GeoJSON point (`point.coordinates`).
   Most civic APIs (SeeClickFix, Open311, GBFS, CSV exports) carry
   location as two numbers. Without this they would relate to no map
-  layer at all. `resolve` names the fields as `locationFields`.
+  layer at all. `resolve` names the fields as `locationFields`, with a
+  reminder to check they hold degrees. For ArcGIS layers the layer's own
+  geometry is used instead: their lat/long columns can be in another
+  coordinate system (New Haven's LCI lots store State Plane feet in `lat`).
 - **Point in polygon:** a point layer against a polygon layer in the same
   area is a `spatial` join with `method: "point-in-polygon"`. It is listed
   as a related source, not an overlay, because "which ward is this report
@@ -294,6 +306,9 @@ do on match claims.
 ## Builder packs
 
 `GET /sources` lists sources by jurisdiction as markdown, and `GET
+/sources?jurisdiction=US-CT/new-haven` lists every source that covers a
+place, its own first, then broader ones. Only a search (`q=`) is cut to
+its best matches, and `GET
 /sources/{slug}` is a paste-ready page for one dataset: what a record
 is, what can be relied on, the endpoint and an example query, every
 field with the concept field it carries, and the join keys to related

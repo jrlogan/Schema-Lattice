@@ -392,8 +392,13 @@ async function handle(
     if (path === "/sources" || path === "/sources/") {
       const q = url.searchParams.get("q")?.trim() ?? "";
       const jurisdiction = url.searchParams.get("jurisdiction")?.trim() ?? "";
-      if (!q && !jurisdiction) {
-        sendText(res, 200, renderSourcesIndex(instance, host), markdown, "public, max-age=300");
+      // No search words: the complete list (for a place, every source covering it), never a top-25 cut.
+      if (!q) {
+        if (jurisdiction && !/^(global|[A-Z]{2}(-[A-Z0-9]{1,3})?(\/[a-z0-9][a-z0-9-]{0,39})?)$/.test(jurisdiction)) {
+          sendText(res, 400, "# Search refused\n\n\"jurisdiction\" must look like US, US-CT or US-CT/new-haven\n", markdown);
+          return;
+        }
+        sendText(res, 200, renderSourcesIndex(instance, host, undefined, jurisdiction || undefined), markdown, "public, max-age=300");
         return;
       }
       const found = await callTool(instance, "lattice_find_sources", {
