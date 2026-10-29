@@ -40,6 +40,8 @@ interface Entry {
   fields: Set<string> | null;
   /** Set when the side's concept is an unpublished fork: compared through its parent, as a lineage match at best. */
   forkOf?: string;
+  /** Concept fields this side holds as sensitive, beyond the concept's own classification (a source's stated classes). */
+  sensitive?: Map<string, string>;
 }
 
 /** What a side's records can be placed by on a map: points, or areas they cover. */
@@ -172,7 +174,10 @@ export function meshReport(instance: LatticeInstance, aSide: MeshSide, bSide: Me
         const aUses = an !== undefined && (x.fields ? x.fields.has(an) : true);
         const bUses = bn !== undefined && (y.fields ? y.fields.has(bn) : true);
         if (!aUses && !bUses) continue;
-        const personal = [row.a?.classification, row.b?.classification].find((c) => c && (c.startsWith("personal") || c === "access-secret"));
+        const personal = [
+          row.a?.classification, row.b?.classification,
+          an ? x.sensitive?.get(an) : undefined, bn ? y.sensitive?.get(bn) : undefined,
+        ].find((c) => c && (c.startsWith("personal") || c === "access-secret"));
         const base = { ...(an ? { a: an } : {}), ...(bn ? { b: bn } : {}), conceptField: bn ?? an ?? "", ...(personal ? { personal } : {}) };
         if (aUses && bUses) {
           const why = row.change === "renamed" ? `renamed ${an} → ${bn}` : row.differences.length ? `differs in ${row.differences.join(", ")}` : undefined;
@@ -286,7 +291,7 @@ function resolveSide(instance: LatticeInstance, side: MeshSide): ResolvedSide {
     const ctx = r ? instance.store.getContext(r.inScheme as string) : null;
     return { label: r ? (r.prefLabel.en ?? Object.values(r.prefLabel)[0] ?? uri) : uri, context: ctx ? (ctx.prefLabel as Record<string, string>).en ?? "" : "" };
   };
-  const merge = (items: Array<{ local: string; uri: string; fields: string[] | null; forkOf?: boolean }>): Entry[] => {
+  const merge = (items: Array<{ local: string; uri: string; fields: string[] | null; forkOf?: boolean; sensitive?: Map<string, string> }>): Entry[] => {
     const by = new Map<string, Entry>();
     for (const it of items) {
       const uri = latest(it.uri);
@@ -294,6 +299,7 @@ function resolveSide(instance: LatticeInstance, side: MeshSide): ResolvedSide {
       const e = by.get(key) ?? { locals: [], uri, ...describe(uri), fields: null as Set<string> | null, ...(it.forkOf ? { forkOf: uri } : {}) };
       if (it.local && !e.locals.includes(it.local)) e.locals.push(it.local);
       if (it.fields) e.fields = new Set([...(e.fields ?? []), ...it.fields]);
+      if (it.sensitive?.size) e.sensitive = new Map([...(e.sensitive ?? []), ...it.sensitive]);
       by.set(key, e);
     }
     return [...by.values()];
@@ -309,10 +315,18 @@ function resolveSide(instance: LatticeInstance, side: MeshSide): ResolvedSide {
   if ("source" in side) {
     const src = instance.sources.resolve(side.source);
     if (!src) throw new MeshError(`no public source "${side.source}"`);
-    const items: Array<{ local: string; uri: string; fields: string[] | null }> = [];
+    const items: Array<{ local: string; uri: string; fields: string[] | null; sensitive?: Map<string, string> }> = [];
     for (const c of src.carries) {
       const fields = src.fields.flatMap((f) => ("means" in f && f.means ? f.means.filter((m) => m.conceptUri === c.conceptUri).map((m) => m.field) : []));
-      items.push({ local: c.role, uri: c.conceptUri, fields });
+      // A source can hold a concept field more sensitively than the concept
+      // says: iNaturalist coordinates are where a person stood.
+      const sensitive = new Map<string, string>();
+      for (const f of src.fields) {
+        const cls = "classification" in f ? (f.classification as string | undefined) : undefined;
+        if (!cls || !("means" in f) || !f.means) continue;
+        for (const m of f.means) if (m.conceptUri === c.conceptUri) sensitive.set(m.field, cls);
+      }
+      items.push({ local: c.role, uri: c.conceptUri, fields, sensitive });
     }
     const shape = src.geometry ? (/point/i.test(src.geometry) || src.geometry === "location" ? "point" : /line/i.test(src.geometry) ? null : "area") : null;
     const placement: Placement | null = shape

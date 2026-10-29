@@ -1227,6 +1227,10 @@ export const TOOLS: ToolDef[] = [
               from: { type: "string", description: "The source's field name, exactly" },
               to: { type: "string", description: "The concept's field name (dot path for nested fields)" },
               conversion: { type: "string", description: "Units, formats, code tables; up to 200 characters" },
+              scheme: {
+                type: "string",
+                description: "For identifier fields: which numbering system the values come from (gbif-backbone, inaturalist-taxon, census-geoid-2020, ct-town-code). Sources join on the field only when their schemes match",
+              },
               verdict: { type: "string", enum: ["right", "wrong"], description: "Default right" },
             },
             required: ["from", "to"],
@@ -1329,7 +1333,8 @@ export const TOOLS: ToolDef[] = [
         fieldsB: { ...stringArray, description: "For method fields: b's fields compared, in the same order" },
         tried: { type: "integer", description: "Records of a you tried to match" },
         matched: { type: "integer", description: "How many found a match in b" },
-        note: { type: "string", description: "Optional: normalisation you needed, up to 300 characters" },
+        transform: { type: "string", description: "If values only matched after changing them, how (strip the URL prefix, pad to 9 digits); up to 200 characters" },
+        note: { type: "string", description: "Optional: anything else the next builder should know, up to 300 characters" },
       },
       required: ["a", "b", "tried", "matched"],
     },
@@ -1339,6 +1344,7 @@ export const TOOLS: ToolDef[] = [
           {
             a: requireString(args, "a"), b: requireString(args, "b"), method: optionalString(args, "method"),
             fieldsA: args.fieldsA, fieldsB: args.fieldsB, tried: args.tried, matched: args.matched, note: optionalString(args, "note"),
+            transform: optionalString(args, "transform"),
           },
           instance.evidence.sourceOf(principal, ctx.clientAddress),
           new Date(),

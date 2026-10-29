@@ -69,6 +69,8 @@ export interface JoinReportInput {
   fieldsB?: unknown;
   tried: unknown;
   matched: unknown;
+  /** How values had to change before they matched; a raw comparison would not. */
+  transform?: string;
   note?: string;
 }
 
@@ -97,6 +99,8 @@ export interface JoinEvidence {
   /** Median of the reported match rates, 0..1. */
   matchRate: number;
   tried: number;
+  /** Transformations builders needed, most recent first. */
+  transforms: string[];
 }
 
 export class SourceFindings {
@@ -243,11 +247,12 @@ export class SourceFindings {
     const matched = count(input.matched, "matched", 0);
     if (matched > tried) throw new FindingRejected('"matched" cannot exceed "tried"');
     if (input.note && input.note.length > FINDINGS_CONFIG.textMax) throw new FindingRejected(`note must be ${FINDINGS_CONFIG.textMax} characters or fewer`);
+    const transform = text(input.transform, "transform", 200);
     // One key per join whichever way round it was reported.
     if (b < a) [a, b, fieldsA, fieldsB] = [b, a, fieldsB, fieldsA];
     const claimKey = joinKey(a, b, method, fieldsA, fieldsB);
     const rate = matched / tried;
-    const claim: JoinClaim = { a, b, method, fieldsA, fieldsB, tried, matched, ...(input.note ? { note: input.note } : {}) };
+    const claim: JoinClaim = { a, b, method, fieldsA, fieldsB, tried, matched, ...(transform ? { transform } : {}), ...(input.note ? { note: input.note } : {}) };
     const [outcome] = this.claim(() =>
       this.evidence.proposeClaims("join-report", [{
         claimKey, subject: `${a}|${b}`, direction: rate >= FINDINGS_CONFIG.worksAt ? "right" : "wrong", claim: claim as unknown as Record<string, unknown>,
@@ -277,6 +282,7 @@ export class SourceFindings {
       reports: claims.length,
       matchRate: Number(rates[Math.floor(rates.length / 2)].toFixed(3)),
       tried: claims.reduce((s, x) => s + (x.claim.tried as number), 0),
+      transforms: [...new Set(claims.map((x) => x.claim.transform).filter((t): t is string => typeof t === "string"))],
     };
   }
 
@@ -332,6 +338,7 @@ interface JoinClaim {
   fieldsB: string[];
   tried: number;
   matched: number;
+  transform?: string;
   note?: string;
 }
 

@@ -200,6 +200,43 @@ needs a guard against the case where the two things are different.
 - **Fragments now count** when matching non-platform URLs.
 - **A curator who names a different slug for an existing URL is refused,** not merged (PR #15).
 
+## Re-run with fresh agents (2026-10-29)
+
+Ward Watch and Street Audit were built again from scratch by new agents.
+They had the same rules, plus permission to send anonymous notes and join
+reports.
+
+- **Ward Watch** took about 4 minutes, against 9 the first time.
+  - Most valuable: the SeeClickFix query note ("a plain request returns
+    only open and acknowledged issues"). The agent checked it (8,375 vs
+    156,352) and said every time-to-close figure would otherwise have been
+    silently wrong.
+  - Also confirmed: the field profile's one-row-per-unit warning and the
+    roster notes.
+  - Sent: 1 join report (issues ↔ wards point in polygon, 300 of 300) and
+    2 access notes (per_page below 10 returns an HTML 403; the bounding-box
+    and date filters).
+- **Street Audit** called the submit endpoint and the service definitions
+  "the best part".
+  - They caught the Street Lamp pole-number requirement before a failed
+    submission.
+  - Spatial connections appeared in the mesh report.
+  - Sent: 5 notes (street trees `Species` and `SiteID` always empty; tree
+    placeholder rows; a parcel right-of-way caveat; service-definition
+    attributes) and 3 join reports.
+
+All contributions arrived quarantined (pending), as designed. Next lessons:
+
+| Finding | Done |
+|---|---|
+| Area pages repeated 17–25 identical point-in-polygon sections | collapsed into one list (PR #17) |
+| The forwarding-consent link 404'd; discover hides governance unless asked | linked by URI (PR #17) |
+| Darwin Core coordinates (GBIF) weren't a point location | fixed (PR #17) |
+| Query notes don't list server-side filters (SeeClickFix bounding box, `after`) | builders' notes now carry them; a `filters` note is worth curating |
+| The mesh ignores a field map whose wire names the submit source already maps | open |
+| There is no `nearest` join from an app's records to a source (trees), and no right-of-way rule for parcels | open |
+| Concept and source sensitivity disagree (Issue Report `photo` public, `reporter` internal) | open: needs a concept version |
+
 The common thread: the catalog's value for civic work comes from what
 people learn by using the data, more than from describing schemas. The
 system now records what the operator checks. Next it needs to record what
