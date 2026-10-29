@@ -20,6 +20,7 @@ async function main() {
   const instance = await LatticeInstance.create({ dataDir: join(tmp, "data") });
   const handle = await startHttpServer(instance, { dataDir: join(tmp, "data"), host: "127.0.0.1", port: 0, apiKey: null });
   process.env.SCHEMALATTICE_URL = `http://127.0.0.1:${handle.port}`;
+  process.env.XDG_CACHE_HOME = join(tmp, "cache");
 
   const app = join(tmp, "app");
   const field = (name: string) => ({ name, type: "string" });

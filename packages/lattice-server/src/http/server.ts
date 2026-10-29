@@ -33,9 +33,19 @@ import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const MAX_BODY_BYTES = 1_000_000;
-/** POST /api/embed batch limits: one request is at most a few seconds of the embedder. */
-const MAX_EMBED_TEXTS = 64;
-const MAX_EMBED_CHARS = 2000;
+/**
+ * POST /api/embed limits. The model pads a batch to its longest text and attention grows with
+ * the square of that length, so batch size × text length is what fills memory: 64 texts of 2000
+ * characters swapped the 1 GB production box into a five-minute stall on 2026-10-29. Measured
+ * over Boating's 339 schemas, peak memory above baseline: 64×2000 +947 MB, 16×600 +125 MB,
+ * 8×600 +62 MB. So: small batches of short texts, one batch at a time, and a short queue that
+ * turns callers away.
+ */
+const MAX_EMBED_TEXTS = 8;
+const MAX_EMBED_CHARS = 600;
+const MAX_EMBED_WAITING = 4;
+let embedChain: Promise<unknown> = Promise.resolve();
+let embedWaiting = 0;
 
 /**
  * Tools anyone may call that record a claim, or make the server fetch from a
@@ -305,7 +315,7 @@ async function handle(
         listContext: "GET /s/{context}@{hash}/concepts",
         listContexts: "POST /api/tools/lattice_list_context with {} — every context",
         discover: "GET /discover?description=...&limit=10&context=<slug>&ephemeral=true",
-        embed: "POST /api/embed with {texts: [...]} (≤64) — vectors from the catalog's model, nothing stored; used by the client's `similar` command",
+        embed: "POST /api/embed with {texts: [...]} (≤8, ≤600 chars) — vectors from the catalog's model, nothing stored; used by the client's `similar` command",
         tools: "GET /api/tools",
         callTool: "POST /api/tools/{name}",
         mcp: "POST /mcp",
@@ -593,7 +603,20 @@ async function handle(
       });
       return;
     }
-    const vectors = await instance.embedder.embed(texts as string[]);
+    if (embedWaiting >= MAX_EMBED_WAITING) {
+      res.writeHead(503, { "content-type": "application/json; charset=utf-8", "retry-after": "5", "access-control-allow-origin": "*" });
+      res.end(JSON.stringify({ error: { code: "rate-limited", message: "embedder busy — retry in 5s", details: { retryAfterSeconds: 5 } } }));
+      return;
+    }
+    embedWaiting++;
+    const job = embedChain.then(() => instance.embedder.embed(texts as string[]));
+    embedChain = job.catch(() => {});
+    let vectors: Float32Array[];
+    try {
+      vectors = await job;
+    } finally {
+      embedWaiting--;
+    }
     send(res, 200, {
       model: instance.embedder.id,
       vectors: vectors.map((v) => Array.from(v, (x) => Math.round(x * 1e5) / 1e5)),

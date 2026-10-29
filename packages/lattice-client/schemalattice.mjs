@@ -32,6 +32,7 @@ import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { homedir } from 'node:os';
 
 export const CLIENT_VERSION = '0.1.0';
 const AUTHORITY = 'https://schemalattice.com';
@@ -505,8 +506,9 @@ function annotations(config, baseDir, result) {
 export const SIMILAR_LOOK = 0.7;
 /** Catalog results below this are noise for this purpose (discover's fork band starts here). */
 const SIMILAR_CATALOG_MIN = 0.65;
-const EMBED_BATCH = 64;
-const EMBED_MAX_CHARS = 2000;
+/** The server's /api/embed limits: small batches of short texts keep its 1 GB box out of swap. */
+const EMBED_BATCH = 8;
+const EMBED_MAX_CHARS = 600;
 
 const humanize = (name) => name.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
 
@@ -550,37 +552,60 @@ export function similarText(item) {
   return text.slice(0, EMBED_MAX_CHARS);
 }
 
+/** Vectors cached per lattice, shared by every checkout and worktree on this machine. */
+function vectorCachePath(base) {
+  const root = process.env.XDG_CACHE_HOME || resolve(homedir(), '.cache');
+  return resolve(root, 'schemalattice', `vectors-${createHash('sha256').update(base).digest('hex').slice(0, 12)}.json`);
+}
+
+const CACHE_KEEP_MS = 60 * 24 * 3600 * 1000;
+
+async function postEmbed(base, texts) {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(`${base}/api/embed`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ texts }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if ((res.status === 429 || res.status === 503) && attempt < 5) {
+      await new Promise((done) => setTimeout(done, 1000 * Number(res.headers.get('retry-after') ?? 5)));
+      continue;
+    }
+    if (!res.ok) throw new Error(`${base}/api/embed: ${body.error?.message ?? res.status}`);
+    return body;
+  }
+}
+
 /**
  * Vectors from the catalog's own model (POST /api/embed: stateless, nothing stored), cached on
- * disk by text so a repeat run sends only the query and whatever changed.
+ * disk by text so a repeat run sends only the query and whatever changed. The first run sends
+ * every schema in small batches, one after another, so it is slow against a small server.
  */
-async function embedAll(base, texts, cachePath) {
+async function embedAll(base, texts, cachePath = vectorCachePath(base)) {
   const keyOf = (t) => createHash('sha256').update(t).digest('hex').slice(0, 32);
   const cache = readJson(cachePath) ?? {};
   let model = cache.model;
   let vectors = cache.vectors ?? {};
   const unique = [...new Set(texts)];
   let missing = unique.filter((t) => !vectors[keyOf(t)]);
+  if (missing.length > EMBED_BATCH) console.error(`schemalattice: embedding ${missing.length} schemas once (cached afterwards)…`);
   for (let i = 0; i < missing.length; i += EMBED_BATCH) {
     const batch = missing.slice(i, i + EMBED_BATCH);
-    const res = await fetch(`${base}/api/embed`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ texts: batch }),
-    });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(`${base}/api/embed: ${body.error?.message ?? res.status}`);
+    const body = await postEmbed(base, batch);
     if (model && body.model !== model) {
       // The catalog changed models: every cached vector is from the old one. Start over.
       model = body.model; vectors = {}; missing = unique; i = -EMBED_BATCH;
       continue;
     }
     model = body.model;
-    batch.forEach((t, k) => { vectors[keyOf(t)] = body.vectors[k]; });
+    batch.forEach((t, k) => { vectors[keyOf(t)] = { v: body.vectors[k] }; });
   }
-  // Keep only what this run used, so the cache tracks the schema instead of growing forever.
-  const used = Object.fromEntries(unique.map((t) => [keyOf(t), vectors[keyOf(t)]]));
+  // Mark what this run used; drop what nothing has used for two months.
+  const now = Date.now();
+  for (const t of unique) vectors[keyOf(t)].t = now;
+  for (const [k, e] of Object.entries(vectors)) if (!(e.t > now - CACHE_KEEP_MS)) delete vectors[k];
   mkdirSync(dirname(cachePath), { recursive: true });
-  writeFileSync(cachePath, JSON.stringify({ model, vectors: used }));
-  return texts.map((t) => used[keyOf(t)]);
+  writeFileSync(cachePath, JSON.stringify({ model, vectors }));
+  return texts.map((t) => vectors[keyOf(t)].v);
 }
 
 const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
@@ -593,8 +618,7 @@ const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
 export async function similar(config, baseDir, generated, description, { limit = 8, catalog = true } = {}) {
   const base = host(config);
   const items = inventoryOf(config, baseDir, generated);
-  const cachePath = resolve(baseDir, 'node_modules/.cache/schemalattice/vectors.json');
-  const [queryVec, ...vecs] = await embedAll(base, [description, ...items.map(similarText)], cachePath);
+  const [queryVec, ...vecs] = await embedAll(base, [description.slice(0, EMBED_MAX_CHARS), ...items.map(similarText)]);
   const own = items.map((item, i) => ({ ...item, similarity: Number(dot(queryVec, vecs[i]).toFixed(3)) }))
     .sort((a, b) => b.similarity - a.similarity).slice(0, limit);
   let elsewhere = [];
