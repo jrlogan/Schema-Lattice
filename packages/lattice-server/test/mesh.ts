@@ -156,6 +156,17 @@ async function main() {
   check("spatial-connection-found", !isToolError(sp) && sp.spatial.length === 1 && sp.counts.spatial === 1 && sp.challenges[0].includes("point in polygon") &&
     !sp.challenges.some((c: string) => /nothing in common to connect/.test(c)), isToolError(sp) ? sp.error.message : JSON.stringify(sp.challenges));
 
+  // A source can hold a concept field more sensitively than the concept does.
+  await instance.sources.propose({
+    accessUrl: "https://api.example.org/sightings", platform: "manual", slug: "test-sightings", title: "Sightings", publisher: "Network",
+    jurisdiction: "US-CT/new-haven", recordDescription: "One place a person reported a spot, with its coordinates.",
+    fields: [{ name: "lat", type: "number" }, { name: "lng", type: "number" }], fieldClassifications: { lat: "personal-location", lng: "personal-location" },
+  }, "operator");
+  instance.sources.map({ source: "test-sightings", conceptUri: SPOT, fields: [{ from: "lat", to: "latitude" }, { from: "lng", to: "longitude" }] }, "operator");
+  const sens = await call("lattice_mesh_report", { a: { manifest: { project: { name: "spots" }, concepts: { Spot: { uri: SPOT, status: "adopted" } } } }, b: "source:test-sightings" });
+  const latRow = !isToolError(sens) && sens.pairs.find((p: any) => p.grade === "direct")?.fields?.find((f: any) => f.conceptField === "latitude");
+  check("source-sensitivity-reaches-mesh", latRow?.personal === "personal-location" && sens.challenges.some((c: string) => /Personal data would cross/.test(c)), JSON.stringify(latRow));
+
   const bad = await call("lattice_mesh_report", { a: "app:nope", b: "app:club-b" });
   check("unknown-app-refused", isToolError(bad) && bad.error.code === "invalid-parameter");
   const badShape = await call("lattice_mesh_report", { a: "club-a", b: "app:club-b" });

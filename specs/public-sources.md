@@ -381,6 +381,27 @@ they follow corroboration and retraction automatically.
   (role `reference`). Two sources whose rows are both records of a concept,
   sharing only a name, are two lists, not a join: wards and neighborhoods
   are both City Districts and never share a name.
+- **Identifier schemes.** Mapping two sources' fields onto the same
+  identifying concept field does not make their values comparable. The
+  environmental case studies found three such false joins:
+  - NOAA, USGS, AirNow and Water Quality Portal station codes, all mapped to Monitoring Site `siteId`;
+  - iNaturalist taxon ids against GBIF taxon keys, both mapped to Taxon `taxonId`;
+  - CT town numbers against census GEOIDs.
+
+  A field pair may declare `scheme`: the numbering system its values come
+  from, such as `gbif-backbone`, `inaturalist-taxon`, `census-geoid-2020`
+  or `ct-town-code`. Then:
+  - two pairs with different schemes never form a key join;
+  - two pairs with the same scheme form a checked key join;
+  - when the publishers differ and either pair has no scheme, the key join
+    is offered as `unchecked`, ranked below attribute joins, with an
+    instruction to compare a sample and report it.
+
+  Join reports can say what `transform` the values needed before they
+  matched (strip a URL prefix, reformat an ID). A raw comparison of the
+  same fields would fail.
+- **Shapes:** only a polygon (or area) layer receives points by point in
+  polygon. A generic "geometry" field is not assumed to be one.
 - **Versions:** joins treat every version of a concept as one, so a source
   mapped onto the new version still joins one that hasn't moved. Once a
   source is mapped onto a newer version, its pairs onto the older one stop

@@ -211,6 +211,13 @@ interface MappingClaim {
   conceptField: string;
   role: SourceRole;
   conversion?: string;
+  /**
+   * The identifier system the field's values come from ("inaturalist-taxon",
+   * "gbif-backbone", "census-geoid-2020", "ct-town-code"). Two sources mapping
+   * onto the same identifier field join only if they use the same system: a
+   * shared concept field is not a shared numbering.
+   */
+  scheme?: string;
 }
 
 /** One listed field pair. */
@@ -251,6 +258,8 @@ export interface SourceJoin {
   kind: "key" | "attribute" | "spatial";
   /** Set for a point layer against a polygon layer: the join that places each point in an area. */
   method?: "point-in-polygon";
+  /** A key join between publishers that don't say which identifier system they use. */
+  unchecked?: boolean;
   via: { conceptUri: string; prefLabel: string } | null;
   pairs: JoinPair[];
   how: string;
@@ -611,12 +620,17 @@ export class Sources {
       if (conversion && conversion.length > SOURCE_CONFIG.conversionMax) {
         return problems.push(`${at}: conversion must be ${SOURCE_CONFIG.conversionMax} characters or fewer`);
       }
+      const scheme = typeof f.scheme === "string" && f.scheme.trim() ? f.scheme.trim().toLowerCase() : undefined;
+      if (scheme && !/^[a-z0-9][a-z0-9.-]{1,59}$/.test(scheme)) {
+        return problems.push(`${at}: scheme must be a short kebab-case name, e.g. "gbif-backbone" or "census-geoid-2020"`);
+      }
       const claimKey = `field-mapping|${slug}|${from}|${conceptUri}|${to}`;
       if (seen.has(claimKey)) return problems.push(`${at}: "${from}" → "${to}" appears twice`);
       seen.add(claimKey);
       const claim: MappingClaim & { note?: string } = {
         source: slug, sourceField: from, conceptUri, conceptField: to, role,
         ...(conversion ? { conversion } : {}),
+        ...(scheme ? { scheme } : {}),
         ...(input.note ? { note: input.note } : {}),
       };
       claims.push({ claimKey, subject: conceptUri, direction: verdict, claim: claim as unknown as Record<string, unknown> });
@@ -798,6 +812,7 @@ export class Sources {
           concept: this.label(p.conceptUri),
           field: p.conceptField,
           ...(p.conversion ? { conversion: p.conversion } : {}),
+          ...(p.scheme ? { scheme: p.scheme } : {}),
           ...(p.curatedBy ? { curatedBy: p.curatedBy } : { corroboratedBy: p.sources }),
         }));
       const prof = profile.byField.get(f.name);
@@ -989,7 +1004,7 @@ export class Sources {
       for (const conceptUri of concepts) {
         const record = this.store.getConcept(conceptUri);
         const paths = record ? conceptFieldPaths(record) : new Map<string, ConceptField>();
-        const shared: Array<JoinPair & { kind: SourceJoin["kind"] }> = [];
+        const shared: Array<JoinPair & { kind: SourceJoin["kind"]; unchecked?: boolean }> = [];
         const isReferenced = (field: string) => [...referenced].some((k) => {
           const cut = k.lastIndexOf("|");
           return k.slice(cut + 1) === field && lineage(k.slice(0, cut)) === conceptUri;
@@ -1002,7 +1017,11 @@ export class Sources {
             // neighborhoods are both City Districts and never share a name.
             // An attribute joins only when one side's rows point at the other's.
             if (kind === "attribute" && a.role !== "reference" && b.role !== "reference") continue;
-            if (kind) shared.push({ a: a.sourceField, b: b.sourceField, conceptField: a.conceptField, kind });
+            // Different identifier systems never join, whatever field they map onto.
+            if (kind === "key" && a.scheme && b.scheme && a.scheme !== b.scheme) continue;
+            // Different publishers that don't say which system: offered, but unchecked.
+            const unchecked = kind === "key" && !(a.scheme && b.scheme) && me.publisher !== r.publisher;
+            if (kind) shared.push({ a: a.sourceField, b: b.sourceField, conceptField: a.conceptField, kind, ...(unchecked ? { unchecked: true } : {}) });
           }
         }
         if (shared.length === 0) continue;
@@ -1011,20 +1030,25 @@ export class Sources {
         const keys = shared.filter((s) => s.kind === "key");
         const attrs = shared.filter((s) => s.kind === "attribute");
         if (keys.length) {
+          const unchecked = keys.every((k) => k.unchecked);
           joins.push({
-            kind: "key", via, pairs: [...keys, ...attrs].map(({ kind: _k, ...p }) => p),
-            how: `Equal ${keys.map((k) => k.conceptField).join(" + ")}${attrs.length ? `, with ${attrs.map((a) => a.conceptField).join(", ")} to confirm` : ""}.`,
+            kind: "key", via, pairs: [...keys, ...attrs].map(({ kind: _k, unchecked: _u, ...p }) => p),
+            ...(unchecked ? { unchecked: true } : {}),
+            how: unchecked
+              ? `Equal ${keys.map((k) => k.conceptField).join(" + ")}, but only if both publishers use the same identifier system, which neither mapping says. ` +
+                "Agencies often number the same things differently (station codes, taxon ids, census vintages): compare a sample first, then report it with lattice_report_join."
+              : `Equal ${keys.map((k) => k.conceptField).join(" + ")}${attrs.length ? `, with ${attrs.map((a) => a.conceptField).join(", ")} to confirm` : ""}.`,
           });
         } else if (attrs.length) {
           joins.push({
-            kind: "attribute", via, pairs: attrs.map(({ kind: _k, ...p }) => p),
+            kind: "attribute", via, pairs: attrs.map(({ kind: _k, unchecked: _u, ...p }) => p),
             how:
               `Match on ${attrs.map((a) => a.conceptField).join(" + ")}${attrs.length > 1 ? " together" : ""}, after normalising case, ` +
               "spacing and abbreviations. Weaker than a key: expect misses and ambiguous matches.",
           });
         }
         if (spatial.length) {
-          joins.push({ kind: "spatial", via, pairs: spatial.map(({ kind: _k, ...p }) => p), how: "Overlay: intersect the geometries." });
+          joins.push({ kind: "spatial", via, pairs: spatial.map(({ kind: _k, unchecked: _u, ...p }) => p), how: "Overlay: intersect the geometries." });
         }
       }
       if (overlays(me, r) && !joins.some((j) => j.kind === "spatial")) {
@@ -1039,7 +1063,8 @@ export class Sources {
         joins,
       });
     }
-    const rank = (j: SourceJoin[]) => (j.some((x) => x.kind === "key") ? 0 : j.some((x) => x.kind === "attribute") ? 1 : 2);
+    const rank = (j: SourceJoin[]) =>
+      j.some((x) => x.kind === "key" && !x.unchecked) ? 0 : j.some((x) => x.kind === "attribute") ? 1 : j.some((x) => x.kind === "key") ? 1.5 : 2;
     return out.sort((a, b) => rank(a.joins) - rank(b.joins) || a.title.localeCompare(b.title));
   }
 
@@ -1362,6 +1387,7 @@ export class Sources {
         source, sourceField, conceptUri, conceptField,
         role: claim.role ?? "record",
         ...(claim.conversion ? { conversion: claim.conversion } : {}),
+        ...(claim.scheme ? { scheme: claim.scheme } : {}),
         curatedBy: reason?.startsWith("curated by ") ? reason.slice("curated by ".length) : null,
         sources,
       };
@@ -1689,11 +1715,13 @@ export function locationFields(fields: SourceField[]): string | null {
   return null;
 }
 
-function shapeOf(geometry: string): "point" | "line" | "area" {
+function shapeOf(geometry: string): "point" | "line" | "area" | "unknown" {
   const g = geometry.toLowerCase();
   if (/point/.test(g) || g === "location") return "point";
   if (/line/.test(g)) return "line";
-  return "area";
+  if (/polygon|area|envelope/.test(g)) return "area";
+  // "geometry", "shape": could be anything; never assume an area to put points in.
+  return "unknown";
 }
 
 /** Two layers relate by overlay unless both are points. */
@@ -1885,7 +1913,7 @@ function outsideDegrees(field: string, min: number | null, max: number | null): 
 }
 
 function summarizeJoin(j: JoinEvidence) {
-  return { status: j.status, reports: j.reports, matchRate: j.matchRate, tried: j.tried, key: j.key };
+  return { status: j.status, reports: j.reports, matchRate: j.matchRate, tried: j.tried, key: j.key, ...(j.transforms.length ? { transforms: j.transforms } : {}) };
 }
 
 function optionalStringList(value: unknown, key: string): string[] | undefined {

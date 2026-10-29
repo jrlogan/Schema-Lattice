@@ -347,7 +347,20 @@ async function main() {
   S.map({ source: manual.slug, conceptUri: PARCEL, fields: [{ from: "pid", to: "pin" }] }, "operator", at(9));
   const keyJoin = S.resolve("ct-parcels")!.related.find((r) => r.slug === manual.slug);
   check("key-join-found", keyJoin?.joins[0]?.kind === "key" && keyJoin.joins[0].pairs[0].a === "Parcel_ID" && keyJoin.joins[0].pairs[0].b === "pid", JSON.stringify(keyJoin));
+  check("cross-publisher-key-unchecked", keyJoin?.joins[0]?.unchecked === true && /same identifier system/.test(keyJoin.joins[0].how), keyJoin?.joins[0]?.how);
+  // Both say which numbering they use: a checked key join, ranked first.
+  S.map({ source: "ct-parcels", conceptUri: PARCEL, fields: [{ from: "Parcel_ID", to: "pin", scheme: "vision-pid" }] }, "operator", at(9));
+  S.map({ source: manual.slug, conceptUri: PARCEL, fields: [{ from: "pid", to: "pin", scheme: "vision-pid" }] }, "operator", at(9));
+  const schemed = S.resolve("ct-parcels")!.related.find((r) => r.slug === manual.slug)!.joins[0];
+  check("same-scheme-key-checked", schemed.kind === "key" && !schemed.unchecked && /^Equal pin/.test(schemed.how), JSON.stringify(schemed));
   check("key-joins-rank-first", S.resolve("ct-parcels")!.related[0].slug === manual.slug);
+  check("scheme-shown", S.resolve("ct-parcels")!.fields.find((f) => f.name === "Parcel_ID")?.means?.some((m) => "scheme" in m && m.scheme === "vision-pid") === true);
+  // Different numberings never join, however the fields are mapped.
+  S.map({ source: manual.slug, conceptUri: PARCEL, fields: [{ from: "pid", to: "pin", scheme: "state-parcel-id" }] }, "operator", at(9));
+  check("different-schemes-never-join", !S.resolve("ct-parcels")!.related.find((r) => r.slug === manual.slug)?.joins.some((j) => j.kind === "key"),
+    JSON.stringify(S.resolve("ct-parcels")!.related.find((r) => r.slug === manual.slug)?.joins));
+  S.map({ source: manual.slug, conceptUri: PARCEL, fields: [{ from: "pid", to: "pin", scheme: "vision-pid" }] }, "operator", at(9));
+  check("scheme-format-checked", (await rejects(() => S.map({ source: manual.slug, conceptUri: PARCEL, fields: [{ from: "pid", to: "pin", scheme: "Vision PID!" }] }, "operator", at(9)))) !== null);
 
   // --- jurisdiction search -----------------------------------------------------------
   const nh = await S.find({ jurisdiction: "US-CT/new-haven" });
@@ -471,6 +484,11 @@ async function main() {
   check("point-in-polygon-names-fields-for-api-points", /`lat`/.test(pip?.how ?? ""), pip?.how);
   const parcelsPage = renderSourcePage(S.resolve("ct-parcels")!, "x");
   check("point-layers-listed-compactly", parcelsPage.includes("## Point layers that fall in these areas") && !parcelsPage.includes(`### Issues (\`${issues.slug}\``), parcelsPage.slice(parcelsPage.indexOf("## Point"), parcelsPage.indexOf("## Point") + 300));
+  const station = await S.propose({
+    accessUrl: "https://api.example.org/station?id=1", platform: "manual", slug: "nh-station", title: "Station", publisher: "Agency",
+    jurisdiction: "US-CT/new-haven", recordDescription: "One reading at a monitoring station in the city.", fields: [{ name: "where", type: "geometry" }],
+  }, "operator", at(41));
+  check("generic-geometry-is-not-an-area", !S.resolve(issues.slug)!.related.some((r) => r.slug === station.slug && r.joins.some((j) => j.method === "point-in-polygon")));
   check("polygons-still-overlay", S.resolve("ct-parcels")!.overlays.some((o) => o.slug === zones.slug));
 
   // --- what builders found -------------------------------------------------------------------
@@ -503,6 +521,8 @@ async function main() {
   F.reportJoin({ a: "ct-parcels", b: zones.slug, fieldsA: ["Parcel_ID"], fieldsB: ["zone_code"], tried: 50, matched: 2 }, "operator", at(42), "operator");
   const extra = S.resolve("ct-parcels")!.builderJoins.find((j) => j.other === zones.slug);
   check("unoffered-join-listed-as-builder-found", extra?.status === "fails" && extra.matchRate === 0.04 && extra.fields.here[0] === "Parcel_ID", JSON.stringify(extra));
+  const transformed = F.reportJoin({ a: "ct-parcels", b: zones.slug, fieldsA: ["Location"], fieldsB: ["zone_code"], tried: 10, matched: 9, transform: "strip the URL prefix from occurrenceID" }, "operator", at(42), "operator");
+  check("join-transform-recorded", transformed.evidence?.transforms[0] === "strip the URL prefix from occurrenceID");
   const anonJoin = F.reportJoin({ a: "ct-parcels", b: "real-estate-sales", method: "point-in-polygon", tried: 40, matched: 3 }, "net:j1", at(42), "wj1");
   check("anonymous-join-report-unconfirmed", anonJoin.status === "pending" && anonJoin.evidence?.status === "unconfirmed" && anonJoin.reported === "fails");
   check("join-counts-checked", (() => { try { F.reportJoin({ a: "ct-parcels", b: zones.slug, fieldsA: ["Parcel_ID"], fieldsB: ["zone_code"], tried: 5, matched: 9 }, "net:j1", at(42), "wj1"); return false; } catch { return true; } })());

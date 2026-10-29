@@ -172,7 +172,7 @@ export function renderSourcePage(s: Resolved, host: string, links: { forwardingC
   );
   for (const f of s.fields) {
     const means = "means" in f && f.means
-      ? f.means.map((m) => `${cell(m.concept)}.${cell(m.field)}${m.conversion ? ` (${cell(m.conversion)})` : ""}`).join("; ")
+      ? f.means.map((m) => `${cell(m.concept)}.${cell(m.field)}${"scheme" in m && m.scheme ? ` [${cell(m.scheme)}]` : ""}${m.conversion ? ` (${cell(m.conversion)})` : ""}`).join("; ")
       : "";
     const filled = "filled" in f && f.filled !== undefined ? `${Math.round(f.filled * 100)}%` : "";
     out.push(`| \`${cell(f.name)}\` | ${cell(f.type)} | ${cell(f.label ?? "")} | ${profiled ? `${filled} | ` : ""}${means} |`);
@@ -195,8 +195,14 @@ export function renderSourcePage(s: Resolved, host: string, links: { forwardingC
       out.push(`### ${line(r.title)} (\`${r.slug}\`, ${r.jurisdiction})`, "");
       for (const j of r.joins) {
         out.push(`**${j.kind} join${j.via ? ` via ${line(j.via.prefLabel)}` : ""}.** ${line(j.how)}`, "");
-        const t = (j as { tested?: { status: string; matchRate: number; reports: number } | null }).tested;
-        if (t) out.push(`_Builders ran it: ${t.status === "works" ? "works" : t.status === "fails" ? "fails" : "unconfirmed"}, median match ${Math.round(t.matchRate * 100)}% over ${t.reports} report(s)._`, "");
+        const t = (j as { tested?: { status: string; matchRate: number; reports: number; transforms?: string[] } | null }).tested;
+        if (t) {
+          out.push(
+            `_Builders ran it: ${t.status === "works" ? "works" : t.status === "fails" ? "fails" : "unconfirmed"}, median match ${Math.round(t.matchRate * 100)}% over ${t.reports} report(s)` +
+              (t.transforms?.length ? `, after: ${t.transforms.map(line).join("; ")}` : "") + "._",
+            "",
+          );
+        }
         else if (t === null) out.push("_Not yet tested by a builder. After you run it, report it with `lattice_report_join` (counts only)._", "");
         if (j.pairs.length) {
           out.push(`| This source | ${cell(r.slug)} | Concept field |`, "|---|---|---|");
@@ -221,7 +227,10 @@ export function renderSourcePage(s: Resolved, host: string, links: { forwardingC
       const how = j.method === "fields"
         ? j.fields.here.map((f, i) => `\`${cell(f)}\` = \`${cell(j.fields.there[i])}\``).join(" and ")
         : j.method;
-      out.push(`- **[${cell(j.other)}](https://${host}/sources/${cell(j.other)})**: ${how}. ${j.status === "works" ? "Works" : j.status === "fails" ? "Fails" : "Unconfirmed"}, median match ${Math.round(j.matchRate * 100)}% over ${j.reports} report(s).`);
+      out.push(
+        `- **[${cell(j.other)}](https://${host}/sources/${cell(j.other)})**: ${how}. ${j.status === "works" ? "Works" : j.status === "fails" ? "Fails" : "Unconfirmed"}, ` +
+          `median match ${Math.round(j.matchRate * 100)}% over ${j.reports} report(s)${"transforms" in j && j.transforms?.length ? `, after: ${j.transforms.map(line).join("; ")}` : ""}.`,
+      );
     }
     out.push("");
   }
