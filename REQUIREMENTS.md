@@ -46,24 +46,25 @@ missing discover call).
 
 ## R3 — Shard model
 
-**Requirement.**
+**Re-scoped 2026-10-29** (`specs/communities-and-sub-lattices.md` § 6). Physical partitioning
+(a SQLite attachment, vector segment and blob directory per shard) only pays off for
+replication and federation, which are deferred. A shard is now **logical**:
 
-- Storage is partitioned by shard. Each shard owns its own SQLite
-  attachment, vector index segment, and blob directory.
-- The reserved shard `schemalattice` contains only the root skeleton
-  and is read-only after seeding.
-- `lattice_publish_concept` requires an explicit `shard` argument.
-- `lattice_discover` accepts an optional `shards: string[]` filter;
-  default is all local shards. Cross-shard hits are tagged.
-- Cross-shard edges are restricted to `coRefersWith`, `closeMatch`,
-  and `pav:derivedFrom`. Cross-shard `skos:broader` is rejected.
-- `lattice-cli shard create <name>` creates a new shard with a
-  one-line manifest (title, description, committed skeleton roots).
-- v0.1 ships with `schemalattice`, `marine`, `iot`, `civic`.
+- **Community** (tier 1, built): a named, stewarded set of contexts with member apps,
+  jurisdictions, its own unmet-search report and pack. It holds no vocabulary of its own.
+- **Organisation sub-lattice** (tier 2, designed): an owned root context whose conventions
+  (naming, required classifications, who may add contexts) are enforced when anyone publishes
+  into it.
+- The reserved skeleton (`schemalattice`) and governance contexts stay read-only after seeding,
+  as built.
+- Cross-context edges are unrestricted. The rule against cross-shard `skos:broader` is dropped
+  along with physical shards.
+- The launch-shard list (`marine`, `iot`, `civic`) is dropped: contexts cover those domains,
+  and `civic` is a community.
 
-**Enforcement.** `packages/lattice-server/src/storage/shard.ts`.
+**Enforcement.** `src/registry/communities.ts`; `writeDenial` in `src/tools/tools.ts`.
 
-**Test hook.** `packages/lattice-evals/scenarios/shard-isolation-*.json`.
+**Test hook.** `packages/lattice-server/test/communities.ts`.
 
 ## R4 — Local Register & Audit Loop
 
@@ -75,7 +76,7 @@ missing discover call).
   sidecars and `[lattice:SHORT_NAME]` inline markers and updates
   `usages`.
 - `lattice-cli audit` runs the four audits in ROADMAP §4 (drift,
-  stale-version, fork-instead-of-reuse, cross-shard coref) and
+  stale-version, fork-instead-of-reuse, cross-context coref) and
   writes findings to `audits`.
 - Audits are advisory. Nothing is auto-fixed.
 - The server MUST expose `lattice_list_usages(concept_uri)` so the
@@ -113,7 +114,8 @@ Every `lattice_publish_concept` call runs gates in this fixed order:
 1. R1 — skeleton ancestry
 2. R2 — metadata friction (definition / coRefersWith / closeMatch /
    prior discover)
-3. R3 — shard target valid and writable
+3. R3 — context exists, and the caller may write to it (contributor tier, or a
+   steward of the community it is created in; tier-2 conventions when built)
 4. Existing: changeset op validation (`specs/changeset-format.md`),
    including `upgradable` recomputation
 5. Existing: canonicalization + content hashing

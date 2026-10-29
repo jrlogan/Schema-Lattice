@@ -77,40 +77,26 @@ See REQUIREMENTS §R2.
 
 ---
 
-## 3. Federated Sharding — Domain Shards
+## 3. Federated Sharding — Domain Shards (re-scoped 2026-10-29)
 
-**What changes from today.** `ARCHITECTURE.md` says "Single-instance
-by choice." That remains true for the *server binary*, but the
-*catalog* is now partitioned into **Domain Shards** from v0.1, so
-federation in v0.2+ is a configuration change rather than a rewrite.
+Physical domain shards were planned here so that federation would be "a configuration change
+rather than a rewrite". Federation is still deferred, and the groups that actually showed up
+need something else: civic clusters around a place, and organisations with conventions of their
+own. They need stewardship and scoping, not separate storage. So shards became logical, in
+three tiers (`specs/communities-and-sub-lattices.md`):
 
-**Shard model.**
+1. **Communities** (built): a stewarded view over public contexts, with member apps,
+   jurisdictions, an unmet-search backlog, a pack and a discover filter.
+2. **Organisation sub-lattices** (designed): owned contexts with conventions enforced when
+   anyone publishes into them.
+3. **Private instances** (designed): self-hosted, searching up to the public catalog, with
+   private contexts and publish-up under unchanged URIs. Hub-and-spoke, not federation.
 
-- A Domain Shard is a `skos:ConceptScheme` at the top level (e.g.
-  `schemalattice:marine`, `schemalattice:iot`, `schemalattice:civic`)
-  plus the subtree of concepts whose `inScheme` resolves beneath it.
-- Shards inherit from the skeleton (§1) but are otherwise independent:
-  each has its own SQLite attachment file, its own vector index
-  segment, and its own blob directory under
-  `store/shards/<shard-id>/`.
-- `lattice_discover` takes an optional `shards: string[]` filter.
-  Default is "all local shards." Cross-shard results are tagged so
-  the AI can see the provenance.
-- Publishing always targets exactly one shard. Cross-shard references
-  are allowed via URI but cannot create `skos:broader` edges — only
-  `:coRefersWith`, `closeMatch`, or `pav:derivedFrom`.
+Content-addressed URIs are what keep this cheap. A concept means the same thing whichever tier
+or instance holds it, so a group can move between tiers without re-minting anything.
 
-**Launch shards for v0.1.** `schemalattice` (root skeleton, reserved),
-`marine`, `iot`, `civic`. Additional shards are created by CLI
-(`lattice-cli shard create <name>`) and require a one-line manifest
-with title, description, and parent skeleton roots the shard commits
-to using.
-
-**Enforcement point.** Storage layer refuses writes to a shard that
-doesn't exist; `lattice_publish_concept` requires an explicit `shard`
-argument (no default). See REQUIREMENTS §R3.
-
-**Milestone:** v0.1-M3 (shard-aware storage + CLI).
+**Milestone:** tier 1 shipped 2026-10-29. Tiers 2 and 3 wait for a first organisation that
+needs them.
 
 ---
 
@@ -146,9 +132,9 @@ scan), the CLI runs:
    whose changeset ops are a subset of fields project B already uses
    on the parent, suggest merging — i.e. B adopt A's fork or A
    withdraw it.
-4. **Cross-shard co-reference audit.** If the same real-world referent
-   appears in two shards without a `:coRefersWith` edge, suggest
-   creating one.
+4. **Cross-context co-reference audit.** If the same real-world referent
+   appears in two contexts (or communities) without a `:coRefersWith`
+   edge, suggest creating one.
 
 Audit output is advisory. Nothing is auto-fixed. Each finding links
 to the concept URIs and the specific source files (via the annotation
@@ -214,10 +200,12 @@ as gates on that same publish path, in this order:
    sibling forks, the server returns a soft warning the AI must
    either act on or explicitly dismiss with a `coRefersRationale`
    before the hash is minted.
-3. **Shard gate (§3).** The publish call must name a shard. The
-   canonical form includes `inScheme: <shard-uri>`, so the same
-   concept published into two shards produces two different hashes
-   — shards are identity-bearing, exactly like the changeset itself.
+3. **Context gate (§3, re-scoped 2026-10-29).** The publish call names
+   its context (`inScheme`), which is part of the canonical form, so the
+   same concept published into two contexts produces two different hashes.
+   Creating a context needs contributor tier, or stewardship of the
+   community it is created in. Tier-2 conventions on owned contexts will
+   be checked here.
 4. **Upgradability check (existing).** The server recomputes
    `upgradable` from the ops and rejects mismatched claims. Unchanged
    from `specs/changeset-format.md` — but now it runs *after* the
@@ -245,7 +233,7 @@ to succeed — the concept it describes must also pass gates 1–3.
 |---|---|---|
 | v0.1-M1 | Skeleton seed + ancestry validator | §1, root-skeleton.md |
 | v0.1-M2 | Friction validator + eval scenarios | §2, ai-checkpoints.md |
-| v0.1-M3 | Shard-aware storage + `lattice-cli shard` | §3, uri-scheme.md |
+| v0.1-M3 | Communities (logical shards, tier 1); tiers 2–3 designed | §3, specs/communities-and-sub-lattices.md |
 | v0.1-M4 | `lattice-client` Local Register + `audit` CLI | §4, annotation-standard.md |
 | v0.1-M5 | Build-time eval guardrails | §5, test-harness.md |
 

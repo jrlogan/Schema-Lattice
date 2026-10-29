@@ -6,6 +6,7 @@ import { DESIGN_REQUEST_SCHEMA } from "../advisor/tool-schema.ts";
 // LatticeInstance. The MCP server and the HTTP server both mount this same
 // table so the two transports cannot drift apart.
 
+import { communityReport } from "../query/community.ts";
 import { EvidenceRejected } from "../evidence/ledger.ts";
 import { ContributionRejected } from "../evidence/contributions.ts";
 import { SourceRejected } from "../sources/sources.ts";
@@ -315,6 +316,15 @@ function resolveContextFilter(
   return uris;
 }
 
+/** A community's contexts, merged with any explicit context filter. */
+function communityContexts(instance: LatticeInstance, community: string | undefined, contexts: string[] | undefined): string[] | undefined {
+  if (!community) return contexts;
+  if (!instance.communities.get(community)) {
+    throw new InvalidParameter(`unknown community "${community}" — lattice_community_report with {} lists them`, { parameter: "community" });
+  }
+  return [...new Set([...(contexts ?? []), ...instance.communities.contextUris(community)])];
+}
+
 // ---------------------------------------------------------------
 // the tool table
 
@@ -349,6 +359,10 @@ export const TOOLS: ToolDef[] = [
             "(e.g. \"human-services\") or context URIs. A slug covers every " +
             "version of that context.",
         },
+        community: {
+          type: "string",
+          description: "Optional: search only a community's contexts (e.g. \"new-haven-civic\"); counts toward its demand report",
+        },
         limit: { type: "number", description: "Default 10, max 25" },
         sessionId: {
           type: "string",
@@ -374,9 +388,11 @@ export const TOOLS: ToolDef[] = [
           length: description.length,
         });
       }
+      const community = optionalString(args, "community");
       const response = await instance.discover({
         description,
-        contexts: resolveContextFilter(instance, optionalStringArray(args, "contexts")),
+        contexts: communityContexts(instance, community, resolveContextFilter(instance, optionalStringArray(args, "contexts"))),
+        community,
         contextHint: optionalString(args, "contextHint"),
         limit: optionalNumber(args, "limit"),
         sessionId: optionalString(args, "sessionId"),
@@ -560,17 +576,29 @@ export const TOOLS: ToolDef[] = [
         title: { type: "string" },
         definition: { type: "string", description: "One paragraph, at least 40 characters" },
         parentContextUris: stringArray,
+        community: {
+          type: "string",
+          description: "Optional: add the new context to this community. A steward of it may create contexts without contributor tier",
+        },
       },
       required: ["slug", "title", "definition"],
     },
-    handler: (instance, args, principal) =>
-      instance.publishContext({
+    handler: (instance, args, principal) => {
+      const community = optionalString(args, "community");
+      if (community && !instance.communities.get(community)) {
+        throw new InvalidParameter(`unknown community "${community}"`, { parameter: "community" });
+      }
+      const slug = requireString(args, "slug");
+      const result = instance.publishContext({
         actor: actorOf(principal),
-        slug: requireString(args, "slug"),
+        slug,
         title: requireString(args, "title"),
         definition: requireString(args, "definition"),
         parentContextUris: optionalStringArray(args, "parentContextUris"),
-      }),
+      });
+      if (community) instance.communities.addContext(community, slug);
+      return community ? { ...result, community } : result;
+    },
   },
 
   {
@@ -803,12 +831,18 @@ export const TOOLS: ToolDef[] = [
           description: "Similarity below which a query counts as unmet (default 0.65)",
         },
         limit: { type: "number", description: "Max clusters returned (default 20)" },
+        community: { type: "string", description: "Optional: only searches that belong to this community" },
       },
     },
     handler: async (instance, args, principal) => {
+      const community = optionalString(args, "community");
+      if (community && !instance.communities.get(community)) {
+        throw new InvalidParameter(`unknown community "${community}"`, { parameter: "community" });
+      }
       const report = await instance.demandReport({
         threshold: optionalNumber(args, "threshold"),
         limit: optionalNumber(args, "limit"),
+        community,
       });
       // Types builders designed and sent back (lattice_contribute), grouped.
       // The public sees a candidate once independent builders agree; the
@@ -1427,6 +1461,52 @@ export const TOOLS: ToolDef[] = [
   // ------------------------------------------------------------- registry
 
   {
+    name: "lattice_publish_community",
+    write: true,
+    description:
+      "Create or update a community: a named, stewarded view over public contexts (e.g. a city's civic " +
+      "data). The operator creates one and names its stewards (app slugs); a steward may change its " +
+      "title, charter, contexts, jurisdictions and conventions. Apps join through lattice_register_app.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        slug: { type: "string" },
+        title: { type: "string" },
+        charter: { type: "string", description: "Who it is for and what it covers, 40+ characters" },
+        contexts: { ...stringArray, description: "Context slugs" },
+        jurisdictions: { ...stringArray, description: "e.g. US-CT/new-haven, US-CT" },
+        stewards: { ...stringArray, description: "App slugs; operator only" },
+        conventions: { type: "string", description: "Optional naming and data-handling notes, or a link" },
+      },
+      required: ["slug"],
+    },
+    handler: (instance, args, principal) =>
+      instance.communities.upsert({
+        slug: requireString(args, "slug"),
+        title: optionalString(args, "title"),
+        charter: optionalString(args, "charter"),
+        contexts: optionalStringArray(args, "contexts"),
+        jurisdictions: optionalStringArray(args, "jurisdictions"),
+        stewards: optionalStringArray(args, "stewards"),
+        conventions: optionalString(args, "conventions"),
+      }, principal),
+  },
+
+  {
+    name: "lattice_community_report",
+    write: false,
+    description:
+      "One community in full: charter, contexts with concept counts, newest concepts, member apps, " +
+      "public sources in its jurisdictions, its unmet searches, and pending evidence about its concepts. " +
+      "With no slug, lists every community.",
+    inputSchema: {
+      type: "object",
+      properties: { slug: { type: "string", description: "Omit to list communities" } },
+    },
+    handler: (instance, args) => communityReport(instance, optionalString(args, "slug")),
+  },
+
+  {
     name: "lattice_register_app",
     write: true,
     description:
@@ -1464,6 +1544,10 @@ export const TOOLS: ToolDef[] = [
             required: ["uri", "status"],
           },
         },
+        communities: {
+          ...stringArray,
+          description: "Optional: communities this app belongs to (replaces its list; omit to keep it)",
+        },
       },
       required: ["slug", "name", "unit", "owner", "status", "concepts"],
     },
@@ -1471,6 +1555,11 @@ export const TOOLS: ToolDef[] = [
       const concepts = args.concepts;
       if (!Array.isArray(concepts)) {
         throw new InvalidParameter('"concepts" must be an array', { parameter: "concepts" });
+      }
+      const communities = optionalStringArray(args, "communities");
+      const unknownCommunities = (communities ?? []).filter((c) => !instance.communities.get(c));
+      if (unknownCommunities.length) {
+        throw new InvalidParameter(`unknown communit${unknownCommunities.length > 1 ? "ies" : "y"}: ${unknownCommunities.join(", ")}`, { parameter: "communities" });
       }
       const result = instance.registry.registerApp({
         actor: principal,
@@ -1493,6 +1582,7 @@ export const TOOLS: ToolDef[] = [
           fields?: string[];
         }>,
       });
+      if (communities) instance.communities.setMemberships(result.slug, communities);
       if (result.apiKey === undefined) return result;
       return {
         ...result,
@@ -1691,6 +1781,21 @@ function assertBudget(instance: LatticeInstance, principal: Principal, tool: str
  * seeds, the stdio MCP server the user launched themselves) already owns the
  * process. Every network path resolves a real principal and passes it.
  */
+/**
+ * Whether this caller may make this write. One check for every transport (REST, MCP), because
+ * one exception depends on the arguments: a community's steward may create a context in it.
+ */
+export function writeDenial(
+  instance: LatticeInstance,
+  principal: Principal,
+  name: string,
+  args: Record<string, unknown>,
+) {
+  const community = typeof args.community === "string" ? args.community : undefined;
+  const steward = name === "lattice_publish_context" && !!community && instance.communities.isSteward(community, principal);
+  return checkCapability(principal, name, { steward });
+}
+
 export async function callTool(
   instance: LatticeInstance,
   name: string,
@@ -1710,7 +1815,7 @@ export async function callTool(
   }
   try {
     if (tool.write) {
-      const denial = checkCapability(principal, name);
+      const denial = writeDenial(instance, principal, name, args ?? {});
       if (denial) {
         throw new PublishError(denial.code, denial.message, { guidance: denial.guidance });
       }

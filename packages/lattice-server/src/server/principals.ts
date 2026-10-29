@@ -107,7 +107,7 @@ export interface Denial {
 }
 
 /** Tools a self-serve key may never call, and why. */
-export function checkCapability(p: Principal, tool: string): Denial | null {
+export function checkCapability(p: Principal, tool: string, opts: { steward?: boolean } = {}): Denial | null {
   if (p.anonymous) {
     // The one write an unknown agent may make: claim a new app slug and get a
     // key for it. Re-registering a slug that already exists is refused inside
@@ -120,7 +120,8 @@ export function checkCapability(p: Principal, tool: string): Denial | null {
       guidance,
     };
   }
-  if (tool === "lattice_publish_context" && p.tier === "low") {
+  // A community's steward may create a context inside that community (communities.ts).
+  if (tool === "lattice_publish_context" && p.tier === "low" && !opts.steward) {
     return {
       code: "ERR_TIER_TOO_LOW",
       message: "creating a context is restricted to contributor tier and above",

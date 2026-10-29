@@ -76,13 +76,18 @@ export interface DemandReportDeps {
 
 export async function demandReport(
   deps: DemandReportDeps,
-  opts: { threshold?: number; limit?: number } = {},
+  opts: {
+    threshold?: number;
+    limit?: number;
+    /** Keep only these discover events — a community's, say. */
+    filter?: (e: ReturnType<Store["listDiscoverEvents"]>[number]) => boolean;
+  } = {},
 ): Promise<DemandReport> {
   const { store, embedder, vectors } = deps;
   const reserved = new Set(deps.reservedContexts ?? []);
   const threshold = opts.threshold ?? DEFAULT_UNMET_THRESHOLD;
   const limit = Math.min(Math.max(opts.limit ?? 20, 1), 100);
-  const events = store.listDiscoverEvents();
+  const events = opts.filter ? store.listDiscoverEvents().filter(opts.filter) : store.listDiscoverEvents();
 
   const unmetAll = events.filter(
     (e) => e.topSimilarity === null || e.topSimilarity < threshold,

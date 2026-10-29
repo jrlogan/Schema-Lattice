@@ -20,7 +20,7 @@ export const SERVER_INFO = {
 
 /**
  * Tool profiles: which tools a session LISTS. Every listed tool's schema sits in the client's
- * context for the whole session, so 36 tools cost about 9,500 tokens before the first call.
+ * context for the whole session, so all 38 tools cost about 9,600 tokens before the first call.
  * A profile only trims the list; calling an unlisted tool still works (the principal decides
  * what is allowed, not the profile). Pick with /mcp?profile=build,sources or ?tools=a,b;
  * stdio reads LATTICE_MCP_PROFILE.
@@ -31,13 +31,13 @@ export const PROFILES: Record<string, string[]> = {
   build: BUILD,
   /** Publish your own vocabulary: register, originate, fork, see who uses what. */
   publish: [...BUILD, "lattice_compare", "lattice_register_app", "lattice_publish_context", "lattice_publish_concept",
-    "lattice_publish_fork", "lattice_list_usages"],
+    "lattice_publish_fork", "lattice_list_usages", "lattice_publish_community"],
   /** Public datasets: find, map, check, join. */
   sources: [...BUILD, "lattice_find_sources", "lattice_resolve_source", "lattice_propose_source", "lattice_map_source",
     "lattice_check_source", "lattice_place_profile", "lattice_note_source", "lattice_report_join", "lattice_sources_report"],
   /** Reports over apps and the catalog. */
   reports: [...BUILD, "lattice_stats", "lattice_demand_report", "lattice_evidence_report", "lattice_mesh_report",
-    "lattice_app_report", "lattice_portfolio_report", "lattice_compare"],
+    "lattice_app_report", "lattice_portfolio_report", "lattice_compare", "lattice_community_report"],
   /** Advice on an app's API design. */
   api: [...BUILD, "lattice_advise_api", "lattice_api_design_snapshot", "lattice_accept_api_design", "lattice_api_design_history"],
   /** Send back types the catalog lacks. */
