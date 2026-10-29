@@ -583,9 +583,15 @@ async function main() {
     `status ${embedded.status}, ${embedded.body.vectors?.length} vectors`,
   );
   check("embed-records-nothing", eventsAfter === eventsBefore, `${eventsBefore} → ${eventsAfter} events`);
-  const tooMany = await post("/api/embed", { texts: Array.from({ length: 65 }, (_, i) => `t${i}`) });
+  const tooMany = await post("/api/embed", { texts: Array.from({ length: 9 }, (_, i) => `t${i}`) });
   const notText = await post("/api/embed", { texts: [""] });
-  check("embed-refuses-oversized-or-empty", tooMany.status === 400 && notText.status === 400, `${tooMany.status}, ${notText.status}`);
+  const tooLong = await post("/api/embed", { texts: ["x".repeat(601)] });
+  check("embed-refuses-oversized-or-empty", tooMany.status === 400 && notText.status === 400 && tooLong.status === 400,
+    `${tooMany.status}, ${notText.status}, ${tooLong.status}`);
+  const burst = await Promise.all(Array.from({ length: 8 }, (_, i) => post("/api/embed", { texts: [`burst ${i}`] })));
+  const statuses = burst.map((b) => b.status);
+  check("embed-burst-served-or-turned-away", statuses.filter((x) => x === 200).length >= 4 && statuses.every((x) => x === 200 || x === 503),
+    statuses.join(","));
 
   const writeEvents = instance.store.db
     .prepare("SELECT actor, COUNT(*) AS n FROM events WHERE kind = 'publish_context' GROUP BY actor")

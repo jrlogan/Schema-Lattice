@@ -48,7 +48,7 @@ is any `dictionary` or `command` source; entities may add `description` (the doc
 
 How to read it:
 
-- Matching is on `label. doc comment` (or `label. Fields: …` when there is no doc comment), the
+- Matching is on `label. doc comment`, first 600 characters (or `label. Fields: …` when there is no doc comment), the
   same shape the catalog indexes. **Doc comments are what make it work**: an undocumented schema
   is matched on its name alone and often ranks far below where it belongs.
 - `▶` marks 0.70 and above: read those before building. Scores rank but do not decide. Two parts
@@ -58,8 +58,9 @@ How to read it:
   does with it.
 
 Network: texts go to `POST /api/embed` on the lattice, which embeds them with the catalog's model
-and stores nothing. Vectors are cached in `node_modules/.cache/schemalattice/`, so a repeat run
-sends only the query. The catalog half uses ephemeral discover: the query is not recorded in the
+and stores nothing. Vectors are cached in `~/.cache/schemalattice/` (shared by every checkout and
+worktree), so a repeat run sends only the query. The first run sends every schema in batches of
+8, one after another: a few minutes for a few hundred schemas against the public instance. The catalog half uses ephemeral discover: the query is not recorded in the
 demand report. `--no-catalog` skips it, and `--json` gives agents the raw result.
 
 ## Why URIs are computed locally
