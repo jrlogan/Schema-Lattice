@@ -516,6 +516,16 @@ async function main() {
   check("query-notes-keys-checked", (await rejects(() => S.propose({ accessUrl: PARCELS, queryNotes: { speed: "fast" } }, "operator", at(43)))) !== null);
   check("query-notes-on-page", renderSourcePage(S.resolve("ct-parcels")!, "x").includes("- **Link to a record:** https://example.gov/parcel/{Parcel_ID}"));
 
+  // --- a curator cannot overwrite a different source by URL ------------------------------------
+  const clash = await rejects(() => S.propose({ accessUrl: PARCELS, slug: "parcels-copy", publisher: "x", jurisdiction: "US-CT", recordDescription: "A copy of the parcels." }, "operator", at(43)));
+  check("curator-same-url-other-slug-refused", !!clash && /already the source "ct-parcels"/.test(clash.message), clash?.message);
+  check("stranger-same-url-other-slug-corroborates", (await S.propose({ accessUrl: PARCELS, slug: "parcels-copy" }, "net:x9", at(43))).slug === "ct-parcels");
+  const page1 = await S.propose({ accessUrl: "https://spec.example.org/standard/#get", platform: "manual", slug: "spec-get", title: "Spec GET", kind: "standard",
+    publisher: "Spec body", jurisdiction: "global", recordDescription: "One request read from the standard's API.", fields: [{ name: "a", type: "string" }] }, "operator", at(43));
+  const page2 = await S.propose({ accessUrl: "https://spec.example.org/standard/#post", platform: "manual", slug: "spec-post", title: "Spec POST", kind: "standard",
+    publisher: "Spec body", jurisdiction: "global", recordDescription: "One request sent to the standard's API.", fields: [{ name: "b", type: "string" }] }, "operator", at(43));
+  check("fragment-names-a-different-source", page1.slug === "spec-get" && page2.slug === "spec-post" && S.resolve("spec-get")!.fields[0].name === "a");
+
   // --- submit endpoints -------------------------------------------------------------------------
   const post = await S.propose({
     accessUrl: "https://api.example.org/open311/requests.json", platform: "manual", slug: "nh-311-post", title: "311 create request",

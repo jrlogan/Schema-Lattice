@@ -1,0 +1,7 @@
+{
+ "versions": [
+  {"old": "https://schemalattice.com/c/civic-issue-reporting/report-category@b3bdd478944f", "context": "civic-issue-reporting", "slug": "report-category", "label": "Report Category",
+   "definition": "A kind of street or environmental problem a government body accepts submissions about (potholes, graffiti, missed bin collections), with the code its systems use for it and the contact route submissions of that kind are dispatched to.",
+   "addFields": [{"name": "code", "type": "string", "classification": "public"}]}
+ ]
+}
