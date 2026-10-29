@@ -33,6 +33,9 @@ import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const MAX_BODY_BYTES = 1_000_000;
+/** POST /api/embed batch limits: one request is at most a few seconds of the embedder. */
+const MAX_EMBED_TEXTS = 64;
+const MAX_EMBED_CHARS = 2000;
 
 /**
  * Tools anyone may call that record a claim, or make the server fetch from a
@@ -222,7 +225,7 @@ async function handle(
   const isOperator = principal.tier === "operator" && config.apiKey !== null;
   if (!isOperator) {
     const bucket: Bucket =
-      path === "/discover" || path === "/api/tools/lattice_discover" || (path === "/pack" && url.searchParams.has("q"))
+      path === "/discover" || path === "/api/tools/lattice_discover" || path === "/api/embed" || (path === "/pack" && url.searchParams.has("q"))
         ? "discover"
         : path === "/api/tools/lattice_feedback"
           ? "feedback"
@@ -302,6 +305,7 @@ async function handle(
         listContext: "GET /s/{context}@{hash}/concepts",
         listContexts: "POST /api/tools/lattice_list_context with {} — every context",
         discover: "GET /discover?description=...&limit=10&context=<slug>&ephemeral=true",
+        embed: "POST /api/embed with {texts: [...]} (≤64) — vectors from the catalog's model, nothing stored; used by the client's `similar` command",
         tools: "GET /api/tools",
         callTool: "POST /api/tools/{name}",
         mcp: "POST /mcp",
@@ -562,6 +566,38 @@ async function handle(
       ephemeral: url.searchParams.get("ephemeral") === "true",
     }, principal, callContext(req));
     send(res, isToolError(result) ? 400 : 200, result);
+    return;
+  }
+
+  // --- embeddings for the client's `similar` command --------------------
+  // The client ranks a platform's own schemas, most of them unpublished, so
+  // it needs vectors from the catalog's model without sending them through
+  // discover. Stateless: nothing is stored or logged, and the client caches
+  // the vectors so only new or changed texts come back here.
+  if (path === "/api/embed" && req.method === "POST") {
+    let body: { texts?: unknown };
+    try {
+      body = (await readBody(req)) as { texts?: unknown };
+    } catch (err) {
+      send(res, 400, { error: { code: "invalid-parameter", message: (err as Error).message } });
+      return;
+    }
+    const texts = body.texts;
+    if (!Array.isArray(texts) || texts.length === 0 || texts.length > MAX_EMBED_TEXTS
+      || !texts.every((t) => typeof t === "string" && t.length > 0 && t.length <= MAX_EMBED_CHARS)) {
+      send(res, 400, {
+        error: {
+          code: "invalid-parameter",
+          message: `"texts" must be 1–${MAX_EMBED_TEXTS} non-empty strings of at most ${MAX_EMBED_CHARS} characters`,
+        },
+      });
+      return;
+    }
+    const vectors = await instance.embedder.embed(texts as string[]);
+    send(res, 200, {
+      model: instance.embedder.id,
+      vectors: vectors.map((v) => Array.from(v, (x) => Math.round(x * 1e5) / 1e5)),
+    });
     return;
   }
 

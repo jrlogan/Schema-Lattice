@@ -7,6 +7,9 @@
  *   node schemalattice.mjs check      fail (exit 1) if the committed files are stale — for CI, offline
  *   node schemalattice.mjs publish    push anything not yet in the catalog (SCHEMALATTICE_KEY)
  *   node schemalattice.mjs status     which of the manifest's URIs the catalog already holds
+ *   node schemalattice.mjs similar "<what the new record holds>"
+ *                                     before inventing a type: this platform's own schemas, then the
+ *                                     wider catalog, nearest first — advisory, never a gate
  *
  * Config reference: README.md next to this file (packages/lattice-client in the SchemaLattice repo).
  *
@@ -483,7 +486,7 @@ function annotations(config, baseDir, result) {
     if (!uri) throw new Error(`annotate: no concept ${a.concept}`);
     const file = resolve(baseDir, a.file);
     if (!files.has(file)) {
-      const text = readFileSync(file, 'utf8');
+      const text = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
       const doc = JSON.parse(text);
       if (JSON.stringify(doc, null, 2) + '\n' !== text) throw new Error(`annotate: ${a.file} is not 2-space JSON; refusing to reformat it`);
       files.set(file, { text, doc });
@@ -494,6 +497,134 @@ function annotations(config, baseDir, result) {
     node[keys.at(-1)] = uri;
   }
   return [...files].map(([file, { text, doc }]) => ({ file, before: text, after: JSON.stringify(doc, null, 2) + '\n' }));
+}
+
+// ─── Similar: has this platform already modelled it? ───────────────────────────────────────
+
+/** At/above this, a schema of the platform's own is worth reading before building another. */
+export const SIMILAR_LOOK = 0.7;
+/** Catalog results below this are noise for this purpose (discover's fork band starts here). */
+const SIMILAR_CATALOG_MIN = 0.65;
+const EMBED_BATCH = 64;
+const EMBED_MAX_CHARS = 2000;
+
+const humanize = (name) => name.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').replace(/^./, (c) => c.toUpperCase());
+
+/**
+ * What the platform already has: its declared concepts (from the generated file) plus, when the
+ * config names an `inventory` source, every other schema in its code — the undeclared ones are
+ * where a second version of an idea usually hides. Inventory entries may carry `description`
+ * (a doc comment) and `location`; without a description a schema is matched on its name and fields.
+ */
+export function inventoryOf(config, baseDir, generated) {
+  const items = [];
+  const declared = new Set();
+  for (const c of generated?.concepts ?? []) {
+    const entity = config.concepts?.find((d) => d.shortName === c.shortName)?.entity;
+    if (entity) declared.add(entity);
+    declared.add(c.shortName);
+    items.push({
+      name: c.shortName, label: c.args.prefLabel, description: c.args.definition, location: c.localLocation,
+      uri: c.uri, fields: (c.args.structure?.fields ?? []).map((f) => f.name),
+    });
+  }
+  if (config.inventory) {
+    const source = config.inventory;
+    const dict = source.format === 'command'
+      ? JSON.parse(execSync(source.run, { cwd: baseDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], maxBuffer: 64 << 20 }))
+      : source.format === 'dictionary' ? JSON.parse(readFileSync(resolve(baseDir, source.path), 'utf8')) : null;
+    const entries = dict
+      ? Object.entries(dict.entities ?? {}).map(([name, e]) => [name, e.fields ?? [], e.description, e.location])
+      : Object.entries(loadSource(source, baseDir)).map(([name, fields]) => [name, fields]);
+    for (const [name, fields, description, location] of entries) {
+      if (declared.has(name)) continue;
+      items.push({ name, label: humanize(name), description, location, fields: fields.map((f) => f.name) });
+    }
+  }
+  return items;
+}
+
+/** The text a schema is matched on: the shape the catalog indexes (label + definition). */
+export function similarText(item) {
+  const text = item.description ? `${item.label}. ${item.description}` : `${item.label}. Fields: ${item.fields.join(', ')}`;
+  return text.slice(0, EMBED_MAX_CHARS);
+}
+
+/**
+ * Vectors from the catalog's own model (POST /api/embed: stateless, nothing stored), cached on
+ * disk by text so a repeat run sends only the query and whatever changed.
+ */
+async function embedAll(base, texts, cachePath) {
+  const keyOf = (t) => createHash('sha256').update(t).digest('hex').slice(0, 32);
+  const cache = readJson(cachePath) ?? {};
+  let model = cache.model;
+  let vectors = cache.vectors ?? {};
+  const unique = [...new Set(texts)];
+  let missing = unique.filter((t) => !vectors[keyOf(t)]);
+  for (let i = 0; i < missing.length; i += EMBED_BATCH) {
+    const batch = missing.slice(i, i + EMBED_BATCH);
+    const res = await fetch(`${base}/api/embed`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ texts: batch }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(`${base}/api/embed: ${body.error?.message ?? res.status}`);
+    if (model && body.model !== model) {
+      // The catalog changed models: every cached vector is from the old one. Start over.
+      model = body.model; vectors = {}; missing = unique; i = -EMBED_BATCH;
+      continue;
+    }
+    model = body.model;
+    batch.forEach((t, k) => { vectors[keyOf(t)] = body.vectors[k]; });
+  }
+  // Keep only what this run used, so the cache tracks the schema instead of growing forever.
+  const used = Object.fromEntries(unique.map((t) => [keyOf(t), vectors[keyOf(t)]]));
+  mkdirSync(dirname(cachePath), { recursive: true });
+  writeFileSync(cachePath, JSON.stringify({ model, vectors: used }));
+  return texts.map((t) => used[keyOf(t)]);
+}
+
+const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
+
+/**
+ * The nearest of the platform's own schemas to a description, and the nearest catalog concepts
+ * from everyone else (discovered ephemerally: the query is not recorded). Advisory: scores rank,
+ * they never decide — two parts of one design score as high as one idea built twice.
+ */
+export async function similar(config, baseDir, generated, description, { limit = 8, catalog = true } = {}) {
+  const base = host(config);
+  const items = inventoryOf(config, baseDir, generated);
+  const cachePath = resolve(baseDir, 'node_modules/.cache/schemalattice/vectors.json');
+  const [queryVec, ...vecs] = await embedAll(base, [description, ...items.map(similarText)], cachePath);
+  const own = items.map((item, i) => ({ ...item, similarity: Number(dot(queryVec, vecs[i]).toFixed(3)) }))
+    .sort((a, b) => b.similarity - a.similarity).slice(0, limit);
+  let elsewhere = [];
+  if (catalog) {
+    const ownUris = new Set(items.map((i) => i.uri).filter(Boolean));
+    const q = new URLSearchParams({ description, limit: '25', ephemeral: 'true' });
+    const res = await fetch(`${base}/discover?${q}`);
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(`${base}/discover: ${body.error?.message ?? res.status}`);
+    elsewhere = (body.results ?? []).filter((r) => !ownUris.has(r.uri) && r.similarity >= SIMILAR_CATALOG_MIN).slice(0, 5)
+      .map((r) => ({ label: r.prefLabel, description: r.definitionExcerpt, context: r.context?.title, uri: r.uri, similarity: r.similarity }));
+  }
+  return { description, own, elsewhere, inventorySize: items.length };
+}
+
+function printSimilar(result, app) {
+  const out = [`Nearest in ${app} (${result.inventorySize} schemas). Scores rank; they do not decide — read the flagged ones.`];
+  for (const s of result.own) {
+    out.push(`${s.similarity >= SIMILAR_LOOK ? '▶' : ' '} ${s.similarity.toFixed(2)}  ${s.name}${s.location ? `  ${s.location}` : ''}`);
+    out.push(`        ${s.description ? s.description.slice(0, 160) : `(no doc comment) fields: ${s.fields.slice(0, 12).join(', ')}`}`);
+  }
+  const looks = result.own.filter((s) => s.similarity >= SIMILAR_LOOK);
+  out.push(looks.length
+    ? `\n▶ ${looks.length} at ${SIMILAR_LOOK}+: before adding a type, extend one of these or say in the PR why the new one is different.`
+    : `\nNothing here at ${SIMILAR_LOOK}+. Nearest is still worth a glance if it shares the subject.`);
+  if (result.elsewhere.length) {
+    out.push('\nElsewhere in the lattice:');
+    for (const r of result.elsewhere) out.push(`  ${r.similarity.toFixed(2)}  ${r.label} (${r.context})  ${r.uri}`);
+  }
+  console.log(out.join('\n'));
 }
 
 // ─── CLI ───────────────────────────────────────────────────────────────────────────────────
@@ -513,8 +644,8 @@ async function main(argv) {
     const annotated = annotations(config, baseDir, result);
     if (command === 'check') {
       const stale = [];
-      if (!existsSync(generatedPath) || readFileSync(generatedPath, 'utf8') !== generated) stale.push(generatedPath);
-      if (!existsSync(manifestPath) || readFileSync(manifestPath, 'utf8') !== manifest) stale.push(manifestPath);
+      if (!existsSync(generatedPath) || readFileSync(generatedPath, 'utf8').replace(/\r\n/g, '\n') !== generated) stale.push(generatedPath);
+      if (!existsSync(manifestPath) || readFileSync(manifestPath, 'utf8').replace(/\r\n/g, '\n') !== manifest) stale.push(manifestPath);
       for (const a of annotated) if (a.before !== a.after) stale.push(a.file);
       if (stale.length) {
         console.error(`schemalattice: stale — ${stale.join(', ')}.\nRun \`schemalattice generate\` and commit the result; the URIs it writes are the ones publish will mint.`);
@@ -533,16 +664,26 @@ async function main(argv) {
   if (command === 'publish') {
     if (!previous) throw new Error('nothing generated yet; run `schemalattice generate` first');
     const [generated] = render(config, generate(config, baseDir, previous), existingManifest);
-    if (readFileSync(generatedPath, 'utf8') !== generated) throw new Error('generated file is stale; run `schemalattice generate` and commit before publishing');
+    if (readFileSync(generatedPath, 'utf8').replace(/\r\n/g, '\n') !== generated) throw new Error('generated file is stale; run `schemalattice generate` and commit before publishing');
     const log = await publish(config, previous, existingManifest);
     return console.log(log.join('\n') || 'schemalattice: catalog is current');
+  }
+  if (command === 'similar') {
+    const words = argv.slice(1).filter((a, k, all) => !a.startsWith('--') && !['--config', '--limit'].includes(all[k - 1]));
+    const description = words.join(' ').trim();
+    if (!description) throw new Error('usage: schemalattice similar "<what the new record holds and why>" [--limit 8] [--json] [--no-catalog]');
+    const li = argv.indexOf('--limit');
+    const result = await similar(config, baseDir, previous, description, {
+      limit: li >= 0 ? Number(argv[li + 1]) : 8, catalog: !argv.includes('--no-catalog'),
+    });
+    return argv.includes('--json') ? console.log(JSON.stringify(result, null, 2)) : printSimilar(result, config.app?.name ?? 'this platform');
   }
   if (command === 'status') {
     const base = host(config);
     for (const c of previous?.concepts ?? []) console.log(`${(await exists(base, c.uri)) ? 'live   ' : 'pending'} ${c.shortName} ${c.uri}`);
     return;
   }
-  throw new Error(`unknown command ${command}; use generate | check | publish | status`);
+  throw new Error(`unknown command ${command}; use generate | check | publish | status | similar`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('schemalattice.mjs')) {

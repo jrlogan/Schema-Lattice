@@ -55,6 +55,7 @@ The HTTP surface:
 | `GET /s/{context}@{hash}` | resolve a context |
 | `GET /s/{context}@{hash}/concepts` | list a context's concepts |
 | `GET /discover?description=…&context=…&ephemeral=true` | discover without a POST body; `context` (repeatable or comma-separated slugs/URIs) restricts the search |
+| `POST /api/embed` | `{texts}` (≤64, ≤2000 chars each) → `{model, vectors}` from the catalog's embedder; stateless, nothing stored. Backs the client's `similar` command, which ranks a platform's own unpublished schemas. Counted in the discover rate bucket |
 | `GET /api/tools` | the tool table with schemas |
 | `POST /api/tools/{name}` | call any tool |
 | `POST /mcp` | MCP over streamable HTTP (stateless) |
